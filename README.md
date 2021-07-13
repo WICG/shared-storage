@@ -224,10 +224,8 @@ Revealing the time an operation takes to run could also leak information. We avo
 ## Possibilities for extension
 
 
-### Allowing a _k_-anonymous URL as output
-
-We could allow selecting a URL (and returning an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md)) without providing a list of possible urls. Additional restrictions would be required: e.g. _k_-anonymity or maximum _k_ bits of custom data in the URL, and having the URL loaded by a CDN trusted to perform no event-level logging. This may be useful for [TURTLEDOVE](https://github.com/WICG/turtledove) / [FLEDGE](https://github.com/WICG/turtledove/blob/master/FLEDGE.md).
-
+### Allowing noised data as output to the embedder
+We could consider allowing the worklet to send data directly to the embedder, with some local differential privacy guarantees. These might look similar to the differential privacy protections that we apply to aggregate reporting. 
 
 ### Interactions between worklets
 
