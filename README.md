@@ -96,8 +96,11 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Runs the operation previously registered by `registerXOperation()` with matching `name` and `X` (i.e. type). Does nothing if there’s no matching operation.
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `runOperation()` returns a promise that resolves into `undefined`.
-        *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) for the [web bundle](https://web.dev/web-bundles/) selected from `urls`.
-            *   `urls` must be a list of up to five [blob](https://w3c.github.io/FileAPI/#blob-section) URLs to web bundles that allow an entire document to be rendered without network access.
+        *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) for the URL selected from `urls`. 
+        *   `urls` is a list of URLs, with a max length of 8.
+                *    The first value in the list is the `default URL`. This is selected if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
+                *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
+        *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `runURLSelectionOperation`. This is to limit the rate of leakage of cross-site data learned from the runURLSelectionOperation to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a runURLSelectionOperation navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
     *   Options can include `data`, an arbitrary serializable object passed to the worklet.
 
 
@@ -110,7 +113,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Registers a shared storage worklet operation with the provided `name`.
     *   `operation` should be a class with an async `run()` method.
         *   For `registerOperation()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
-        *   For `registerURLSelectionOperation()`, `run()` should take `data` and `urls` as arguments and return the index of the [web bundle](https://web.dev/web-bundles/) selected from `urls`. Any invalid return value is replaced with a [default return value](#default).
+        *   For `registerURLSelectionOperation()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
 
 ### In the worklet, during an operation
@@ -190,8 +193,7 @@ This API is dependent on the following other proposals:
 
 
 
-*   [Fenced frames](https://github.com/shivanigithub/fenced-frame/) (and the associated concept of [opaque URLs](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md)) to render the chosen [web bundle](https://web.dev/web-bundles/) without leaking the choice to the top-level document.
-    *   Fenced frames are additionally dependent on extensions to web bundles that would allow an entire document to be rendered without network access.
+*   [Fenced frames](https://github.com/shivanigithub/fenced-frame/) (and the associated concept of [opaque URLs](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md)) to render the chosenURL without leaking the choice to the top-level document.
 *   Aggregate reporting API to send reports for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/SERVICE.md). Details and limitations are speculative and will be explored in a separate explainer.
 
 
@@ -202,7 +204,7 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of web bundles. The chosen bundle is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. However, a leak of up to log(_n_) bits (where _n_ is the size of the list) is possible when the fenced frame is clicked, as a navigation that embeds the selected URL may occur.
+The worklet selects from a small list of URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. However, a leak of up to log(_n_) bits (where _n_ is the size of the list) is possible when the fenced frame is clicked, as a navigation that embeds the selected URL may occur. Therefore a budget will be enforced to limit the rate of this leakage. See the API description for more detail.
 
 
 ### Aggregate reporting
@@ -222,7 +224,7 @@ When a URL selection operation doesn’t return a valid output (including throwi
 
 ### Preventing timing attacks
 
-Revealing the time an operation takes to run could also leak information. We avoid this by having `runXOperation()` queue the operation and then immediately resolve the returned promise. For URL selection operations, the promise resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) that is mapped to the selected web bundle once the operation completes. Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
+Revealing the time an operation takes to run could also leak information. We avoid this by having `runXOperation()` queue the operation and then immediately resolve the returned promise. For URL selection operations, the promise resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) that is mapped to the selected URL once the operation completes. Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
 
 
 ## Possibilities for extension
