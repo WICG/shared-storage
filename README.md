@@ -204,7 +204,13 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. However, a leak of up to log(_n_) bits (where _n_ is the size of the list) is possible when the fenced frame is clicked, as a navigation that embeds the selected URL may occur. Therefore a budget will be enforced to limit the rate of this leakage. See the API description for more detail.
+The worklet selects from a small list of (up to 8) URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the runURLSelectionOperation() will return the default (0th index) URL.
+
+#### Budget Details
+The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further runURLSelectionOperation()s will return the default value until some budget is freed up.
+
+#### K-anonymity Details
+Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
 
 
 ### Aggregate reporting
