@@ -55,7 +55,7 @@ registerURLSelectionOperation("select-url-for-experiment", SelectURLOperation);
 ```
 
 
-While the worklet script outputs the chosen index for `urls`, note that the browser process converts the index into a non-deterministic [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md), which can only be read or rendered in a [fenced frame](https://github.com/shivanigithub/fenced-frame). Because of this, the `a.example` iframe cannot itself work out which ad was chosen. Yet, it is still able to customize the ad it rendered based on this protected information.
+While the worklet script outputs the chosen index for `urls`, note that the browser process converts the index into a non-deterministic [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md), which can only be read or rendered in a [fenced frame](https://github.com/shivanigithub/fenced-frame). Because of this, the `a.example` iframe cannot itself work out which ad was chosen. Yet, it is still able to customize the ad it rendered based on this protected information.
 
 
 ## Goals
@@ -96,7 +96,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Runs the operation previously registered by `registerXOperation()` with matching `name` and `X` (i.e. type). Does nothing if there’s no matching operation.
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `runOperation()` returns a promise that resolves into `undefined`.
-        *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) for the URL selected from `urls`. 
+        *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
             *   `urls` is a list of URLs, with a max length of 8.
                 *    The first value in the list is the `default URL`. This is selected if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
