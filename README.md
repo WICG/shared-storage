@@ -91,6 +91,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 *   `window.sharedStorage.worklet.addModule(url)`
     *   Loads and adds the module to the worklet (i.e. for registering operations).
     *   Operations defined by one context are not invokable by any other contexts.
+    *   Due to concerns of poisoning and using up the origin's budget ([issue](https://github.com/pythagoraskitty/shared-storage/issues/2)), the shared storage script's origin must match that of the context that created it. Redirects are also not allowed. 
 *   `window.sharedStorage.runOperation(name, options)`,  \
 `window.sharedStorage.runURLSelectionOperation(name, urls, options)`, …
     *   Runs the operation previously registered by `registerXOperation()` with matching `name` and `X` (i.e. type). Does nothing if there’s no matching operation.
