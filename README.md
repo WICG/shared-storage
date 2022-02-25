@@ -1,6 +1,6 @@
 # Shared Storage API Explainer
 
-Authors: Alex Turner, Camillia Smith Barnes, Josh Karlin
+Authors: Alex Turner, Camillia Smith Barnes, Josh Karlin, Yao Xiao
 
 
 ## Introduction
@@ -275,5 +275,4 @@ Michael Tomaine,
 David Turner,
 David Van Cleve,
 Zheng Wei,
-Mike West,
-Yao Xiao.
+Mike West.
