@@ -99,7 +99,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
         *   `runOperation()` returns a promise that resolves into `undefined`.
         *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
             *   `urls` is a list of URLs, with a max length of 8.
-                *    The first value in the list is the `default URL`. This is selected if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
+                *    The first value in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `runURLSelectionOperation`. This is to limit the rate of leakage of cross-site data learned from the runURLSelectionOperation to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a runURLSelectionOperation navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
     *   Options can include `data`, an arbitrary serializable object passed to the worklet.
