@@ -127,9 +127,9 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Returns a promise that resolves into the `n`th key or the number of keys, respectively.
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
-*   A function to construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/SERVICE.md), e.g. `createAndSendAggregatableReport()`
+*   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
+    *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
-    *   This functionality, including any limits imposed by the user agent, is somewhat speculative and will be detailed in a separate Aggregate Reporting API explainer.
 *   Unrestricted access to identifying operations that would normally use up part of a page’s [privacy budget](http://github.com/bslassey/privacy-budget), e.g. `navigator.userAgentData.getHighEntropyValues()`
 
 
@@ -140,7 +140,7 @@ The following describe example use cases for Shared Storage and we welcome feedb
 
 ### Cross-site reach measurement
 
-Measuring the number of users that have seen an ad from a given campaign.
+Measuring the number of users that have seen an ad.
 
 
 In the ad’s iframe:
@@ -152,7 +152,7 @@ window.sharedStorage.set("id", generateSeed(), {ignoreIfPresent: true});
 await window.sharedStorage.worklet.addModule("reach.js");
 await window.sharedStorage.runOperation("send-reach-report", {
   // optional one-time context
-  data: {"campaign-id": "123", "favorite-color": "blue"}});
+  data: {"favorite-color": "blue"}});
 ```
 
 
@@ -168,10 +168,8 @@ class SendReachReportOperation {
     }
 
     // The user agent will send the report to a default endpoint after a delay.
-    this.createAndSendAggregatableReport({
-      operation: "count-distinct",  // i.e. count the number of unique values
-      key: "campaign-id=" + data["campaign-id"],
-      value: (await this.sharedStorage.get("id"))});
+    privateAggregation.sendCountDistinctReport({
+      bucket: (await this.sharedStorage.get("id"))});
   }
 }
 registerOperation("send-reach-report", SendReachReportOperation);
@@ -195,7 +193,7 @@ This API is dependent on the following other proposals:
 
 
 *   [Fenced frames](https://github.com/shivanigithub/fenced-frame/) (and the associated concept of [opaque URLs](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md)) to render the chosenURL without leaking the choice to the top-level document.
-*   Aggregate reporting API to send reports for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/SERVICE.md). Details and limitations are speculative and will be explored in a separate explainer.
+*   [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api) to send aggregatable reports for processing in the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md). Details and limitations are explored in the linked explainer.
 
 
 ## Output gates and privacy
@@ -214,9 +212,9 @@ The rate of leakage of cross-site data need to be constrained. Therefore, we pro
 Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
 
 
-### Aggregate reporting
+### Private aggregation
 
-Arbitrary cross-site data can be embedded into any report, but that data is only readable via the aggregation service. Private aggregation protects the data as long as the number of reports aggregated is low enough. So, we must limit how many reports can be sent and to which URLs they may be sent (to prevent link decoration). The details of these limits are speculative and will be described in a separate Aggregate Reporting API explainer.
+Arbitrary cross-site data can be embedded into any aggregatable report, but that data is only readable via the aggregation service. Private aggregation protects the data as long as the number of reports aggregated is low enough. So, we must limit how many reports can be sent and to which URLs they may be sent (to prevent link decoration). The details of these limits are explored in the API's [explainer](https://github.com/alexmturner/private-aggregation-api#privacy-and-security).
 
 
 ### Choice of output type
@@ -238,7 +236,7 @@ Revealing the time an operation takes to run could also leak information. We avo
 
 
 ### Allowing noised data as output to the embedder
-We could consider allowing the worklet to send data directly to the embedder, with some local differential privacy guarantees. These might look similar to the differential privacy protections that we apply to aggregate reporting. 
+We could consider allowing the worklet to send data directly to the embedder, with some local differential privacy guarantees. These might look similar to the differential privacy protections that we apply in the Private Aggregation API. 
 
 ### Interactions between worklets
 
