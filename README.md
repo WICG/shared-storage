@@ -162,8 +162,10 @@ Worklet script (i.e. `reach.js`):
 ```js
 class SendReachReportOperation {
   async function run(data) {
-    // A toy model that only computes reach for users who haven't previously had a report sent.
-    if (await this.sharedStorage.get("report-sent") != "yes") {
+    const report_sent_for_campaign = "report-sent-" + data["campaign-id"];
+    
+    // A toy model that only computes reach for users who haven't previously had a report sent for this campaign.
+    if (await this.sharedStorage.get(report_sent_for_campaign) != "yes") {
       return;  // Don't send a report.
     }
 
@@ -172,7 +174,7 @@ class SendReachReportOperation {
       bucket: (await this.sharedStorage.get("id")),
       key: data["campaign-id"]});
       
-    await this.sharedStorage.set("report-sent", "yes");
+    await this.sharedStorage.set(report_sent_for_campaign, "yes");
   }
 }
 registerOperation("send-reach-report", SendReachReportOperation);
