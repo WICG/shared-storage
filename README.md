@@ -147,8 +147,6 @@ In the ad’s iframe:
 
 
 ```js
-function generateSeed() { … }
-window.sharedStorage.set("id", generateSeed(), {ignoreIfPresent: true});
 await window.sharedStorage.worklet.addModule("reach.js");
 await window.sharedStorage.runOperation("send-reach-report", {
   // optional one-time context
@@ -164,15 +162,14 @@ class SendReachReportOperation {
   async function run(data) {
     const report_sent_for_campaign = "report-sent-" + data["campaign-id"];
     
-    // A toy model that only computes reach for users who haven't previously had a report sent for this campaign.
+    // Compute reach only for users who haven't previously had a report sent for this campaign.
     if (await this.sharedStorage.get(report_sent_for_campaign) != "yes") {
       return;  // Don't send a report.
     }
 
     // The user agent will send the report to a default endpoint after a delay.
     privateAggregation.sendHistogramReport({
-      bucket: (await this.sharedStorage.get("id")),
-      key: data["campaign-id"]});
+      bucket: data["campaign-id"]});
       
     await this.sharedStorage.set(report_sent_for_campaign, "yes");
   }
