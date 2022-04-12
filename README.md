@@ -152,7 +152,7 @@ window.sharedStorage.set("id", generateSeed(), {ignoreIfPresent: true});
 await window.sharedStorage.worklet.addModule("reach.js");
 await window.sharedStorage.runOperation("send-reach-report", {
   // optional one-time context
-  data: {"favorite-color": "blue"}});
+  data: {"campaign-id": "1234"}});
 ```
 
 
@@ -162,14 +162,17 @@ Worklet script (i.e. `reach.js`):
 ```js
 class SendReachReportOperation {
   async function run(data) {
-    // A toy model that only computes reach for users whose favorite color is red.
-    if (data["favorite-color"] != "red") {
+    // A toy model that only computes reach for users who haven't previously had a report sent.
+    if (await this.sharedStorage.get("report-sent") != "yes") {
       return;  // Don't send a report.
     }
 
     // The user agent will send the report to a default endpoint after a delay.
-    privateAggregation.sendCountDistinctReport({
-      bucket: (await this.sharedStorage.get("id"))});
+    privateAggregation.sendHistogramReport({
+      bucket: (await this.sharedStorage.get("id")),
+      key: data["campaign-id"]});
+      
+    await this.sharedStorage.set("report-sent", "yes");
   }
 }
 registerOperation("send-reach-report", SendReachReportOperation);
