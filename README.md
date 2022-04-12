@@ -147,12 +147,10 @@ In the ad’s iframe:
 
 
 ```js
-function generateSeed() { … }
-window.sharedStorage.set("id", generateSeed(), {ignoreIfPresent: true});
 await window.sharedStorage.worklet.addModule("reach.js");
 await window.sharedStorage.runOperation("send-reach-report", {
   // optional one-time context
-  data: {"favorite-color": "blue"}});
+  data: {"campaign-id": "1234"}});
 ```
 
 
@@ -162,14 +160,22 @@ Worklet script (i.e. `reach.js`):
 ```js
 class SendReachReportOperation {
   async function run(data) {
-    // A toy model that only computes reach for users whose favorite color is red.
-    if (data["favorite-color"] != "red") {
+    const report_sent_for_campaign = "report-sent-" + data["campaign-id"];
+    
+    // Compute reach only for users who haven't previously had a report sent for this campaign.
+    // Even users who had a report for this campaign triggered by a site other than the current one will 
+    // be skipped.
+    if (await this.sharedStorage.get(report_sent_for_campaign) != "yes") {
       return;  // Don't send a report.
     }
 
     // The user agent will send the report to a default endpoint after a delay.
-    privateAggregation.sendCountDistinctReport({
-      bucket: (await this.sharedStorage.get("id"))});
+    privateAggregation.sendHistogramReport({
+      bucket: data["campaign-id"];
+      value: 128,  // A predetermined fixed value; see Private Aggregation API explainer: Scaling values.
+      });
+      
+    await this.sharedStorage.set(report_sent_for_campaign, "yes");
   }
 }
 registerOperation("send-reach-report", SendReachReportOperation);
