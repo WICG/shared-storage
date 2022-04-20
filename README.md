@@ -163,9 +163,9 @@ class SendReachReportOperation {
     const report_sent_for_campaign = "report-sent-" + data["campaign-id"];
     
     // Compute reach only for users who haven't previously had a report sent for this campaign.
-    // Even users who had a report for this campaign triggered by a site other than the current one will 
+    // Users who had a report for this campaign triggered by a site other than the current one will 
     // be skipped.
-    if (await this.sharedStorage.get(report_sent_for_campaign) != "yes") {
+    if (await this.sharedStorage.get(report_sent_for_campaign) === "yes") {
       return;  // Don't send a report.
     }
 
