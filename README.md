@@ -209,10 +209,11 @@ class SelectURLOperation {
     let count = await this.sharedStorage.get(data["campaign-id"]);
     
     // If under cap, return the desired ad.
-    if (count < 3)
+    if (count < 3) {
       result = 1;
+      this.sharedStorage.set(data["campaign-id"], count + 1);
+    }
     
-    this.sharedStorage.set(data["campaign-id"], count + 1);
     return result;
 }
 registerURLSelectionOperation("frequency-cap", FrequencyCapOperation);
