@@ -212,7 +212,7 @@ class SelectURLOperation {
     if (count < 3)
       result = 1;
     
-    this.sharedStorage.set(data["campaigh-id"], count + 1);
+    this.sharedStorage.set(data["campaign-id"], count + 1);
     return result;
 }
 registerURLSelectionOperation("frequency-cap", FrequencyCapOperation);
