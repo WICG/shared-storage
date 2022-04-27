@@ -137,7 +137,6 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 The following describe example use cases for Shared Storage and we welcome feedback on additional use cases that Shared Storage may help address.
 
-
 ### Cross-site reach measurement
 
 Measuring the number of users that have seen an ad.
@@ -152,7 +151,6 @@ await window.sharedStorage.runOperation("send-reach-report", {
   // optional one-time context
   data: {"campaign-id": "1234"}});
 ```
-
 
 Worklet script (i.e. `reach.js`):
 
@@ -181,6 +179,46 @@ class SendReachReportOperation {
 registerOperation("send-reach-report", SendReachReportOperation);
 ```
 
+### Frequency Capping
+
+If an an ad creative has been shown to the user too many times, fall back to a default option.
+
+In the ad-tech's iframe:
+
+```js
+// Fetches two ads in a list. The second is the proposed ad to display, and the first 
+// is the fallback in case the second has been shown to this user too many times.
+var ads = await adtech.GetAds();
+
+await window.sharedStorage.worklet.addModule("frequency_cap.js");
+var opaqueURL = await window.sharedStorage.runURLSelectionOperation(
+  "frequency-cap",
+  ads.urls,
+  {data: {campaignID: ads.campaignId}});
+document.getElementById("my-fenced-frame").src = opaqueURL;
+```
+
+In the worklet script (`frequency_cap.js`):
+
+```js
+class SelectURLOperation {
+  async function run(data, urls) {
+    // By default, return the default url (0th index). 
+    let result = 0;
+    
+    let count = await this.sharedStorage.get(data["campaign-id"]);
+    count = count === "" ? 0 : parseInt(count);   
+    
+    // If under cap, return the desired ad.
+    if (count < 3) {
+      result = 1;
+      this.sharedStorage.set(data["campaign-id"], (count + 1).toString());
+    }
+    
+    return result;
+}
+registerURLSelectionOperation("frequency-cap", FrequencyCapOperation);
+```
 
 
 ### _K_+ frequency measurement
