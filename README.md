@@ -207,11 +207,12 @@ class SelectURLOperation {
     let result = 0;
     
     let count = await this.sharedStorage.get(data["campaign-id"]);
+    count = count === "" ? 0 : parseInt(count);   
     
     // If under cap, return the desired ad.
     if (count < 3) {
       result = 1;
-      this.sharedStorage.set(data["campaign-id"], count + 1);
+      this.sharedStorage.set(data["campaign-id"], (count + 1).toString());
     }
     
     return result;
