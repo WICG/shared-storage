@@ -28,7 +28,7 @@ window.sharedStorage.set("seed", generateSeed(), {ignoreIfPresent: true});
 
 // opaqueURL will be of the form urn:uuid and will be created by privileged code to
 // avoid leaking the chosen input URL back to the document.
-var opaqueURL = await window.sharedStorage.runURLSelectionOperation(
+var opaqueURL = await window.sharedStorage.selectURL(
   "select-url-for-experiment",
   ["blob:https://a.example/123…",
    "blob:https://b.example/abc…",
@@ -51,7 +51,7 @@ class SelectURLOperation {
     return hash(data["name"], seed) % urls.length;
   }
 }
-registerURLSelectionOperation("select-url-for-experiment", SelectURLOperation);
+register("select-url-for-experiment", SelectURLOperation);
 ```
 
 
@@ -92,16 +92,16 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Loads and adds the module to the worklet (i.e. for registering operations).
     *   Operations defined by one context are not invokable by any other contexts.
     *   Due to concerns of poisoning and using up the origin's budget ([issue](https://github.com/pythagoraskitty/shared-storage/issues/2)), the shared storage script's origin must match that of the context that created it. Redirects are also not allowed. 
-*   `window.sharedStorage.runOperation(name, options)`,  \
-`window.sharedStorage.runURLSelectionOperation(name, urls, options)`, …
-    *   Runs the operation previously registered by `registerXOperation()` with matching `name` and `X` (i.e. type). Does nothing if there’s no matching operation.
+*   `window.sharedStorage.run(name, options)`,  \
+`window.sharedStorage.selectURL(name, urls, options)`, …
+    *   Runs the operation previously registered by `register()` with matching `name`. Does nothing if there’s no matching operation.
     *   Each operation returns a promise that resolves when the operation is queued:
-        *   `runOperation()` returns a promise that resolves into `undefined`.
-        *   `runURLSelectionOperation()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
+        *   `run()` returns a promise that resolves into `undefined`.
+        *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
             *   `urls` is a list of URLs, with a max length of 8.
                 *    The first value in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
-            *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `runURLSelectionOperation`. This is to limit the rate of leakage of cross-site data learned from the runURLSelectionOperation to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a runURLSelectionOperation navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
+            *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a selectURL navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
     *   Options can include `data`, an arbitrary serializable object passed to the worklet.
 
 
@@ -109,12 +109,11 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 
 
-*   `registerOperation(name, operation)`,  \
-`registerURLSelectionOperation(name, operation)`, …
+*   `register(name, operation)`
     *   Registers a shared storage worklet operation with the provided `name`.
     *   `operation` should be a class with an async `run()` method.
-        *   For `registerOperation()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
-        *   For `registerURLSelectionOperation()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
+        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
+        *   For the operation to work with `sharedStorage.run()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
 
 ### In the worklet, during an operation
@@ -147,7 +146,7 @@ In the ad’s iframe:
 
 ```js
 await window.sharedStorage.worklet.addModule("reach.js");
-await window.sharedStorage.runOperation("send-reach-report", {
+await window.sharedStorage.run("send-reach-report", {
   // optional one-time context
   data: {"campaign-id": "1234"}});
 ```
@@ -176,7 +175,7 @@ class SendReachReportOperation {
     await this.sharedStorage.set(report_sent_for_campaign, "yes");
   }
 }
-registerOperation("send-reach-report", SendReachReportOperation);
+register("send-reach-report", SendReachReportOperation);
 ```
 
 ### Frequency Capping
@@ -191,7 +190,7 @@ In the ad-tech's iframe:
 var ads = await adtech.GetAds();
 
 await window.sharedStorage.worklet.addModule("frequency_cap.js");
-var opaqueURL = await window.sharedStorage.runURLSelectionOperation(
+var opaqueURL = await window.sharedStorage.selectURL(
   "frequency-cap",
   ads.urls,
   {data: {campaignID: ads.campaignId}});
@@ -201,7 +200,7 @@ document.getElementById("my-fenced-frame").src = opaqueURL;
 In the worklet script (`frequency_cap.js`):
 
 ```js
-class SelectURLOperation {
+class FrequencyCapOperation {
   async function run(data, urls) {
     // By default, return the default url (0th index). 
     let result = 0;
@@ -217,7 +216,7 @@ class SelectURLOperation {
     
     return result;
 }
-registerURLSelectionOperation("frequency-cap", FrequencyCapOperation);
+register("frequency-cap", FrequencyCapOperation);
 ```
 
 
@@ -247,12 +246,12 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of (up to 8) URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the runURLSelectionOperation() will return the default (0th index) URL.
+The worklet selects from a small list of (up to 8) URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
 
-runURLSelectionOperation() is disallowed in Fenced Frame. This is to prevent the potential leakage where lots of nested fenced frames are created from runURLSelectionOperation(), and then an user activation could let them all navigate to a destination page and leak log(num urls) bits each.
+selectURL() is disallowed in Fenced Frame. This is to prevent the potential leakage where lots of nested fenced frames are created from selectURL(), and then an user activation could let them all navigate to a destination page and leak log2(num urls) bits each.
 
 #### Budget Details
-The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further runURLSelectionOperation()s will return the default value until some budget is freed up.
+The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value until some budget is freed up.
 
 #### K-anonymity Details
 Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
@@ -265,17 +264,17 @@ Arbitrary cross-site data can be embedded into any aggregatable report, but that
 
 ### Choice of output type
 
-The output type when running an operation must be pre-specified to prevent data leakage through the choice. This is enforced with separate functions for each output type, i.e. varying `X` in `run`/`registerXOperation()`.
+The output type when running an operation must be pre-specified to prevent data leakage through the choice. This is enforced with separate functions for each output type, i.e. `sharedStorage.selectURL()` and `sharedStorage.run()`.
 
 
 ### <a name = "default"></a>Default values
 
-When a URL selection operation doesn’t return a valid output (including throwing an error), the user agent returns a default value, e.g. an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) to “about:blank”, to prevent information leakage. For operations registered by `registerOperation()`, however, there is no output, so any return value is ignored.
+When `sharedStorage.selectURL()` doesn’t return a valid output (including throwing an error), the user agent returns the first default URL, to prevent information leakage. For `sharedStorage.run()`, there is no output, so any return value is ignored.
 
 
 ### Preventing timing attacks
 
-Revealing the time an operation takes to run could also leak information. We avoid this by having `runXOperation()` queue the operation and then immediately resolve the returned promise. For URL selection operations, the promise resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) that is mapped to the selected URL once the operation completes. Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
+Revealing the time an operation takes to run could also leak information. We avoid this by having `sharedStorage.run()` queue the operation and then immediately resolve the returned promise. For `sharedStorage.selectURL()`, the promise resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) that is mapped to the selected URL once the operation completes. Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
 
 
 ## Possibilities for extension
