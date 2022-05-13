@@ -112,8 +112,8 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 *   `register(name, operation)`
     *   Registers a shared storage worklet operation with the provided `name`.
     *   `operation` should be a class with an async `run()` method.
-        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
-        *   For the operation to work with `sharedStorage.run()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
+        *   For the operation to work with `sharedStorage.run()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
+        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
 
 ### In the worklet, during an operation
