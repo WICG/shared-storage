@@ -30,9 +30,9 @@ window.sharedStorage.set("seed", generateSeed(), {ignoreIfPresent: true});
 // avoid leaking the chosen input URL back to the document.
 var opaqueURL = await window.sharedStorage.selectURL(
   "select-url-for-experiment",
-  [{source_url: "blob:https://a.example/123…", url_for_reports: "https://report.example/1...", event: "click"},
-   {source_url: "blob:https://b.example/abc…", url_for_reports: "https://report.example/a...", event: "click"},
-   {source_url: "blob:https://c.example/789…"}],
+  [{url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
+   {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
+   {url: "blob:https://c.example/789…"}],
   {data: {name: "experimentA"}});
 
 document.getElementById("my-fenced-frame").src = opaqueURL;
@@ -98,7 +98,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
         *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
-            *   `urls` is a list of dictionaries, each containing a candidate URL `source_url` and optional reporting metadata (a URL `url_for_reports` and a string `event`), with a max length of 8.
+            *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a string `report_event` and a URL `report_url`), with a max length of 8.
                 *    The first value in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
