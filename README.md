@@ -30,9 +30,9 @@ window.sharedStorage.set("seed", generateSeed(), {ignoreIfPresent: true});
 // avoid leaking the chosen input URL back to the document.
 var opaqueURL = await window.sharedStorage.selectURL(
   "select-url-for-experiment",
-  ["blob:https://a.example/123…",
-   "blob:https://b.example/abc…",
-   "blob:https://c.example/789…"],
+  [{url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
+   {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
+   {url: "blob:https://c.example/789…"}],
   {data: {name: "experimentA"}});
 
 document.getElementById("my-fenced-frame").src = opaqueURL;
@@ -98,9 +98,10 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
         *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
-            *   `urls` is a list of URLs, with a max length of 8.
+            *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a string `report_event` and a URL `report_url`), with a max length of 8.
                 *    The first value in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
+                *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a selectURL navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
     *   Options can include `data`, an arbitrary serializable object passed to the worklet.
 
