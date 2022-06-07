@@ -9,6 +9,10 @@ In order to prevent cross-site user tracking, browsers are [partitioning](https:
 
 The idea is to provide a storage API (named Shared Storage) that is intended to be unpartitioned. Origins can write to it from their own contexts on any page. To prevent cross-site tracking of users,  data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, we hope to design and add additional gates.
 
+### Demonstration
+
+You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (currently in canary and dev channels as of June 7th 2022).
+
 
 ### Simple example: Consistent A/B experiments across sites
 
