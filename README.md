@@ -302,7 +302,7 @@ We could support event handlers in future iterations. For example, a handler cou
 sharedStorage.addEventListener(
   "key" /* event_type */,
   "operation-to-run" /* operation_name */,
-  {key: "example-key", actions: {"set", "append"}} /* options */);
+  {key: "example-key", actions: ["set", "append"]} /* options */);
 ```
 
 
