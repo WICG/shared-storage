@@ -9,6 +9,10 @@ In order to prevent cross-site user tracking, browsers are [partitioning](https:
 
 The idea is to provide a storage API (named Shared Storage) that is intended to be unpartitioned. Origins can write to it from their own contexts on any page. To prevent cross-site tracking of users,  data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, we hope to design and add additional gates.
 
+### Demonstration
+
+You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (currently in canary and dev channels as of June 7th 2022).
+
 
 ### Simple example: Consistent A/B experiments across sites
 
@@ -28,12 +32,13 @@ window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
 // opaqueURL will be of the form urn:uuid and will be created by privileged code to
 // avoid leaking the chosen input URL back to the document.
+
 const opaqueURL = await window.sharedStorage.selectURL(
   'select-url-for-experiment',
   [
-    'blob:https://a.example/123…', 
-    'blob:https://b.example/abc…', 
-    'blob:https://c.example/789…'
+    {url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
+    {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
+    {url: "blob:https://c.example/789…"}
   ],
   { data: { name: 'experimentA' } }
 );
@@ -101,9 +106,10 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
         *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
-            *   `urls` is a list of URLs, with a max length of 8.
-                *    The first value in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
+            *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a string `report_event` and a URL `report_url`), with a max length of 8.
+                *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
+                *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame built with an opaque URL output from a selectURL navigates the top frame, log(|`urls`|) bits will be deducted from the budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)` 
     *   Options can include `data`, an arbitrary serializable object passed to the worklet.
 
@@ -251,9 +257,9 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of (up to 8) URLs. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
+The worklet selects from a small list of (up to 8) URLs, each in its own dictionary with optional reporting metadata. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
 
-selectURL() is disallowed in Fenced Frame. This is to prevent the potential leakage where lots of nested fenced frames are created from selectURL(), and then an user activation could let them all navigate to a destination page and leak log2(num urls) bits each.
+selectURL() is disallowed in Fenced Frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame).
 
 #### Budget Details
 The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value until some budget is freed up.
