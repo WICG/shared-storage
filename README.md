@@ -25,21 +25,25 @@ In an `a.example` document:
 
 ```js
 function generateSeed() { … }
-await window.sharedStorage.worklet.addModule("experiment.js");
+await window.sharedStorage.worklet.addModule('experiment.js');
 
 // Only write a cross-site seed to a.example's storage if there isn't one yet.
-window.sharedStorage.set("seed", generateSeed(), {ignoreIfPresent: true});
+window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
 // opaqueURL will be of the form urn:uuid and will be created by privileged code to
 // avoid leaking the chosen input URL back to the document.
-var opaqueURL = await window.sharedStorage.selectURL(
-  "select-url-for-experiment",
-  [{url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
-   {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
-   {url: "blob:https://c.example/789…"}],
-  {data: {name: "experimentA"}});
 
-document.getElementById("my-fenced-frame").src = opaqueURL;
+const opaqueURL = await window.sharedStorage.selectURL(
+  'select-url-for-experiment',
+  [
+    {url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
+    {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
+    {url: "blob:https://c.example/789…"}
+  ],
+  { data: { name: 'experimentA' } }
+);
+
+document.getElementById('my-fenced-frame').src = opaqueURL;
 ```
 
 
@@ -48,14 +52,14 @@ Worklet script (i.e. `experiment.js`):
 
 ```js
 class SelectURLOperation {
-  function hash(experimentName, seed) { … }
+  hash(experimentName, seed) { … }
 
-  async function run(data, urls) {
-    let seed = await this.sharedStorage.get("seed");
-    return hash(data["name"], seed) % urls.length;
+  async run(data, urls) {
+    const seed = await this.sharedStorage.get('seed');
+    return hash(data.name, seed) % urls.length;
   }
 }
-register("select-url-for-experiment", SelectURLOperation);
+register('select-url-for-experiment', SelectURLOperation);
 ```
 
 
@@ -150,10 +154,11 @@ In the ad’s iframe:
 
 
 ```js
-await window.sharedStorage.worklet.addModule("reach.js");
-await window.sharedStorage.run("send-reach-report", {
+await window.sharedStorage.worklet.addModule('reach.js');
+await window.sharedStorage.run('send-reach-report', {
   // optional one-time context
-  data: {"campaign-id": "1234"}});
+  data: { campaignId: '1234' },
+});
 ```
 
 Worklet script (i.e. `reach.js`):
@@ -161,67 +166,68 @@ Worklet script (i.e. `reach.js`):
 
 ```js
 class SendReachReportOperation {
-  async function run(data) {
-    const report_sent_for_campaign = "report-sent-" + data["campaign-id"];
-    
+  async run(data) {
+    const reportSentForCampaign = `report-sent-${data.campaignId}`;
+
     // Compute reach only for users who haven't previously had a report sent for this campaign.
-    // Users who had a report for this campaign triggered by a site other than the current one will 
+    // Users who had a report for this campaign triggered by a site other than the current one will
     // be skipped.
-    if (await this.sharedStorage.get(report_sent_for_campaign) === "yes") {
-      return;  // Don't send a report.
+    if (await this.sharedStorage.get(reportSentForCampaign) === 'yes') {
+      return; // Don't send a report.
     }
 
     // The user agent will send the report to a default endpoint after a delay.
     privateAggregation.sendHistogramReport({
-      bucket: data["campaign-id"];
-      value: 128,  // A predetermined fixed value; see Private Aggregation API explainer: Scaling values.
-      });
-      
-    await this.sharedStorage.set(report_sent_for_campaign, "yes");
+      bucket: data.campaignId,
+      value: 128, // A predetermined fixed value; see Private Aggregation API explainer: Scaling values.
+    });
+
+    await this.sharedStorage.set(reportSentForCampaign, 'yes');
   }
 }
-register("send-reach-report", SendReachReportOperation);
+register('send-reach-report', SendReachReportOperation);
 ```
 
 ### Frequency Capping
 
-If an an ad creative has been shown to the user too many times, fall back to a default option.
+If an ad creative has been shown to the user too many times, fall back to a default option.
 
-In the ad-tech's iframe:
+In the advertiser's iframe:
 
 ```js
 // Fetches two ads in a list. The second is the proposed ad to display, and the first 
 // is the fallback in case the second has been shown to this user too many times.
-var ads = await adtech.GetAds();
+const ads = await advertiser.getAds();
 
-await window.sharedStorage.worklet.addModule("frequency_cap.js");
-var opaqueURL = await window.sharedStorage.selectURL(
-  "frequency-cap",
-  ads.urls,
-  {data: {campaignID: ads.campaignId}});
-document.getElementById("my-fenced-frame").src = opaqueURL;
+await window.sharedStorage.worklet.addModule('frequency-cap.js');
+const opaqueURL = await window.sharedStorage.selectURL(
+  'frequency-cap', 
+  ads.urls, 
+  { data: { campaignId: ads.campaignId }});
+document.getElementById('my-fenced-frame').src = opaqueURL;
 ```
 
-In the worklet script (`frequency_cap.js`):
+In the worklet script (`frequency-cap.js`):
 
 ```js
 class FrequencyCapOperation {
-  async function run(data, urls) {
-    // By default, return the default url (0th index). 
-    let result = 0;
-    
-    let count = await this.sharedStorage.get(data["campaign-id"]);
-    count = count === "" ? 0 : parseInt(count);   
-    
+  async run(data, urls) {
+    // By default, return the default url (0th index).
+    let index = 0;
+
+    let count = await this.sharedStorage.get(data.campaignId);
+    count = count ? parseInt(count) : 0;
+
     // If under cap, return the desired ad.
     if (count < 3) {
-      result = 1;
-      this.sharedStorage.set(data["campaign-id"], (count + 1).toString());
+      index = 1;
+      this.sharedStorage.set(data.campaignId, (count + 1).toString());
     }
-    
-    return result;
+
+    return index;
+  }
 }
-register("frequency-cap", FrequencyCapOperation);
+register('frequency-cap', FrequencyCapOperation);
 ```
 
 
@@ -300,9 +306,9 @@ We could support event handlers in future iterations. For example, a handler cou
 
 ```js
 sharedStorage.addEventListener(
-  "key" /* event_type */,
-  "operation-to-run" /* operation_name */,
-  {key: "example-key", actions: {"set", "append"}} /* options */);
+  'key' /* event_type */,
+  'operation-to-run' /* operation_name */,
+  { key: 'example-key', actions: ['set', 'append'] } /* options */);
 ```
 
 
