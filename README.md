@@ -240,6 +240,10 @@ By instead maintaining a counter in shared storage, the approach for cross-site 
 
 After a document dies, the corresponding worklet will be kept alive for maximum two seconds to allow the pending operations to execute. This gives more confidence that the end-of-page operations (e.g. reporting) are able to finish.
 
+## Permissions Policy
+
+Shared storage methods can be disallowed by the "shared-storage" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin). 
+
 ## Dependencies
 
 This API is dependent on the following other proposals:
