@@ -36,8 +36,8 @@ window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 const opaqueURL = await window.sharedStorage.selectURL(
   'select-url-for-experiment',
   [
-    {url: "blob:https://a.example/123…", report_event: "click", report_url: "https://report.example/1..."},
-    {url: "blob:https://b.example/abc…", report_event: "click", report_url: "https://report.example/a..."},
+    {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
+    {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
     {url: "blob:https://c.example/789…"}
   ],
   { data: { name: 'experimentA' } }
@@ -106,7 +106,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
         *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
-            *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a string `report_event` and a URL `report_url`), with a max length of 8.
+            *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a dictionary, with the key being the event type and the value being the reporting URL; identical to FLEDGE's [registerAdBeacon()](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md#registeradbeacon) parameter), with a max length of 8.
                 *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
