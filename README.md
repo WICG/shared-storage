@@ -248,7 +248,7 @@ Shared storage methods can be disallowed by the "shared-storage" [policy-control
 Users’ shared storage data is cleared every 30 days from time of creation on a per-origin basis.
 
 ## Data Storage Limits
-Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 char16_t characters apiece. 
+Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 characters apiece. 
 
 ## Dependencies
 
