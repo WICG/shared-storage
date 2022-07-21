@@ -244,6 +244,12 @@ After a document dies, the corresponding worklet will be kept alive for maximum 
 
 Shared storage methods can be disallowed by the "shared-storage" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin). 
 
+## Data Retention Policy
+Users’ shared storage data is cleared every 30 days from time of creation on a per-origin basis.
+
+## Data Storage Limits
+Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 char16_t characters apiece. 
+
 ## Dependencies
 
 This API is dependent on the following other proposals:
