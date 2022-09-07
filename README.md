@@ -134,7 +134,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 *   `sharedStorage.length()`
     *   Returns a promise that resolves into the number of keys.
 *   `sharedStorage.keys()` and `sharedStorage.entries()`
-    *   Returns an object that can iterate through the origin's keys or key-value pairs, respectively, using the `next()` method.
+    *   Returns an object that can iterate asynchronously through the origin's keys or key-value pairs, respectively, using the `next()` method.
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
