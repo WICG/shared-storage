@@ -136,7 +136,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
-    *   Returns a double indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
+    *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
