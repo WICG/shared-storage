@@ -20,7 +20,7 @@ A third-party, `a.example`, wants to randomly assign users to different groups (
 
 To do so, `a.example` writes a seed to its shared storage (which is not added if already present). `a.example` then registers and runs an operation in the shared storage [worklet](https://developer.mozilla.org/en-US/docs/Web/API/Worklet) that assigns the user to a group based on the seed and the experiment name and chooses the appropriate ad for that group.
 
-In an `a.example` document:
+In an `a.example` document: 
 
 
 ```js
