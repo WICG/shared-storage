@@ -3,13 +3,13 @@
 Authors: Alex Turner, Camillia Smith Barnes, Josh Karlin, Yao Xiao
 
 
-## Introduction
+## Introduction 
 
 In order to prevent cross-site user tracking, browsers are [partitioning](https://blog.chromium.org/2020/01/building-more-private-web-path-towards.html) all forms of storage (cookies, localStorage, caches, etc) by top-frame site. But, there are many legitimate use cases currently relying on unpartitioned storage that will vanish without the help of new web APIs. We’ve seen a number of APIs proposed to fill in these gaps (e.g., [Conversion Measurement API](https://github.com/WICG/conversion-measurement-api), [Private Click Measurement](https://github.com/privacycg/private-click-measurement), [Storage Access](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API), [Trust Tokens](https://github.com/WICG/trust-token-api), [TURTLEDOVE](https://github.com/WICG/turtledove), [FLoC](https://github.com/WICG/floc)) and some remain (including cross-origin A/B experiments and user measurement). We propose a general-purpose, low-level API that can serve a number of these use cases.
 
 The idea is to provide a storage API (named Shared Storage) that is intentionally not partitioned by top-frame site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, we hope to design and add additional gates.
 
-### Demonstration
+### Demonstration 
 
 You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (currently in canary and dev channels as of June 7th 2022).
 
@@ -20,7 +20,7 @@ A third-party, `a.example`, wants to randomly assign users to different groups (
 
 To do so, `a.example` writes a seed to its shared storage (which is not added if already present). `a.example` then registers and runs an operation in the shared storage [worklet](https://developer.mozilla.org/en-US/docs/Web/API/Worklet) that assigns the user to a group based on the seed and the experiment name and chooses the appropriate ad for that group.
 
-In an `a.example` document:
+In an `a.example` document: 
 
 
 ```js
@@ -135,6 +135,8 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Returns a promise that resolves into the `n`th key or the number of keys, respectively.
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
+*   `sharedStorage.remainingBudget()`
+    *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
