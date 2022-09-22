@@ -131,8 +131,10 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 *   `sharedStorage.get(key)`
     *   Returns a promise that resolves into the `key`‘s entry or an empty string if the `key` is not present.
-*   `sharedStorage.key(n)` and `sharedStorage.length()`
-    *   Returns a promise that resolves into the `n`th key or the number of keys, respectively.
+*   `sharedStorage.length()`
+    *   Returns a promise that resolves into the number of keys.
+*   `sharedStorage.keys()` and `sharedStorage.entries()`
+    *   Returns an async iterator for all the stored keys or [key, value] pairs, sorted in the underlying key order.
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
