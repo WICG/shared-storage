@@ -5,139 +5,20 @@ Level: 1
 Status: CG-DRAFT
 Group: WICG
 URL: https://github.com/WICG/shared-storage
-Boilerplate: omit conformance, omit feedback-header
 Editor: Camillia Smith Barnes, Google https://google.com, cammie@chromium.org
 Abstract: Shared Storage is a storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates.
-Complain About: accidental-2119 yes, missing-example-ids yes
-Indent: 2
-Default Biblio Status: current
-Markup Shorthands: markdown yes
 </pre>
-
-<pre class="link-defaults">
-spec:infra; type:dfn; text:list
-spec:webidl; type:dfn; text:record
-</pre>
-
-<style>
-.selected-text-file-an-issue {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.8);
-  font-size: smaller;
-  padding: 4px 10px;
-  z-index: 4;
-}
-
-dfn var {
-  font-style: italic;
-}
-
-table {
-  margin: 1em 0;
-}
-
-/* WHATWG-style <hr>s, instead of WICG-style. Specific selector is necessary to override WICG styles. */
-:not(.head) > :not(.head) + hr {
-  display: block;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 3em 0;
-  height: auto;
-}
-:not(.head) > :not(.head) + hr::before {
-  content: none;
-}
-
-/* domintro from https://resources.whatwg.org/standard.css */
-.domintro {
-  position: relative;
-  color: green;
-  background: #DDFFDD;
-  margin: 2.5em 0 2em 0;
-  padding: 1.5em 1em 0.5em 2em;
-}
-
-.domintro dt, .domintro dt * {
-  color: black;
-  font-size: inherit;
-}
-.domintro dd {
-  margin: 0.5em 0 1em 2em; padding: 0;
-}
-.domintro dd p {
-  margin: 0.5em 0;
-}
-.domintro::before {
-  content: 'For web developers (non-normative)';
-  background: green;
-  color: white;
-  padding: 0.15em 0.25em;
-  font-style: normal;
-  position: absolute;
-  top: -0.8em;
-  left: -0.8em;
-}
-</style>
-
-<script src="https://resources.whatwg.org/file-issue.js" async></script>
 
 Introduction {#intro}
 =====================
 <em>This section is not normative.</em>
 
-This document introduces a new primitive that
+This document introduces a new primitive.
 
 
-Shared Storage Worklet {#shared-storage-worklet-desc}
-===========================================
-The <dfn>Shared Storage Worklet</dfn> is a class modeled on the {{Worklet}} spec, with some modifcations.
-The worklet can be accessed via methods in the DOM interface.
-
-
-The Shared Storage Worklet's [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
-
-{{SharedStorageWorkletGlobalScope}} represents the global execution context of the Shared Storage Worklet.
-
+Shared Storage DOM Interface {#dom-interface}
+=============================================
 <xmp class='idl'>
-[ Global=(SharedStorageWorklet), Exposed=SharedStorageWorklet ]
-interface SharedStorageWorkletGlobalScope  {
-    void addModule(URLLoaderFactory pending_url_loader_factory,
-      SharedStorageWorkletServiceClient client,
-      PrivateAggregationHost private_aggregation_host,
-      URL script_source_url, AddModuleCallback callback);
-};
-
-callback AddModuleCallback = void (bool success, string error_message);
-
-[Exposed=(SharedStorageWorklet)]
-interface SharedStorageWorklet {
-  Promise<any> set(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options);
-
-  Promise<any> append(DOMString key, DOMString value);
-
-  Promise<any> delete(DOMString key);
-
-  Promise<any> clear();
-
-  Promise<string> get(DOMString key);
-
-  Promise<int> length();
-
-  Promise<object> keys();
-
-  Promise<object> entries();
-};
-
-
-</xmp>
-
-
-<h2 id=dom-interface>DOM interface </h2>
-
-<xmp class="idl">
 
 [Exposed=(Window)]
 interface SharedStorage {
@@ -159,16 +40,16 @@ interface SharedStorage {
 };
 
 [Exposed=(Window)]
-interface SharedStorageWindowWorklet {
-  Promise<void> addModule(USVString moduleURL);
-};
-
-dictionary SharedStorageRunOperationMethodOptions {
-  object data;
+interface SharedStorageWorklet {
+  Promise<undefined> addModule(USVString moduleURL);
 };
 
 dictionary SharedStorageSetMethodOptions {
   boolean ignoreIfPresent;
+};
+
+dictionary SharedStorageRunOperationMethodOptions {
+  object data;
 };
 
 dictionary SharedStorageUrlWithMetadata {
