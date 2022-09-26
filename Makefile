@@ -1,10 +1,7 @@
-SHELL=/bin/bash
+ SHELL=/bin/bash
 
 local: spec.bs
 	bikeshed --die-on=warning spec spec.bs spec.html
-
-watch: spec.bs
-	bikeshed watch --die-on=warning spec.bs spec.html
 
 spec.html: spec.bs
 	@ (HTTP_STATUS=$$(curl https://api.csswg.org/bikeshed/ \
