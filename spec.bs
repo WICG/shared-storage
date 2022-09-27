@@ -15,6 +15,9 @@ Introduction {#intro}
 
 This document introduces a new primitive.
 
+TODO: Finish adding interfaces.
+TODO: Add algorithms for APIs.
+TODO: Add text, including fleshing out intro.
 
 Shared Storage DOM Interface {#dom-interface}
 =============================================
