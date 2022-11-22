@@ -286,6 +286,27 @@ Why do we assume that log2(|urls|) bits of cross-site information are leaked by 
 * The remaining budget at any given time is 12 - the sum of the log of budget costs from the past 24 hours.
 * If not enough budget remains, the default URL is returned and 1 bit is logged if the fenced frame is navigated.
 
+#### Event Level Reporting
+In the long term we'd like all reporting via Shared Storage to be via the Private Aggregation output gate. We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to aggregate reporting. 
+
+Event level reports work in a way similar to how they work in FLEDGE. First, when calling selectURL, you add a `reportingMetadata` optional dict to the URLs that you wish to send reports for, such as:
+```javascript
+sharedStorage.selectURL(
+    "test-url-selection-operation",
+    [{url: "fenced_frames/title0.html"},
+     {url: "fenced_frames/title1.html",
+         reportingMetadata: {'click': "fenced_frames/report1.html",
+             'visible': "fenced_frames/report2.html"}}]);
+```
+In this case, when in the fenced frame, event types are defined for `click` and `visibility`. Once the fenced frame is ready to send a report, it can call something like:
+
+```javascript
+window.fence.reportEvent({eventType: 'visible',
+    eventData: JSON.stringify({'duration': duration}), 
+    destination: ['shared-storage-select-url']});
+```
+and it will send a POST message with the eventData. See  the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
+
 
 #### K-anonymity Details
 Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
