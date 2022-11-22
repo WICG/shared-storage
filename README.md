@@ -275,10 +275,17 @@ The worklet selects from a small list of (up to 8) URLs, each in its own diction
 
 selectURL() is disallowed in Fenced Frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Though chaining seems quite useful, and we intend to revisit this.
 
-#### Budget Details
-The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits of information can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value until some budget is freed up.
+#### Budgeting
+The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits of information can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
 
 Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the origin calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, you could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
+
+##### Budget Details
+* There is a 12 bit budget for selectURL.
+* The cost of a selectURL call is log2(number of urls to selectURL call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to selectURL.
+* The remaining budget at any given time is 12 - the sum of the log of budget costs from the past 24 hours.
+* If not enough budget remains, the default URL is returned and 1 bit is logged if the fenced frame is navigated.
+
 
 #### K-anonymity Details
 Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
