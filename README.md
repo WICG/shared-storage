@@ -307,6 +307,8 @@ window.fence.reportEvent({eventType: 'visible',
 ```
 and it will send a POST message with the eventData. See  the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
 
+##### Event Level Reporting Limits
+This event-level reporting will allow for the embedding page's 1p data to be combined with the log2(num urls in selectURL) bits of third-party shared-storage data as soon as the report is sent. Since this can be used to build up a lot of information quite quickly, we're imposing some limits on event-level reporting while it's available. That is, event-level reporting via `reportEvent` can only be called up to three times per top-level page navigation.
 
 #### K-anonymity Details
 Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
