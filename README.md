@@ -276,20 +276,20 @@ The worklet selects from a small list of (up to 8) URLs, each in its own diction
 selectURL() is disallowed in Fenced Frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Though chaining seems quite useful, and we intend to revisit this.
 
 #### Budgeting
-The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits of information can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
+The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per origin. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits of information can potentially be leaked. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
 
-Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the origin calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, you could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
+Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the origin calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, they could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
 
 ##### Budget Details
-* There is a 12 bit budget for selectURL.
+* There is a 12 bit budget for selectURL to start with. This is subject to change.
 * The cost of a selectURL call is log2(number of urls to selectURL call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to selectURL.
-* The remaining budget at any given time is 12 - the sum of the log of budget costs from the past 24 hours.
-* If not enough budget remains, the default URL is returned and 1 bit is logged if the fenced frame is navigated.
+* The remaining budget at any given time for an origin is 12 - (the sum of the log of budget deductions from the past 24 hours).
+* If the remaining budget is less than log2(number of urls in selectURL call), the default URL is returned and 1 bit is logged if the fenced frame is navigated.
 
 #### Event Level Reporting
-In the long term we'd like all reporting via Shared Storage to be via the Private Aggregation output gate. We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to aggregate reporting. 
+In the long term we'd like all reporting via Shared Storage to happen via the Private Aggregation output gate. We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to aggregate reporting. 
 
-Event level reports work in a way similar to how they work in FLEDGE. First, when calling selectURL, you add a `reportingMetadata` optional dict to the URLs that you wish to send reports for, such as:
+Event level reports work in a way similar to how they work in FLEDGE. First, when calling selectURL, the caller adds a `reportingMetadata` optional dict to the URLs that they wish to send reports for, such as:
 ```javascript
 sharedStorage.selectURL(
     "test-url-selection-operation",
@@ -305,7 +305,7 @@ window.fence.reportEvent({eventType: 'visible',
     eventData: JSON.stringify({'duration': duration}), 
     destination: ['shared-storage-select-url']});
 ```
-and it will send a POST message with the eventData. See  the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
+and it will send a POST message with the eventData. See the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
 
 
 #### K-anonymity Details
