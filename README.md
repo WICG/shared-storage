@@ -253,7 +253,7 @@ The sharedStorage.selectURL() method can be disallowed by the "shared-storage-se
 ### Permissions Policy inside the shared storage worklet
 The permissions policy inside the shared storage worklet will be identical to the permissions policy on the associated document.
 
-The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, in the worklet, the `privateAggregation` methods will throw an exception.
+The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, the `privateAggregation` methods will throw an exception.
 
 ## Data Retention Policy
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
