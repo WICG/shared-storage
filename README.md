@@ -251,7 +251,7 @@ Shared storage methods can be disallowed by the "shared-storage" [policy-control
 The sharedStorage.selectURL() method can be disallowed by the "shared-storage-select-url" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin).
 
 ### Permissions Policy inside the shared storage worklet
-The permissions policy inside the shared storage worklet will be identical to the permissions policy on the associated document.
+The permissions policy inside the shared storage worklet will inherit the permissions policy on the associated document.
 
 The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, the `privateAggregation` methods will throw an exception.
 
