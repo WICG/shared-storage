@@ -246,7 +246,14 @@ After a document dies, the corresponding worklet will be kept alive for maximum 
 
 ## Permissions Policy
 
-Shared storage methods can be disallowed by the "shared-storage" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin). 
+Shared storage methods can be disallowed by the "shared-storage" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin).
+
+The sharedStorage.selectURL() method can be disallowed by the "shared-storage-select-url" [policy-controlled feature](https://w3c.github.io/webappsec-permissions-policy/#policy-controlled-feature). Its default allowlist is * (i.e. every origin).
+
+### Permissions Policy inside the shared storage worklet
+The permissions policy inside the shared storage worklet will inherit the permissions policy of the associated document.
+
+The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, the `privateAggregation` methods will throw an exception.
 
 ## Data Retention Policy
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
