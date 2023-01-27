@@ -40,4 +40,4 @@ The usefulness of this page depends on testers sharing information and updates; 
 
 | Company / Party | Industry or vertical | Est. Testing Timeframe | Link to testing plan and/or learnings | How to contact you |
 | --------------- | -------------------- | ---------------------- | ------------------------------------- | ------------------ |
-| Google Ad Manager + AdSense | Ads | Testing ongoing | | Publishers with questions should reach out via their account manager directly, or via our [support channels](https://support.google.com/admanager/gethelp).|
+| Google Ad Manager + AdSense | SSP | Testing ongoing | | Publishers with questions should reach out via their account manager directly, or via our [support channels](https://support.google.com/admanager/gethelp).|
