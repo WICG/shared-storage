@@ -417,7 +417,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
   </div>
 
 Privacy Considerations {#privacy}
-=================================================
+=================================
 <p>
   <span class=XXX>TODO: Add privacy considerations.</span>
 </p>
