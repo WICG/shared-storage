@@ -1,8 +1,6 @@
 name: Build
 on:
-  pull_request: 
-    branches:
-    - main
+  pull_request: {}
   push:
     branches:
     - main
@@ -15,6 +13,7 @@ jobs:
       - uses: w3c/spec-prod@v2
         with:
           TOOLCHAIN: bikeshed
+          DESTINATION: index.html
           SOURCE: spec.bs
           GH_PAGES_BRANCH: gh-pages
           BUILD_FAIL_ON: warning
