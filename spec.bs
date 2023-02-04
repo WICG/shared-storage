@@ -415,9 +415,9 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
         1. Resolve |promise| as |entry|.
     1. Return |promise|.
   </div>
-
+ 
 Privacy Considerations {#privacy}
 =================================
 <p>
-  <span class=XXX>TODO: Add privacy considerations.</span>
+  <span class=XXX>TODO: Add some privacy considerations.</span>
 </p>
