@@ -1,0 +1,30 @@
+name: Build
+concurrency: preview-${{ github.ref }}
+on:
+  pull_request:
+    paths:
+      - '**.bs'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: w3c/spec-prod@v2
+        with:
+          TOOLCHAIN: bikeshed
+          DESTINATION: .pr-preview-temp/preview--${{ github.ref }}/index.html
+          SOURCE: spec.bs
+          BUILD_FAIL_ON: warning
+      - uses: rossjrw/pr-preview-action@v1.2.0
+        with: 
+          source-dir: .pr-preview-temp/preview--${{ github.ref }}
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
+          
