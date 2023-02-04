@@ -1,14 +1,8 @@
 name: Build
-concurrency: preview-${{ github.ref }}
 on:
   pull_request:
     paths:
       - '**.bs'
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
 jobs:
   build:
     name: Build
@@ -18,13 +12,7 @@ jobs:
       - uses: w3c/spec-prod@v2
         with:
           TOOLCHAIN: bikeshed
-          DESTINATION: .pr-preview-temp/preview--${{ github.ref }}/index.html
+          DESTINATION: pr-preview/preview--${{ github.ref }}/index.html
           SOURCE: spec.bs
+          GH_PAGES_BRANCH: gh-pages
           BUILD_FAIL_ON: warning
-      - uses: rossjrw/pr-preview-action@v1.2.0
-        with: 
-          source-dir: .pr-preview-temp/preview--${{ github.ref }}
-          preview-branch: gh-pages
-          umbrella-dir: pr-preview
-          action: auto
-          
