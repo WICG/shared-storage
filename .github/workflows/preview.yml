@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - uses: w3c/spec-prod@v2
+      - uses: w3c/spec-prod@v1
         with:
           TOOLCHAIN: bikeshed
           DESTINATION: pr-preview/${{ github.ref }}/index.html
