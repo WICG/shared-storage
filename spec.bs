@@ -9,9 +9,35 @@ Editor: Camillia Smith Barnes, Google https://google.com, cammie@chromium.org
 Markup Shorthands: markdown yes
 Abstract: Shared Storage is a storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates.
 </pre>
+
 <pre class=link-defaults>
 spec:url; type:interface; text:URL
 </pre>
+
+<pre class="anchors">
+spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
+    type: dfn
+        text: relevant settings object; url: webappapis.html#relevant-settings-object
+        text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
+        text: enqueue the following steps; url: infrastructure.html#enqueue-the-following-steps
+spec: html; urlPrefix: https://url.spec.whatwg.org
+    type: dfn
+        text: URL parser; url: concept-url-parser
+spec: html; urlPrefix: https://infra.spec.whatwg.org
+    type: dfn
+        text: ordered map; url: ordered-map
+        text: set; for: ordered map; url: map-set
+spec: html; urlPrefix: https://webidl.spec.whatwg.org
+    type: dfn
+        text: upon fulfillment; url: upon-fulfillment
+spec: html; urlPrefix: https://www.rfc-editor.org/rfc/rfc4122
+    type: dfn
+        text: urn:uuid
+spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
+    type: dfn
+        text: FencedFrameConfig; url: fencedframeconfig
+</pre>
+
 <style>
 /* .XXX from https://resources.whatwg.org/standard.css */
 .XXX {
@@ -124,18 +150,20 @@ A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that take
 
   ## Registering a Worklet ## {#register-worklet}
 
+  We define a {{SharedStorageWorkletGlobalScope}}'s internal <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn> as an [=ordered map=] of operation name strings to class contructors.
+
   <div algorithm>
     The <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method steps are:
 
     1. If |name| is missing or empty, throw a {{TypeError}}.
-    1. Let |operationMap| be the internal operation <a href="https://infra.spec.whatwg.org/#ordered-map">map</a> for this scope.
+    1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
     1. If |name| already exists as a key in |operationMap|, throw a {{TypeError}}.
     1. If |operationCtor| is missing or not a constructor, throw a {{TypeError}}.
-    1. Let |prototype| be the class prototype for |operationCtor|.
+    1. Let |prototype| be |operationCtor|'s class prototype.
     1. If |prototype| is not an object, throw a {{TypeError}}.
-    1. Let |run| be the "run" method in |prototype|.
+    1. Let |run| be |prototype|'s "run" method.
     1. If |run| is missing or not a function, throw a {{TypeError}}.
-    1. <a href="https://infra.spec.whatwg.org/#map-set">Set</a> the value of |name| to |run| in |operationMap|.
+    1. [=ordered map/Set=] the value of |name| to |run| in |operationMap|.
   </div>
 
 The {{SharedStorage}} Interface {#shared-storage}
@@ -203,31 +231,22 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
   };
 </xmp>
 
-  ## Note on Parallelism ## {#parallelism}
-
-  The {{SharedStorage}} interface runs its methods <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel">in parallel</a>. To avoid race conditions within a single context, each context that calls into the interface will have its own <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for handling operations.
-
-  In particular, the {{Window}}'s {{SharedStorage}} operations for a given frame will use a separate <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> from that used by any {{SharedStorageWorklet}} that may be spun up by this frame.
-
-  When an algorithm before asks for steps to be enqueued, these steps should be enqueued on the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> of the calling context, unless otherwise specified.
-
   ## Run Operation Methods ## {#run-op}
 
   <div algorithm>
     The <dfn method for="SharedStorage">run(|name|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If {{Worklet/addModule()}} has not yet been called, reject |promise|.
-        1. Let |workletQueue| be the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for the context's associated {{SharedStorageWorklet}} interface, if it exists.
-        1. If |workletQueue| does not exist, create it.
-        1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a> on |workletQueue|:
-            1. If module script has been loaded for this worklet:
-                1. Let |operationMap| be the operation map in the associated {{SharedStorageWorkletGlobalScope}}.
-                1. Let |operation| be the operation registered to |name| in |operationMap|, if |operation| exists.
-                1. If |operation| exists:
-                    1. If |options| contains |data|, invoke |operation| with argument |data|.
-                    1. Otherwise, invoke |operation| with an empty argument list.
+        1. Let |outsideSettings| be worklet's [=relevant settings object=].
+        1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|. Run the rest of these steps in |agent|.
+        1. If module script has been loaded for this worklet:
+            1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s operation map.
+            1. Let |operation| be the operation registered to |name| in |operationMap|, if |operation| exists.
+            1. If |operation| exists:
+                1. If |options| contains |data|, invoke |operation| with argument |data|.
+                1. Otherwise, invoke |operation| with an empty argument list.
         1. Resolve |promise| as undefined.
     1. Return |promise|.
   </div>
@@ -241,21 +260,20 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     1. For each |urlWithMetadata| in |urls|:
         1. If |urlWithMetadata| has no field "|url|", reject |configPromise|.
         1. Otherwise, let |urlString| be |urlWithMetadata|["|url|"].
-        1. Let |url| be the result of running a <a href="https://url.spec.whatwg.org/#concept-url-parser">URL parser</a> on |urlString|.
+        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
         1. If |url| is not a valid {{URL}}, reject |configPromise|.
         1. Otherwise, [=list/append=] |urlString| to |urlList|.
         1. If |urlWithMetadata| has field "|reportingMetadata|":
             1. Let |reportingMetadata| be |urlWithMetadata|["|reportingMetadata|"].
             1. If |reportingMetadata| is invalid, reject |configPromise|.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If {{Worklet/addModule()}} has not yet been called, reject |configPromise|.
-        1. Let |pendingUrl| be a newly generated <a href="https://www.rfc-editor.org/rfc/rfc4122">urn:uuid</a>.
-        1. Let |fencedFrameConfig| be a <a href="https://wicg.github.io/fenced-frame/fencedframeconfig">FencedFrameConfig</a> constructed from |pendingUrl|.
+        1. Let |pendingUrl| be a newly generated [=urn:uuid=].
+        1. Let |fencedFrameConfig| be a [=FencedFrameConfig=] constructed from |pendingUrl|.
         1. Resolve |configPromise| as |fencedFrameConfig|.
         1. Let |indexPromise| be a new promise.
-        1. Let |workletQueue| be the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for the context's associated {{SharedStorageWorklet}} interface, if it exists.
-        1. If |workletQueue| does not exist, create it.
-        1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a> on |workletQueue|:
+        1. Let |outsideSettings| be worklet's [=relevant settings object=].
+        1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|. Run the following steps in |agent|:
             1. Let |index| be 0.
             1. If module script has been loaded for this worklet:
                 1. Let |operationMap| be the operation map in the associated {{SharedStorageWorkletGlobalScope}}.
@@ -267,12 +285,13 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
                         1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}. If this throws an exception, catch it and set |index| back to 0.
                         1. If |index| > |urlList|.[=list/size=], then set |index| back to 0.
             1. Resolve |indexPromise| with |index|.
-        1. When |indexPromise| is resolved, let |resultIndex| be its numerical value.
-        1. Let |remainingBudget| be the numerical result from {{SharedStorage/remainingBudget()}}.
-        1. Let |currentDebit| be log_2(|urlList|.[=list/size=]).
-        1. If |currentDebit| > |remainingBudget|, set |resultIndex| to 0.
-        1. Store |currentDebit| so that it can be withdrawn from the database in the event of a frame created from |fencedFrameConfig| triggering a top-frame navigation.
-        1. Internally map |pendingUrl| to |urlList|[|resultIndex|].
+        1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
+            1. Let |resultIndex| be its numerical value.
+            1. Let |remainingBudget| be the numerical result from {{SharedStorage/remainingBudget()}}.
+            1. Let |currentDebit| be log_2(|urlList|.[=list/size=]).
+            1. If |currentDebit| > |remainingBudget|, set |resultIndex| to 0.
+            1. Store |currentDebit| so that it can be withdrawn from the database in the event of a frame created from |fencedFrameConfig| triggering a top-frame navigation.
+            1. Internally map |pendingUrl| to |urlList|[|resultIndex|].
   </div>
 
   ## Setter/Deleter Methods ## {#setter}
@@ -281,7 +300,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
@@ -300,7 +319,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">append(|key|, |value|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Perform a database query to determine whether an |entry| for |key| already exists in the database for this context's origin.
@@ -317,7 +336,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">delete(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Perform a database query to delete any entry for |key| in the database for this context's origin.
         1. Resolve |promise| as undefined.
@@ -328,7 +347,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">clear()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. Perform a database query to delete all entries in the database for this context's origin.
         1. Resolve |promise| as undefined.
     1. Return |promise|.
@@ -340,7 +359,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">get(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Perform a database query to determine whether an |entry| for |key| exists in the database for this context's origin.
         1. If |entry| exists:
@@ -354,7 +373,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">length()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. Let |numEntries| be the number of entries in the database for this context's origin, as determined by a database query to count them.
         1. Resolve |promise| as |numEntries|.
     1. Return |promise|.
@@ -364,7 +383,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorage">remainingBudget()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. Let |totalBudget| be the allotted total [=bit budget=] per [=epoch=].
         1. Perform a database query to retrieve the |debitSum| for the context's origin, i.e. the sum of the [=bit debit=]s whose timestamps are within the current [=epoch=].
         1. Resolve |promise| as (|totalBudget| - |debitSum|).
@@ -393,7 +412,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorageIterator">constructor(|mode|)</dfn> method steps are:
 
     1. Create an internal queue |pendingEntries|.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If |mode| is "{{IteratorMode/key}}":
             1. Query the database for all |keys| with context origin.
             1. Queue |keys| in |pendingEntries|, to be returned individually with the {{SharedStorageIterator/next()}} method.
@@ -406,7 +425,7 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     The <dfn method for="SharedStorageIterator">next()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:
+    1. [=Enqueue the following steps=]:
         1. If there was an error in retrieving entries, reject |promise|.
         1. If the internal entry queue |pendingEntries| is empty:
             1. Create an object |doneObject| flagging that iteration has finished.
@@ -415,9 +434,9 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
         1. Resolve |promise| as |entry|.
     1. Return |promise|.
   </div>
- 
+
 Privacy Considerations {#privacy}
 =================================
 <p>
-  <span class=XXX>TODO: Discuss privacy considerations.</span>
+  <span class=XXX>TODO: Add privacy considerations.</span>
 </p>
