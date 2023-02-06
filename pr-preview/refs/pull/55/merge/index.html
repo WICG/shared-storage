@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 859efb4bd, updated Fri Jan 27 16:04:01 2023 -0800" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="a13b657781f7a900c21be5668e764833bed6f55d" name="document-revision">
+  <meta content="b1ca1cacf9b9908d7e6a79cbf18787ff9f1e5e2a" name="document-revision">
 <style>
 /* .XXX from https://resources.whatwg.org/standard.css */
 .XXX {
@@ -648,11 +648,10 @@ A human-readable <a href="http://www.w3.org/community/about/agreements/cla-deed/
     <li>
      <a href="#shared-storage"><span class="secno">3</span> <span class="content">The <code class="idl"><span>SharedStorage</span></code> Interface</span></a>
      <ol class="toc">
-      <li><a href="#parallelism"><span class="secno">3.1</span> <span class="content">Note on Parallelism</span></a>
-      <li><a href="#run-op"><span class="secno">3.2</span> <span class="content">Run Operation Methods</span></a>
-      <li><a href="#setter"><span class="secno">3.3</span> <span class="content">Setter/Deleter Methods</span></a>
-      <li><a href="#getter"><span class="secno">3.4</span> <span class="content">Getter Methods</span></a>
-      <li><a href="#iterator"><span class="secno">3.5</span> <span class="content"><code class="idl"><span>SharedStorageIterator</span></code> Interface Methods</span></a>
+      <li><a href="#run-op"><span class="secno">3.1</span> <span class="content">Run Operation Methods</span></a>
+      <li><a href="#setter"><span class="secno">3.2</span> <span class="content">Setter/Deleter Methods</span></a>
+      <li><a href="#getter"><span class="secno">3.3</span> <span class="content">Getter Methods</span></a>
+      <li><a href="#iterator"><span class="secno">3.4</span> <span class="content"><code class="idl"><span>SharedStorageIterator</span></code> Interface Methods</span></a>
      </ol>
     <li><a href="#privacy"><span class="secno">4</span> <span class="content">Privacy Considerations</span></a>
     <li>
@@ -761,27 +760,28 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 };
 </pre>
    <h3 class="heading settled" data-level="2.1" id="register-worklet"><span class="secno">2.1. </span><span class="content">Registering a Worklet</span><a class="self-link" href="#register-worklet"></a></h3>
+   <p>We define a <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope①">SharedStorageWorkletGlobalScope</a></code>'s internal <dfn class="dfn-paneled" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="dfn" data-noexport id="sharedstorageworkletglobalscope-operation-map">operation map</dfn> as an <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map">ordered map</a> of operation name strings to class contructors.</p>
    <div class="algorithm" data-algorithm="register(name, operationCtor)" data-algorithm-for="SharedStorageWorkletGlobalScope">
      The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="method" data-export id="dom-sharedstorageworkletglobalscope-register"><code>register(<var>name</var>, <var>operationCtor</var>)</code></dfn> method steps are: 
     <ol>
      <li data-md>
       <p>If <var>name</var> is missing or empty, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror">TypeError</a></code>.</p>
      <li data-md>
-      <p>Let <var>operationMap</var> be the internal operation <a href="https://infra.spec.whatwg.org/#ordered-map">map</a> for this scope.</p>
+      <p>Let <var>operationMap</var> be this <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope②">SharedStorageWorkletGlobalScope</a></code>'s <a data-link-type="dfn" href="#sharedstorageworkletglobalscope-operation-map" id="ref-for-sharedstorageworkletglobalscope-operation-map">operation map</a>.</p>
      <li data-md>
       <p>If <var>name</var> already exists as a key in <var>operationMap</var>, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①">TypeError</a></code>.</p>
      <li data-md>
       <p>If <var>operationCtor</var> is missing or not a constructor, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②">TypeError</a></code>.</p>
      <li data-md>
-      <p>Let <var>prototype</var> be the class prototype for <var>operationCtor</var>.</p>
+      <p>Let <var>prototype</var> be <var>operationCtor</var>’s class prototype.</p>
      <li data-md>
       <p>If <var>prototype</var> is not an object, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③">TypeError</a></code>.</p>
      <li data-md>
-      <p>Let <var>run</var> be the "run" method in <var>prototype</var>.</p>
+      <p>Let <var>run</var> be <var>prototype</var>’s "run" method.</p>
      <li data-md>
       <p>If <var>run</var> is missing or not a function, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror④">TypeError</a></code>.</p>
      <li data-md>
-      <p><a href="https://infra.spec.whatwg.org/#map-set">Set</a> the value of <var>name</var> to <var>run</var> in <var>operationMap</var>.</p>
+      <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-set" id="ref-for-map-set">Set</a> the value of <var>name</var> to <var>run</var> in <var>operationMap</var>.</p>
     </ol>
    </div>
    <h2 class="heading settled" data-level="3" id="shared-storage"><span class="secno">3. </span><span class="content">The <code class="idl"><a data-link-type="idl" href="#sharedstorage" id="ref-for-sharedstorage">SharedStorage</a></code> Interface</span><a class="self-link" href="#shared-storage"></a></h2>
@@ -841,43 +841,35 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise" id="ref-for-idl-promise①①"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object" id="ref-for-idl-object⑤"><c- b>object</c-></a>> <a class="idl-code" data-link-type="method" href="#dom-sharedstorageiterator-next" id="ref-for-dom-sharedstorageiterator-next"><c- g>next</c-></a>();
 };
 </pre>
-   <h3 class="heading settled" data-level="3.1" id="parallelism"><span class="secno">3.1. </span><span class="content">Note on Parallelism</span><a class="self-link" href="#parallelism"></a></h3>
-   <p>The <code class="idl"><a data-link-type="idl" href="#sharedstorage" id="ref-for-sharedstorage②">SharedStorage</a></code> interface runs its methods <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel">in parallel</a>. To avoid race conditions within a single context, each context that calls into the interface will have its own <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for handling operations.</p>
-   <p>In particular, the <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/nav-history-apis.html#window" id="ref-for-window④">Window</a></code>'s <code class="idl"><a data-link-type="idl" href="#sharedstorage" id="ref-for-sharedstorage③">SharedStorage</a></code> operations for a given frame will use a separate <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> from that used by any <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet⑨">SharedStorageWorklet</a></code> that may be spun up by this frame.</p>
-   <p>When an algorithm before asks for steps to be enqueued, these steps should be enqueued on the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> of the calling context, unless otherwise specified.</p>
-   <h3 class="heading settled" data-level="3.2" id="run-op"><span class="secno">3.2. </span><span class="content">Run Operation Methods</span><a class="self-link" href="#run-op"></a></h3>
+   <h3 class="heading settled" data-level="3.1" id="run-op"><span class="secno">3.1. </span><span class="content">Run Operation Methods</span><a class="self-link" href="#run-op"></a></h3>
    <div class="algorithm" data-algorithm="run(name, options)" data-algorithm-for="SharedStorage">
      The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorage" data-dfn-type="method" data-export data-lt="run(name, options)|run(name)" id="dom-sharedstorage-run"><code>run(<var>name</var>, <var>options</var>)</code></dfn> method steps are: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule①">addModule()</a></code> has not yet been called, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Let <var>workletQueue</var> be the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for the context’s associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet①⓪">SharedStorageWorklet</a></code> interface, if it exists.</p>
+        <p>Let <var>outsideSettings</var> be worklet’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object">relevant settings object</a>.</p>
        <li data-md>
-        <p>If <var>workletQueue</var> does not exist, create it.</p>
+        <p>Let <var>agent</var> be the result of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent" id="ref-for-obtain-a-worklet-agent">obtaining a worklet agent</a> given <var>outsideSettings</var>. Run the rest of these steps in <var>agent</var>.</p>
        <li data-md>
-        <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a> on <var>workletQueue</var>:</p>
+        <p>If module script has been loaded for this worklet:</p>
         <ol>
          <li data-md>
-          <p>If module script has been loaded for this worklet:</p>
+          <p>Let <var>operationMap</var> be this <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope③">SharedStorageWorkletGlobalScope</a></code>'s operation map.</p>
+         <li data-md>
+          <p>Let <var>operation</var> be the operation registered to <var>name</var> in <var>operationMap</var>, if <var>operation</var> exists.</p>
+         <li data-md>
+          <p>If <var>operation</var> exists:</p>
           <ol>
            <li data-md>
-            <p>Let <var>operationMap</var> be the operation map in the associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope①">SharedStorageWorkletGlobalScope</a></code>.</p>
+            <p>If <var>options</var> contains <var>data</var>, invoke <var>operation</var> with argument <var>data</var>.</p>
            <li data-md>
-            <p>Let <var>operation</var> be the operation registered to <var>name</var> in <var>operationMap</var>, if <var>operation</var> exists.</p>
-           <li data-md>
-            <p>If <var>operation</var> exists:</p>
-            <ol>
-             <li data-md>
-              <p>If <var>options</var> contains <var>data</var>, invoke <var>operation</var> with argument <var>data</var>.</p>
-             <li data-md>
-              <p>Otherwise, invoke <var>operation</var> with an empty argument list.</p>
-            </ol>
+            <p>Otherwise, invoke <var>operation</var> with an empty argument list.</p>
           </ol>
         </ol>
        <li data-md>
@@ -904,7 +896,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Otherwise, let <var>urlString</var> be <var>urlWithMetadata</var>["<var>url</var>"].</p>
        <li data-md>
-        <p>Let <var>url</var> be the result of running a <a href="https://url.spec.whatwg.org/#concept-url-parser">URL parser</a> on <var>urlString</var>.</p>
+        <p>Let <var>url</var> be the result of running a <a data-link-type="dfn" href="https://url.spec.whatwg.org#concept-url-parser" id="ref-for-concept-url-parser">URL parser</a> on <var>urlString</var>.</p>
        <li data-md>
         <p>If <var>url</var> is not a valid <code class="idl"><a data-link-type="idl" href="https://url.spec.whatwg.org/#url" id="ref-for-url">URL</a></code>, reject <var>configPromise</var>.</p>
        <li data-md>
@@ -919,24 +911,22 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
         </ol>
       </ol>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule②">addModule()</a></code> has not yet been called, reject <var>configPromise</var>.</p>
        <li data-md>
-        <p>Let <var>pendingUrl</var> be a newly generated <a href="https://www.rfc-editor.org/rfc/rfc4122">urn:uuid</a>.</p>
+        <p>Let <var>pendingUrl</var> be a newly generated <a data-link-type="dfn" href="https://www.rfc-editor.org/rfc/rfc4122#urnuuid" id="ref-for-urnuuid">urn:uuid</a>.</p>
        <li data-md>
-        <p>Let <var>fencedFrameConfig</var> be a <a href="https://wicg.github.io/fenced-frame/fencedframeconfig">FencedFrameConfig</a> constructed from <var>pendingUrl</var>.</p>
+        <p>Let <var>fencedFrameConfig</var> be a <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig">FencedFrameConfig</a> constructed from <var>pendingUrl</var>.</p>
        <li data-md>
         <p>Resolve <var>configPromise</var> as <var>fencedFrameConfig</var>.</p>
        <li data-md>
         <p>Let <var>indexPromise</var> be a new promise.</p>
        <li data-md>
-        <p>Let <var>workletQueue</var> be the <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-queue">parallel queue</a> for the context’s associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet①①">SharedStorageWorklet</a></code> interface, if it exists.</p>
+        <p>Let <var>outsideSettings</var> be worklet’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①">relevant settings object</a>.</p>
        <li data-md>
-        <p>If <var>workletQueue</var> does not exist, create it.</p>
-       <li data-md>
-        <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a> on <var>workletQueue</var>:</p>
+        <p>Let <var>agent</var> be the result of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent" id="ref-for-obtain-a-worklet-agent①">obtaining a worklet agent</a> given <var>outsideSettings</var>. Run the following steps in <var>agent</var>:</p>
         <ol>
          <li data-md>
           <p>Let <var>index</var> be 0.</p>
@@ -944,7 +934,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
           <p>If module script has been loaded for this worklet:</p>
           <ol>
            <li data-md>
-            <p>Let <var>operationMap</var> be the operation map in the associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope②">SharedStorageWorkletGlobalScope</a></code>.</p>
+            <p>Let <var>operationMap</var> be the operation map in the associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope④">SharedStorageWorkletGlobalScope</a></code>.</p>
            <li data-md>
             <p>Let <var>operation</var> be the operation registered to <var>name</var> in <var>operationMap</var>, if <var>operation</var> exists.</p>
            <li data-md>
@@ -968,28 +958,32 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
           <p>Resolve <var>indexPromise</var> with <var>index</var>.</p>
         </ol>
        <li data-md>
-        <p>When <var>indexPromise</var> is resolved, let <var>resultIndex</var> be its numerical value.</p>
-       <li data-md>
-        <p>Let <var>remainingBudget</var> be the numerical result from <code class="idl"><a data-link-type="idl" href="#dom-sharedstorage-remainingbudget" id="ref-for-dom-sharedstorage-remainingbudget①">remainingBudget()</a></code>.</p>
-       <li data-md>
-        <p>Let <var>currentDebit</var> be log_2(<var>urlList</var>.<a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-size" id="ref-for-list-size①">size</a>).</p>
-       <li data-md>
-        <p>If <var>currentDebit</var> > <var>remainingBudget</var>, set <var>resultIndex</var> to 0.</p>
-       <li data-md>
-        <p>Store <var>currentDebit</var> so that it can be withdrawn from the database in the event of a frame created from <var>fencedFrameConfig</var> triggering a top-frame navigation.</p>
-       <li data-md>
-        <p>Internally map <var>pendingUrl</var> to <var>urlList</var>[<var>resultIndex</var>].</p>
+        <p><a data-link-type="dfn" href="https://webidl.spec.whatwg.org#upon-fulfillment" id="ref-for-upon-fulfillment">Upon fulfillment</a> of <var>indexPromise</var>, perform the following steps:</p>
+        <ol>
+         <li data-md>
+          <p>Let <var>resultIndex</var> be its numerical value.</p>
+         <li data-md>
+          <p>Let <var>remainingBudget</var> be the numerical result from <code class="idl"><a data-link-type="idl" href="#dom-sharedstorage-remainingbudget" id="ref-for-dom-sharedstorage-remainingbudget①">remainingBudget()</a></code>.</p>
+         <li data-md>
+          <p>Let <var>currentDebit</var> be log_2(<var>urlList</var>.<a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-size" id="ref-for-list-size①">size</a>).</p>
+         <li data-md>
+          <p>If <var>currentDebit</var> > <var>remainingBudget</var>, set <var>resultIndex</var> to 0.</p>
+         <li data-md>
+          <p>Store <var>currentDebit</var> so that it can be withdrawn from the database in the event of a frame created from <var>fencedFrameConfig</var> triggering a top-frame navigation.</p>
+         <li data-md>
+          <p>Internally map <var>pendingUrl</var> to <var>urlList</var>[<var>resultIndex</var>].</p>
+        </ol>
       </ol>
     </ol>
    </div>
-   <h3 class="heading settled" data-level="3.3" id="setter"><span class="secno">3.3. </span><span class="content">Setter/Deleter Methods</span><a class="self-link" href="#setter"></a></h3>
+   <h3 class="heading settled" data-level="3.2" id="setter"><span class="secno">3.2. </span><span class="content">Setter/Deleter Methods</span><a class="self-link" href="#setter"></a></h3>
    <div class="algorithm" data-algorithm="set(key, value, options)" data-algorithm-for="SharedStorage">
      The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorage" data-dfn-type="method" data-export data-lt="set(key, value, options)|set(key, value)" id="dom-sharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code></dfn> method steps are: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps②">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException">DOMException</a></code>.</p>
@@ -1026,7 +1020,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps③">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror③">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException③">DOMException</a></code>.</p>
@@ -1059,7 +1053,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps④">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑤">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑤">DOMException</a></code>.</p>
@@ -1078,7 +1072,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑤">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>Perform a database query to delete all entries in the database for this context’s origin.</p>
@@ -1089,14 +1083,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p>Return <var>promise</var>.</p>
     </ol>
    </div>
-   <h3 class="heading settled" data-level="3.4" id="getter"><span class="secno">3.4. </span><span class="content">Getter Methods</span><a class="self-link" href="#getter"></a></h3>
+   <h3 class="heading settled" data-level="3.3" id="getter"><span class="secno">3.3. </span><span class="content">Getter Methods</span><a class="self-link" href="#getter"></a></h3>
    <div class="algorithm" data-algorithm="get(key)" data-algorithm-for="SharedStorage">
      The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorage" data-dfn-type="method" data-export id="dom-sharedstorage-get"><code>get(<var>key</var>)</code></dfn> method steps are: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑥">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑥">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑥">DOMException</a></code>.</p>
@@ -1123,7 +1117,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑦">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>Let <var>numEntries</var> be the number of entries in the database for this context’s origin, as determined by a database query to count them.</p>
@@ -1140,7 +1134,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑧">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>Let <var>totalBudget</var> be the allotted total <a data-link-type="dfn" href="#bit-budget" id="ref-for-bit-budget">bit budget</a> per <a data-link-type="dfn" href="#epoch" id="ref-for-epoch②">epoch</a>.</p>
@@ -1175,14 +1169,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p>Return <var>iterator</var>.</p>
     </ol>
    </div>
-   <h3 class="heading settled" data-level="3.5" id="iterator"><span class="secno">3.5. </span><span class="content"><code class="idl"><a data-link-type="idl" href="#sharedstorageiterator" id="ref-for-sharedstorageiterator④">SharedStorageIterator</a></code> Interface Methods</span><a class="self-link" href="#iterator"></a></h3>
+   <h3 class="heading settled" data-level="3.4" id="iterator"><span class="secno">3.4. </span><span class="content"><code class="idl"><a data-link-type="idl" href="#sharedstorageiterator" id="ref-for-sharedstorageiterator④">SharedStorageIterator</a></code> Interface Methods</span><a class="self-link" href="#iterator"></a></h3>
    <div class="algorithm" data-algorithm="constructor(mode)" data-algorithm-for="SharedStorageIterator">
      The <dfn class="idl-code" data-dfn-for="SharedStorageIterator" data-dfn-type="method" data-export id="dom-sharedstorageiterator-constructor"><code>constructor(<var>mode</var>)</code><a class="self-link" href="#dom-sharedstorageiterator-constructor"></a></dfn> method steps are: 
     <ol>
      <li data-md>
       <p>Create an internal queue <var>pendingEntries</var>.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑨">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>mode</var> is "<code class="idl"><a data-link-type="idl" href="#dom-iteratormode-key" id="ref-for-dom-iteratormode-key①">key</a></code>":</p>
@@ -1209,7 +1203,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⓪">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If there was an error in retrieving entries, reject <var>promise</var>.</p>
@@ -1231,7 +1225,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <h2 class="heading settled" data-level="4" id="privacy"><span class="secno">4. </span><span class="content">Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
-   <p> <span class="XXX">TODO: Discuss privacy considerations.</span> </p>
+   <p> <span class="XXX">TODO: Add privacy considerations.</span> </p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
@@ -1278,39 +1272,40 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <h2 class="no-num no-ref heading settled" id="index"><span class="content">Index</span><a class="self-link" href="#index"></a></h2>
   <h3 class="no-num no-ref heading settled" id="index-defined-here"><span class="content">Terms defined by this specification</span><a class="self-link" href="#index-defined-here"></a></h3>
   <ul class="index">
-   <li><a href="#dom-sharedstorage-append">append(key, value)</a><span>, in § 3.3</span>
+   <li><a href="#dom-sharedstorage-append">append(key, value)</a><span>, in § 3.2</span>
    <li><a href="#bit-budget">bit budget</a><span>, in § 3</span>
    <li><a href="#bit-debit">bit debit</a><span>, in § 3</span>
-   <li><a href="#dom-sharedstorage-clear">clear()</a><span>, in § 3.3</span>
+   <li><a href="#dom-sharedstorage-clear">clear()</a><span>, in § 3.2</span>
    <li>
     constructor(mode)
     <ul>
      <li><a href="#dom-sharedstorageiterator-sharedstorageiterator">constructor for SharedStorageIterator</a><span>, in § 3</span>
-     <li><a href="#dom-sharedstorageiterator-constructor">method for SharedStorageIterator</a><span>, in § 3.5</span>
+     <li><a href="#dom-sharedstorageiterator-constructor">method for SharedStorageIterator</a><span>, in § 3.4</span>
     </ul>
    <li><a href="#dom-sharedstoragerunoperationmethodoptions-data">data</a><span>, in § 3</span>
-   <li><a href="#dom-sharedstorage-delete">delete(key)</a><span>, in § 3.3</span>
-   <li><a href="#dom-sharedstorage-entries">entries()</a><span>, in § 3.4</span>
+   <li><a href="#dom-sharedstorage-delete">delete(key)</a><span>, in § 3.2</span>
+   <li><a href="#dom-sharedstorage-entries">entries()</a><span>, in § 3.3</span>
    <li><a href="#epoch">epoch</a><span>, in § 3</span>
-   <li><a href="#dom-sharedstorage-get">get(key)</a><span>, in § 3.4</span>
+   <li><a href="#dom-sharedstorage-get">get(key)</a><span>, in § 3.3</span>
    <li><a href="#dom-sharedstoragesetmethodoptions-ignoreifpresent">ignoreIfPresent</a><span>, in § 3</span>
    <li><a href="#enumdef-iteratormode">IteratorMode</a><span>, in § 3</span>
    <li><a href="#dom-iteratormode-key">"key"</a><span>, in § 3</span>
-   <li><a href="#dom-sharedstorage-keys">keys()</a><span>, in § 3.4</span>
+   <li><a href="#dom-sharedstorage-keys">keys()</a><span>, in § 3.3</span>
    <li><a href="#dom-iteratormode-keyvalue">"keyValue"</a><span>, in § 3</span>
-   <li><a href="#dom-sharedstorage-length">length()</a><span>, in § 3.4</span>
-   <li><a href="#dom-sharedstorageiterator-next">next()</a><span>, in § 3.5</span>
+   <li><a href="#dom-sharedstorage-length">length()</a><span>, in § 3.3</span>
+   <li><a href="#dom-sharedstorageiterator-next">next()</a><span>, in § 3.4</span>
+   <li><a href="#sharedstorageworkletglobalscope-operation-map">operation map</a><span>, in § 2.1</span>
    <li><a href="#dom-sharedstorageworkletglobalscope-register">register(name, operationCtor)</a><span>, in § 2.1</span>
-   <li><a href="#dom-sharedstorage-remainingbudget">remainingBudget()</a><span>, in § 3.4</span>
+   <li><a href="#dom-sharedstorage-remainingbudget">remainingBudget()</a><span>, in § 3.3</span>
    <li><a href="#dom-sharedstorageurlwithmetadata-reportingmetadata">reportingMetadata</a><span>, in § 2</span>
    <li><a href="#dom-sharedstoragerunoperation-run">run(data)</a><span>, in § 2</span>
    <li><a href="#dom-sharedstorageselecturloperation-run">run(data, urls)</a><span>, in § 2</span>
-   <li><a href="#dom-sharedstorage-run">run(name)</a><span>, in § 3.2</span>
-   <li><a href="#dom-sharedstorage-run">run(name, options)</a><span>, in § 3.2</span>
-   <li><a href="#dom-sharedstorage-selecturl">selectURL(name, urls)</a><span>, in § 3.2</span>
-   <li><a href="#dom-sharedstorage-selecturl">selectURL(name, urls, options)</a><span>, in § 3.2</span>
-   <li><a href="#dom-sharedstorage-set">set(key, value)</a><span>, in § 3.3</span>
-   <li><a href="#dom-sharedstorage-set">set(key, value, options)</a><span>, in § 3.3</span>
+   <li><a href="#dom-sharedstorage-run">run(name)</a><span>, in § 3.1</span>
+   <li><a href="#dom-sharedstorage-run">run(name, options)</a><span>, in § 3.1</span>
+   <li><a href="#dom-sharedstorage-selecturl">selectURL(name, urls)</a><span>, in § 3.1</span>
+   <li><a href="#dom-sharedstorage-selecturl">selectURL(name, urls, options)</a><span>, in § 3.1</span>
+   <li><a href="#dom-sharedstorage-set">set(key, value)</a><span>, in § 3.2</span>
+   <li><a href="#dom-sharedstorage-set">set(key, value, options)</a><span>, in § 3.2</span>
    <li><a href="#sharedstorage">SharedStorage</a><span>, in § 3</span>
    <li><a href="#sharedstorageiterator">SharedStorageIterator</a><span>, in § 3</span>
    <li><a href="#dom-sharedstorageiterator-sharedstorageiterator">SharedStorageIterator(mode)</a><span>, in § 3</span>
@@ -1330,7 +1325,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <a href="https://html.spec.whatwg.org/multipage/nav-history-apis.html#window">https://html.spec.whatwg.org/multipage/nav-history-apis.html#window</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-window">3. The SharedStorage Interface</a> <a href="#ref-for-window①">(2)</a> <a href="#ref-for-window②">(3)</a> <a href="#ref-for-window③">(4)</a>
-    <li><a href="#ref-for-window④">3.1. Note on Parallelism</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-worklet">
@@ -1349,38 +1343,95 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <a href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule">https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-dom-worklet-addmodule">3. The SharedStorage Interface</a>
-    <li><a href="#ref-for-dom-worklet-addmodule①">3.2. Run Operation Methods</a> <a href="#ref-for-dom-worklet-addmodule②">(2)</a>
+    <li><a href="#ref-for-dom-worklet-addmodule①">3.1. Run Operation Methods</a> <a href="#ref-for-dom-worklet-addmodule②">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-enqueue-the-following-steps">
+   <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-enqueue-the-following-steps">3.1. Run Operation Methods</a> <a href="#ref-for-enqueue-the-following-steps①">(2)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps②">3.2. Setter/Deleter Methods</a> <a href="#ref-for-enqueue-the-following-steps③">(2)</a> <a href="#ref-for-enqueue-the-following-steps④">(3)</a> <a href="#ref-for-enqueue-the-following-steps⑤">(4)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps⑥">3.3. Getter Methods</a> <a href="#ref-for-enqueue-the-following-steps⑦">(2)</a> <a href="#ref-for-enqueue-the-following-steps⑧">(3)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps⑨">3.4. SharedStorageIterator Interface Methods</a> <a href="#ref-for-enqueue-the-following-steps①⓪">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-fencedframeconfig">
+   <a href="https://wicg.github.io/fenced-frame/#fencedframeconfig">https://wicg.github.io/fenced-frame/#fencedframeconfig</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-fencedframeconfig">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-dom-input-list">
    <a href="https://html.spec.whatwg.org/multipage/input.html#dom-input-list">https://html.spec.whatwg.org/multipage/input.html#dom-input-list</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dom-input-list">3.2. Run Operation Methods</a>
+    <li><a href="#ref-for-dom-input-list">3.1. Run Operation Methods</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-obtain-a-worklet-agent">
+   <a href="https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent">https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-obtain-a-worklet-agent">3.1. Run Operation Methods</a> <a href="#ref-for-obtain-a-worklet-agent①">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-ordered-map">
+   <a href="https://infra.spec.whatwg.org#ordered-map">https://infra.spec.whatwg.org#ordered-map</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-ordered-map">2.1. Registering a Worklet</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-relevant-settings-object">
+   <a href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object">https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-relevant-settings-object">3.1. Run Operation Methods</a> <a href="#ref-for-relevant-settings-object①">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-map-set">
+   <a href="https://infra.spec.whatwg.org#map-set">https://infra.spec.whatwg.org#map-set</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-map-set">2.1. Registering a Worklet</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-upon-fulfillment">
+   <a href="https://webidl.spec.whatwg.org#upon-fulfillment">https://webidl.spec.whatwg.org#upon-fulfillment</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-upon-fulfillment">3.1. Run Operation Methods</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-concept-url-parser">
+   <a href="https://url.spec.whatwg.org#concept-url-parser">https://url.spec.whatwg.org#concept-url-parser</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-concept-url-parser">3.1. Run Operation Methods</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-urnuuid">
+   <a href="https://www.rfc-editor.org/rfc/rfc4122#urnuuid">https://www.rfc-editor.org/rfc/rfc4122#urnuuid</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-urnuuid">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-list-append">
    <a href="https://infra.spec.whatwg.org/#list-append">https://infra.spec.whatwg.org/#list-append</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-list-append">3.2. Run Operation Methods</a>
+    <li><a href="#ref-for-list-append">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-list-size">
    <a href="https://infra.spec.whatwg.org/#list-size">https://infra.spec.whatwg.org/#list-size</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-list-size">3.2. Run Operation Methods</a> <a href="#ref-for-list-size①">(2)</a>
+    <li><a href="#ref-for-list-size">3.1. Run Operation Methods</a> <a href="#ref-for-list-size①">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-url">
    <a href="https://url.spec.whatwg.org/#url">https://url.spec.whatwg.org/#url</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-url">3.2. Run Operation Methods</a>
+    <li><a href="#ref-for-url">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-idl-DOMException">
    <a href="https://webidl.spec.whatwg.org/#idl-DOMException">https://webidl.spec.whatwg.org/#idl-DOMException</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-idl-DOMException">3.3. Setter/Deleter Methods</a> <a href="#ref-for-idl-DOMException①">(2)</a> <a href="#ref-for-idl-DOMException②">(3)</a> <a href="#ref-for-idl-DOMException③">(4)</a> <a href="#ref-for-idl-DOMException④">(5)</a> <a href="#ref-for-idl-DOMException⑤">(6)</a>
-    <li><a href="#ref-for-idl-DOMException⑥">3.4. Getter Methods</a>
+    <li><a href="#ref-for-idl-DOMException">3.2. Setter/Deleter Methods</a> <a href="#ref-for-idl-DOMException①">(2)</a> <a href="#ref-for-idl-DOMException②">(3)</a> <a href="#ref-for-idl-DOMException③">(4)</a> <a href="#ref-for-idl-DOMException④">(5)</a> <a href="#ref-for-idl-DOMException⑤">(6)</a>
+    <li><a href="#ref-for-idl-DOMException⑥">3.3. Getter Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-idl-DOMString">
@@ -1393,8 +1444,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside class="dfn-panel" data-for="term-for-dataerror">
    <a href="https://webidl.spec.whatwg.org/#dataerror">https://webidl.spec.whatwg.org/#dataerror</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dataerror">3.3. Setter/Deleter Methods</a> <a href="#ref-for-dataerror①">(2)</a> <a href="#ref-for-dataerror②">(3)</a> <a href="#ref-for-dataerror③">(4)</a> <a href="#ref-for-dataerror④">(5)</a> <a href="#ref-for-dataerror⑤">(6)</a>
-    <li><a href="#ref-for-dataerror⑥">3.4. Getter Methods</a>
+    <li><a href="#ref-for-dataerror">3.2. Setter/Deleter Methods</a> <a href="#ref-for-dataerror①">(2)</a> <a href="#ref-for-dataerror②">(3)</a> <a href="#ref-for-dataerror③">(4)</a> <a href="#ref-for-dataerror④">(5)</a> <a href="#ref-for-dataerror⑤">(6)</a>
+    <li><a href="#ref-for-dataerror⑥">3.3. Getter Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-Exposed">
@@ -1478,7 +1529,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <a href="https://webidl.spec.whatwg.org/#idl-unsigned-long">https://webidl.spec.whatwg.org/#idl-unsigned-long</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-idl-unsigned-long">3. The SharedStorage Interface</a>
-    <li><a href="#ref-for-idl-unsigned-long①">3.2. Run Operation Methods</a>
+    <li><a href="#ref-for-idl-unsigned-long①">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-dom-rtcidentityproviderregistrar-register">
@@ -1496,7 +1547,16 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="term-for-worklet">Worklet</span>
      <li><span class="dfn-paneled" id="term-for-workletglobalscope">WorkletGlobalScope</span>
      <li><span class="dfn-paneled" id="term-for-dom-worklet-addmodule">addModule(moduleURL, options)</span>
+     <li><span class="dfn-paneled" id="term-for-enqueue-the-following-steps">enqueue the following steps</span>
+     <li><span class="dfn-paneled" id="term-for-fencedframeconfig">fencedframeconfig</span>
      <li><span class="dfn-paneled" id="term-for-dom-input-list">list</span>
+     <li><span class="dfn-paneled" id="term-for-obtain-a-worklet-agent">obtaining a worklet agent</span>
+     <li><span class="dfn-paneled" id="term-for-ordered-map">ordered map</span>
+     <li><span class="dfn-paneled" id="term-for-relevant-settings-object">relevant settings object</span>
+     <li><span class="dfn-paneled" id="term-for-map-set">set</span>
+     <li><span class="dfn-paneled" id="term-for-upon-fulfillment">upon fulfillment</span>
+     <li><span class="dfn-paneled" id="term-for-concept-url-parser">url parser</span>
+     <li><span class="dfn-paneled" id="term-for-urnuuid">urn:uuid</span>
     </ul>
    <li>
     <a data-link-type="biblio">[INFRA]</a> defines the following terms:
@@ -1641,15 +1701,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <ul>
     <li><a href="#ref-for-sharedstorageworklet">2. The SharedStorageWorklet Interface</a> <a href="#ref-for-sharedstorageworklet①">(2)</a> <a href="#ref-for-sharedstorageworklet②">(3)</a> <a href="#ref-for-sharedstorageworklet③">(4)</a>
     <li><a href="#ref-for-sharedstorageworklet④">3. The SharedStorage Interface</a> <a href="#ref-for-sharedstorageworklet⑤">(2)</a> <a href="#ref-for-sharedstorageworklet⑥">(3)</a> <a href="#ref-for-sharedstorageworklet⑦">(4)</a> <a href="#ref-for-sharedstorageworklet⑧">(5)</a>
-    <li><a href="#ref-for-sharedstorageworklet⑨">3.1. Note on Parallelism</a>
-    <li><a href="#ref-for-sharedstorageworklet①⓪">3.2. Run Operation Methods</a> <a href="#ref-for-sharedstorageworklet①①">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="sharedstorageworkletglobalscope">
    <b><a href="#sharedstorageworkletglobalscope">#sharedstorageworkletglobalscope</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sharedstorageworkletglobalscope">2. The SharedStorageWorklet Interface</a>
-    <li><a href="#ref-for-sharedstorageworkletglobalscope①">3.2. Run Operation Methods</a> <a href="#ref-for-sharedstorageworkletglobalscope②">(2)</a>
+    <li><a href="#ref-for-sharedstorageworkletglobalscope①">2.1. Registering a Worklet</a> <a href="#ref-for-sharedstorageworkletglobalscope②">(2)</a>
+    <li><a href="#ref-for-sharedstorageworkletglobalscope③">3.1. Run Operation Methods</a> <a href="#ref-for-sharedstorageworkletglobalscope④">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="callbackdef-sharedstorageoperationconstructor">
@@ -1684,6 +1743,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-dictdef-sharedstorageurlwithmetadata②">3. The SharedStorage Interface</a>
    </ul>
   </aside>
+  <aside class="dfn-panel" data-for="sharedstorageworkletglobalscope-operation-map">
+   <b><a href="#sharedstorageworkletglobalscope-operation-map">#sharedstorageworkletglobalscope-operation-map</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sharedstorageworkletglobalscope-operation-map">2.1. Registering a Worklet</a>
+   </ul>
+  </aside>
   <aside class="dfn-panel" data-for="dom-sharedstorageworkletglobalscope-register">
    <b><a href="#dom-sharedstorageworkletglobalscope-register">#dom-sharedstorageworkletglobalscope-register</a></b><b>Referenced in:</b>
    <ul>
@@ -1693,28 +1758,27 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside class="dfn-panel" data-for="bit-budget">
    <b><a href="#bit-budget">#bit-budget</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-bit-budget">3.4. Getter Methods</a>
+    <li><a href="#ref-for-bit-budget">3.3. Getter Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="epoch">
    <b><a href="#epoch">#epoch</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-epoch">3. The SharedStorage Interface</a> <a href="#ref-for-epoch①">(2)</a>
-    <li><a href="#ref-for-epoch②">3.4. Getter Methods</a> <a href="#ref-for-epoch③">(2)</a>
+    <li><a href="#ref-for-epoch②">3.3. Getter Methods</a> <a href="#ref-for-epoch③">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="bit-debit">
    <b><a href="#bit-debit">#bit-debit</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-bit-debit">3. The SharedStorage Interface</a>
-    <li><a href="#ref-for-bit-debit①">3.4. Getter Methods</a>
+    <li><a href="#ref-for-bit-debit①">3.3. Getter Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="sharedstorage">
    <b><a href="#sharedstorage">#sharedstorage</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sharedstorage">3. The SharedStorage Interface</a> <a href="#ref-for-sharedstorage①">(2)</a>
-    <li><a href="#ref-for-sharedstorage②">3.1. Note on Parallelism</a> <a href="#ref-for-sharedstorage③">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dom-sharedstorage-worklet">
@@ -1744,22 +1808,22 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside class="dfn-panel" data-for="dom-iteratormode-key">
    <b><a href="#dom-iteratormode-key">#dom-iteratormode-key</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dom-iteratormode-key">3.4. Getter Methods</a>
-    <li><a href="#ref-for-dom-iteratormode-key①">3.5. SharedStorageIterator Interface Methods</a>
+    <li><a href="#ref-for-dom-iteratormode-key">3.3. Getter Methods</a>
+    <li><a href="#ref-for-dom-iteratormode-key①">3.4. SharedStorageIterator Interface Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dom-iteratormode-keyvalue">
    <b><a href="#dom-iteratormode-keyvalue">#dom-iteratormode-keyvalue</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dom-iteratormode-keyvalue">3.4. Getter Methods</a>
+    <li><a href="#ref-for-dom-iteratormode-keyvalue">3.3. Getter Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="sharedstorageiterator">
    <b><a href="#sharedstorageiterator">#sharedstorageiterator</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sharedstorageiterator">3. The SharedStorage Interface</a> <a href="#ref-for-sharedstorageiterator①">(2)</a>
-    <li><a href="#ref-for-sharedstorageiterator②">3.4. Getter Methods</a> <a href="#ref-for-sharedstorageiterator③">(2)</a>
-    <li><a href="#ref-for-sharedstorageiterator④">3.5. SharedStorageIterator Interface Methods</a>
+    <li><a href="#ref-for-sharedstorageiterator②">3.3. Getter Methods</a> <a href="#ref-for-sharedstorageiterator③">(2)</a>
+    <li><a href="#ref-for-sharedstorageiterator④">3.4. SharedStorageIterator Interface Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dom-sharedstorage-run">
@@ -1814,7 +1878,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <b><a href="#dom-sharedstorage-remainingbudget">#dom-sharedstorage-remainingbudget</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-dom-sharedstorage-remainingbudget">3. The SharedStorage Interface</a>
-    <li><a href="#ref-for-dom-sharedstorage-remainingbudget①">3.2. Run Operation Methods</a>
+    <li><a href="#ref-for-dom-sharedstorage-remainingbudget①">3.1. Run Operation Methods</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dom-sharedstorage-keys">
@@ -1833,7 +1897,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <b><a href="#dom-sharedstorageiterator-next">#dom-sharedstorageiterator-next</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-dom-sharedstorageiterator-next">3. The SharedStorage Interface</a>
-    <li><a href="#ref-for-dom-sharedstorageiterator-next①">3.5. SharedStorageIterator Interface Methods</a> <a href="#ref-for-dom-sharedstorageiterator-next②">(2)</a>
+    <li><a href="#ref-for-dom-sharedstorageiterator-next①">3.4. SharedStorageIterator Interface Methods</a> <a href="#ref-for-dom-sharedstorageiterator-next②">(2)</a>
    </ul>
   </aside>
 <script>/* script-dfn-panel */
