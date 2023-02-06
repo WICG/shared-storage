@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - uses: pythagoraskitty/w3c-spec-prod@v1
+      - uses: pythagoraskitty/w3c-spec-prod@v1.2
         with:
           TOOLCHAIN: bikeshed
           DESTINATION: pr-preview/${{ github.ref }}/index.html
