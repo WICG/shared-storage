@@ -19,23 +19,96 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
         text: relevant settings object; url: webappapis.html#relevant-settings-object
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
+        text: environment; url: webappapis.html#environment
+        text: environment settings object; url: webappapis.html#environment-settings-object
+        text: relevant settings object; url: webappapis.html#relevant-settings-object
+        text: target browsing context; url: webappapis.html#concept-environment-target-browsing-context
+        text: active document; url: webappapis.html#active-document
+        text: module script; url: webappapis.html#module-script
+        text: module map; url: webappapis.html#module-map
+        text: browsing context; for: Window; url: webappapis.html#window-bc
+        text: opaque origin; url: browsers.html#concept-opaque-origin
+        text: worklet global scope type; url: worklets.html#worklet-global-scope-type
+        text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
+        text: inparallel; url: infrastructure.html#in-parallel
+        text: parallel queue; url: infrastructure.html#parallel-enqueue
         text: enqueue the following steps; url: infrastructure.html#enqueue-the-following-steps
+        text: browsing context; url: document-sequences.html#browsing-context
+        text: active window; url: document-sequences.html#active-window
 spec: html; urlPrefix: https://url.spec.whatwg.org
     type: dfn
         text: URL parser; url: concept-url-parser
+        text: origin; url: concept-url-origin
 spec: html; urlPrefix: https://infra.spec.whatwg.org
     type: dfn
-        text: ordered map; url: ordered-map
-        text: set; for: ordered map; url: map-set
+        text: user agent; url: user-agent
+        text: string; url: string
+        text: concatenate; for: string; url: string-concatenate
+        text: map; url: ordered-map
+        text: set; for: map; url: map-set
+        text: get; for: map; url: map-get
+        text: remove; url: map-remove
+        text: clear; for: map; url: map-clear
+        text: contains; for: map; url: map-exists
+        text: key; for: map; url: map-key
+        text: value; for: map; url: map-value
+        text: entry; for: map; url: map-entry
+        text: get the keys; url: map-getting-the-keys
+        text: get the values; url: map-getting-the-values
+        text: size; for: map; url: map-size
+        text: empty; for: map; url: map-is-empty
+        text: append; for: set; url: set-append
+        text: list; url: list
+        text: empty; for: list; url: list-is-empty
+        text: append; for: list; url: list-append
+        text: item; for: list; url: list-item
+        text: struct; url: struct
 spec: html; urlPrefix: https://webidl.spec.whatwg.org
     type: dfn
         text: upon fulfillment; url: upon-fulfillment
+        text: dictionary; url: dfn-dictionary
+spec: html; urlPrefix: https://storage.spec.whatwg.org/
+    type: dfn
+        text: storage model; url: model
+        text: storage key; url: storage-key
+        text: storage shed; url: storage-shed
+        text: storage shelf; url: storage-shelf
+        text: storage bucket; url: storage-bucket
+        text: storage bottle; url: storage-bottle
+        text: quota; for: storage bottle; url: storage-bottle-quota
+        text: storage endpoint; url: storage-endpoint
+        text: storage type; url: storage-type
+        text: storage identifier; url: storage-identifier
+        text: quota; for: storage endpoint; url: storage-endpoint-quota
+        text: register; for: storage endpoint; url: registered-storage-endpoints
+        text: bucket map; url: bucket-map
+        text: bottle map; url: bottle-map
+        text: storage proxy map; url: storage-proxy-map
+        text: backing map; url: storage-proxy-map-backing-map
+        text: proxy map reference set; url: storage-bottle-proxy-map-reference-set
+spec: html; urlPrefix: https://tc39.es/ecma262/
+    type: dfn
+        text: constructor; url: constructor
+        text: function; url: function-object
 spec: html; urlPrefix: https://www.rfc-editor.org/rfc/rfc4122
     type: dfn
         text: urn:uuid
 spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: FencedFrameConfig; url: fencedframeconfig
+spec: md; urlPrefix: https://github.com/WICG/fenced-frame/blob/master/explainer/opaque_src.md
+    type: dfn
+        text: opaque URL
+spec: md; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
+    type: dfn
+        text: private aggregation
+spec: html; urlPrefix: https://privacycg.github.io/storage-partitioning/
+    type: dfn
+        text: client-side storage partitioning
+spec: html; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+    type: dfn
+        text: bits of entropy
+        text: entropy bits
 </pre>
 
 <style>
@@ -51,9 +124,9 @@ Introduction {#intro}
 =====================
 <em>This section is not normative.</em>
 
-In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by top-frame site. But, there are many legitimate use cases currently relying on unpartitioned storage.
+In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by top-frame site; see .[=Client-Side Storage Partitioning=]. But, there are many legitimate use cases currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, we hope to design and add additional gates.
+This document introduces a new storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -98,15 +171,15 @@ This document introduces a new storage API that is intentionally not partitioned
 
 The {{SharedStorageWorklet}} Interface {#worklet}
 =================================================
+The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=private aggregation=] output gate and the {{WindowSharedStorage/selectURL()|URL-selection}} output gate.
+
 <xmp class='idl'>
   [Exposed=(Window)]
   interface SharedStorageWorklet : Worklet {
   };
 </xmp>
 
-The {{SharedStorageWorklet}} object allows developers to supply scripts to process Shared Storage data on a separate thread and then output the result through one or more of the output gates. Currently there are two output gates, the private aggregation output gate and the URL selection output gate.
-
-The {{SharedStorageWorklet}}'s worklet global scope type is {{SharedStorageWorkletGlobalScope}}. The scripts should define and {{register}} one or more {{SharedStorageOperation}}s. 
+The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}. 
 
 <xmp class='idl'>
   [Exposed=SharedStorageWorklet, Global=SharedStorageWorklet]
@@ -122,13 +195,19 @@ The {{SharedStorageWorklet}}'s worklet global scope type is {{SharedStorageWorkl
   };
 </xmp>
 
+Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
+
+The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s. 
+
+Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is an [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
+
 Currently each {{SharedStorageOperation}} registered via {{SharedStorageWorkletGlobalScope/register()}} must be one of the following two types:
 * {{SharedStorageRunOperation}}
 * {{SharedStorageSelectURLOperation}}
 
-A {{SharedStorageRunOperation}} is an {{SharedStorageOperation}} that has no JavaScript return value, and hence is especially suited for calling into the private aggregation service.
+A {{SharedStorageRunOperation}} is an {{SharedStorageOperation}} that has no JavaScript return value, and hence is especially suited for calling into the [=private aggregation=] service.
 
-A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a list of {{SharedStorageUrlWithMetadata}} dictionaries (i.e. URLs each wrapped with metadata) and returns a {{long}} integer index specifying which of these URLs should be selected.
+A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with metadata) and returns a {{long}} integer index specifying which of these {{URL}}s should be selected.
 
 <xmp class='idl'>
   [Exposed=SharedStorageWorklet]
@@ -149,47 +228,171 @@ A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that take
 </xmp>
 
   ## Registering a Worklet ## {#register-worklet}
-
-  We define a {{SharedStorageWorkletGlobalScope}}'s internal <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn> as an [=ordered map=] of operation name strings to class contructors.
-
   <div algorithm>
     The <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method steps are:
 
     1. If |name| is missing or empty, throw a {{TypeError}}.
     1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
-    1. If |name| already exists as a key in |operationMap|, throw a {{TypeError}}.
-    1. If |operationCtor| is missing or not a constructor, throw a {{TypeError}}.
+    1. If |operationMap| [=map/contains=] an [=map/entry=] with [=map/key=] |name|, throw a {{TypeError}}.
+    1. If |operationCtor| is missing or not a [=constructor=], throw a {{TypeError}}.
     1. Let |prototype| be |operationCtor|'s class prototype.
     1. If |prototype| is not an object, throw a {{TypeError}}.
-    1. Let |run| be |prototype|'s "run" method.
-    1. If |run| is missing or not a function, throw a {{TypeError}}.
-    1. [=ordered map/Set=] the value of |name| to |run| in |operationMap|.
+    1. Let |run| be |prototype|'s "`run`" method.
+    1. If |run| is missing or not a [=function=], throw a {{TypeError}}.
+    1. [=map/Set=] the value of |operationMap|[|name|] to |run|.
   </div>
 
-The {{SharedStorage}} Interface {#shared-storage}
-=================================================
-The {{SharedStorage}} interface is exposed to both the {{Window}} and the {{SharedStorageWorklet}}, with some of its methods only exposed to one or the other.
+The [=Shared Storage Database=] {#database}
+===========================================
+A [=user agent=] holds a <dfn>shared storage database</dfn>, which consists of a [=shared storage shed=] and provides methods to [=shared storage database/store an entry in the database|store=], [=shared storage database/retrieve an entry from the database|retrieve=], [=shared storage database/delete an entry from the database|delete=], and [=shared storage database/clear all entries in the database|clear=] data, and additional methods as below. The data in the [=shared storage database|database=] take the form of [=shared storage database/entry|entries=].
 
-Methods that allow the setting and/or deleting of data are exposed to both the {{Window}} and the {{SharedStorageWorklet}}. This makes it possible to modify the data in Shared Storage from multiple contexts.
+Each <dfn for="shared storage database">entry</dfn> consists of a [=entry/key=] and [=entry/value=].
 
-Meanwhile, methods for running {{SharedStorageOperation}}s, along with the {{SharedStorage/worklet}} attribute which is used to call {{Worklet/addModule()}}, are exposed to the {{Window}} only, as these are the means by which the {{Window}} interacts with the {{SharedStorageWorklet}}.
+An [=shared storage database/entry=]'s <dfn for=entry>value</dfn> is a [=string=]. [=User agents=] may specify the maximum length of a [=entry/value=].
 
-In order to carefully control the flow of data read from Shared Storage, methods for getting data from the database backend are exposed to the {{SharedStorageWorklet}} only.
+An [=shared storage database/entry=]'s <dfn for=entry>key</dfn> is a [=string=]. [=User agents=] may specify the maximum length of a [=entry/key=]. Since [=entry/keys=] are used to organize and efficiently retrieve [=shared storage database/entry|entries=], [=entry/keys=] must appear at most once on any given [=shared storage shelf=] in a [=shared storage database|database=]'s [=shared storage shed=].
 
-Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user activates the fenced frame that navigates to the resulting opaque URL, we impose on each origin a <dfn>bit budget</dfn>, i.e. a maximum allowance of entropy bits that are permitted to leak during a given [=epoch=], where we define an <dfn>epoch</dfn> as a time period whose duration is a fixed pretermined length. When a leak occurs, its value in entropy bits is calculated and stored as a <dfn>bit debit</dfn> with a timestamp, and only [=bit debit=]s whose timestamps are within the current [=epoch=] are used to determine an origin's remaining budget. When an origin has insufficient remaining budget, {{SharedStorage/selectURL()}} will return its default value.
+<span class=XXX>TODO: Need to address persistence and expiration, along with [=shared storage database/entry=] timestamps. How to monkey-patch timestamps into the [=Storage Model=]?</span>
+
+A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=parallel queue=] on which the each of the [=shared storage database=]'s methods run when calls to them are initiated from that [=/browsing context=].
+
+  <div algorithm>
+    To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=/browsing context=] |context|, a [=entry/key=] |key|, and a [=entry/value=] |value|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. [=map/Set=] |databaseMap|[|key|] to |value|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| does not [=map/contain=] |key|, return failure.
+    1. Let |value| be the result of running [=map/Get=] on |databaseMap| with |key|.
+    1. Return |value|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. [=map/Remove=] |databaseMap|[|key|].
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=/browsing context=] |context|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Run [=map/Clear=] on |databaseMap|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">retrieve all keys from the database</dfn>, given a [=/browsing context=] |context|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |keys| be the result of running [=map/getting the keys=] on |databaseMap|.
+    1. Return |keys|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=/browsing context=] |context|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |values| be the result of running [=map/getting the values=] on |databaseMap|.
+    1. Return |values|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">count entries in the database</dfn>, given a [=/browsing context=] |context|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |count| be |databaseMap|'s [=map/size=].
+    1. Return |count|.
+  </div>
+
+  ## Monkey Patch for the [=Storage Model=] ## {#monkey-patch}
+  After adding a new [=storage type=] "`shared`" to the [=Storage Model=], this standard will [=storage endpoint/register=] a [=storage endpoint=] of [=storage type|type=] "`shared`" with [=storage identifier=] "`sharedStorage`" and [=storage endpoint/quota=] `5`<sup>`4`</sup> `*` `2`<sup>`16`</sup> bytes (i.e. 39.0625 mebibytes).
+
+  <span class=XXX>TODO: This [=storage endpoint/quota=] is calculated from the current implementation. Consider bringing the current implementation in line with the spec for [=storage endpoints=] "`localStorage`" and "`sessionStorage`", i.e. `5 * 2`<sup>`20`</sup> bytes. For example, decreasing the per-origin entry limit from 10,000 to 1,280 would achieve this.</span>
+
+  A [=user agent=] holds a [=shared storage shed=] for [=storage endpoints=] of [=storage type|type=] "`shared`".
+
+  A <dfn>shared storage shed</dfn> is a [=map=] of [=/origins=] to to [=storage shelf|storage shelves=]. It is initially empty.
+
+  Note: Unlike [=storage sheds=], whose keys are [=storage keys=], [=shared storage sheds=] use [=/origins=] as keys directly. [=Shared storage=] will be intentionally excluded from [=client-side storage partitioning=].
+
+  A [=user agent=]'s [=shared storage shed=] holds all <dfn>shared storage</dfn> data.
+
+  A <dfn>shared storage shelf</dfn> is a [=storage shelf=] in a [=shared storage shed=].
+
+  <div algorithm>
+    To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed| and an [=environment settings object=] |environment|, run these steps:
+
+    1. Let |origin| be |environment|'s [=origin=].
+    1. If |origin| is an [=opaque origin=], then return failure.
+    1. If the user has disabled [=shared storage=], then return failure.
+    1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
+    1. Return |shed|[|origin|].
+  </div>
+
+  <div algorithm>
+    To <dfn>create a shared storage shelf</dfn>, run these steps:
+
+    1. Let |shelf| be a new [=storage shelf=].
+    1. Set |shelf|'s [=bucket map=]["`default`"] to the result of running [=create a shared storage bucket=].
+    1. Return |shelf|.
+  </div>
+
+  A <dfn>shared storage bucket</dfn> is a [=storage bucket=] in a [=shared storage shelf=].
+
+  <div algorithm>
+    To <dfn>create a shared storage bucket</dfn>, run these steps:
+
+    1. Let |endpoint| be the [=storage endpoint=] with [=storage identifier=] "`sharedStorage`".
+    1. Let |bucket| be a new [=shared storage bucket=].
+    1. Set |bucket|'s [=bottle map=]["`sharedStorage`"] to a new [=storage bottle=] whose [=storage bottle/quota=] is |endpoint|'s [=storage endpoint/quota=].
+    1. Return |bucket|.
+  </div>
+
+  Note: Currently, a [=shared storage bucket=]'s [=bottle map=] has [=map/size=] `1`, since there is only one [=storage endpoint=] [=storage endpoint/registered=] with [=storage type|type=] "`shared`".
+
+  <div algorithm>
+    To <dfn>obtain a shared storage bottle map</dfn>, given an [=environment settings object=] |environment|, run these steps:
+
+    1. Let |shed| be the [=user agent=]'s [=shared storage shed=].
+    1. Let |shelf| be the result of running [=obtain a shared storage shelf=] with |shed| and |environment|.
+    1. If |shelf| is failure, then return failure.
+    1. Let |bucket| be |shelf|'s [=bucket map=]["`default`"].
+    1. Let |bottle| be |bucket|'s [=bottle map=]["`sharedStorage`"].
+    1. Let |proxyMap| be a new [=storage proxy map=] whose [=backing map=] is |bottle|'s [=map=].
+    1. [=set/Append=] |proxyMap| to |bottle|'s [=proxy map reference set=].
+    1. Return |proxyMap|.
+  </div>
+
+
+
+<span class=XXX>TODO: Use [=obtain a shared storage bottle map=] below.</span>
+
+The {{SharedStorage}} Interface {#shared-storage-interface}
+==========================================================
+The {{SharedStorage}} interface is the base for derived interfaces {{WindowSharedStorage}} and {{WorkletSharedStorage}}, which are exposed to the {{Window}} and the {{SharedStorageWorklet}}, respectively.
+
+Methods that allow the setting and/or deleting of data are exposed to both the {{Window}} and the {{SharedStorageWorklet}} and hence are declared in the base {{SharedStorage}} interface, although their implementations may vary depending on their [=environment=]. This makes it possible to modify the data in Shared Storage from multiple contexts.
+
+Meanwhile, methods for running {{SharedStorageOperation}}s, along with the {{WindowSharedStorage/worklet}} attribute which is used to call {{Worklet/addModule()}}, are declared in {{WindowSharedStorage}} and exposed to the {{Window}} only, as these are the means by which the {{Window}} interacts with the {{SharedStorageWorklet}}.
+
+On the other hand, methods for getting data from the [=shared storage database=] are declared in {{WorkletSharedStorage}} and exposed to the {{SharedStorageWorklet}} only, in order to carefully control the flow of data read from the [=shared storage database|database=].
 
 <xmp class='idl'>
   [Exposed=(Window,SharedStorageWorklet)]
   interface SharedStorage {
-    [Exposed=(Window)] 
-    Promise<any> run(DOMString name,
-                     optional SharedStorageRunOperationMethodOptions options = {});
-
-    [Exposed=(Window)] 
-    Promise<USVString> selectURL(DOMString name,
-                                 FrozenArray<SharedStorageUrlWithMetadata> urls,
-                                 optional SharedStorageRunOperationMethodOptions options = {});
-
     Promise<any> set(DOMString key,
                      DOMString value,
                      optional SharedStorageSetMethodOptions options = {});
@@ -200,49 +403,150 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
     Promise<any> delete(DOMString key);
 
     Promise<any> clear();
-
-    [Exposed=(SharedStorageWorklet)] Promise<DOMString> get(DOMString key);
-
-    [Exposed=(SharedStorageWorklet)] Promise<unsigned long> length();
-
-    [Exposed=(SharedStorageWorklet)] Promise<double> remainingBudget();
-
-    [Exposed=(SharedStorageWorklet)] SharedStorageIterator keys();
-
-    [Exposed=(SharedStorageWorklet)] SharedStorageIterator entries();
-
-    [Exposed=(Window)] readonly attribute SharedStorageWorklet worklet;
   };
 
   dictionary SharedStorageSetMethodOptions {
     boolean ignoreIfPresent;
   };
+</xmp>
+
+  ## The {{WindowSharedStorage}} interface ## {#window}
+
+<xmp class='idl'>
+  [Exposed=(Window)]
+  interface WindowSharedStorage : SharedStorage {
+    Promise<any> run(DOMString name,
+                     optional SharedStorageRunOperationMethodOptions options = {});
+
+    Promise<USVString> selectURL(DOMString name,
+                                 FrozenArray<SharedStorageUrlWithMetadata> urls,
+                                 optional SharedStorageRunOperationMethodOptions options = {});
+
+    readonly attribute SharedStorageWorklet worklet;
+  };
 
   dictionary SharedStorageRunOperationMethodOptions {
     object data;
   };
-
-  enum IteratorMode { "key", "keyValue" };
-
-  [Exposed=(SharedStorageWorklet)]
-  interface SharedStorageIterator {
-    constructor(IteratorMode mode);
-    Promise<object> next();
-  };
 </xmp>
 
-  ## Run Operation Methods ## {#run-op}
+  ### Window Setter/Deleter Methods ### {#window-setter}
 
   <div algorithm>
-    The <dfn method for="SharedStorage">run(|name|, |options|)</dfn> method steps are:
+    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. If |options| is empty, create |options| with |options|["`ignoreIfPresent`"] set to false.
+        1. If |options|["`ignoreIfPresent`"] is true:
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+            1. If |currentValue| is not failure, resolve |promise| as undefined.
+            1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+            1. Resolve |promise| as undefined.
+        1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+        1. Resolve |promise| as undefined.
+    1. Return |promise|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method steps are:
+
+    1. Let |promise| be a new promise.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+        1. If |currentValue| is not failure:
+            1. Let |list| be a new [=list=].
+            1. [=list/Append=] |currentValue| to |list|.
+            1. [=list/Append=] |value| to |list|.
+            1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
+            1. Run [=shared storage database/store an entry in the database=] with |context|, |key|, and |newValue|.
+            1. Resolve |promise| as undefined.
+        1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|..
+        1. Resolve |promise| as undefined.
+    1. Return |promise|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method steps are:
+
+    1. Let |promise| be a new promise.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. Run [=shared storage database/delete an entry from the database=] with |context| and |key|.
+        1. Resolve |promise| as undefined.
+    1. Return |promise|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">clear()</dfn> method steps are:
+
+    1. Let |promise| be a new promise.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. Run [=shared storage database/clear all entries in the database=] with |context|.
+        1. Resolve |promise| as undefined.
+    1. Return |promise|.
+  </div>
+
+  ### Entropy Budget ### {#budget}
+
+  Because [=bits of entropy=] can leak via {{WindowSharedStorage/selectURL()}} if a user activates the fenced frame that navigates to the resulting [=opaque URL=], there is a per-[=calling origin=] [=entropy allowance=].
+
+  A <dfn>calling origin</dfn> for {{WindowSharedStorage/selectURL()}} is the [=origin=] of an [=environment=] that makes a {{WindowSharedStorage/selectURL()}} call.
+
+  A <dfn>entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak during a given [=epoch=] and for a given calling [=calling origin=]. This [=entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling origin=]-agnostic.
+
+  An <dfn>epoch</dfn> is a time period whose duration is a fixed pretermined length.
+
+  To keep track of how this [=entropy allowance=] is used, Shared Storage uses a <dfn>budget table</dfn>, which is a [=map=] of [=calling origins=] to [=entropy ledgers=].
+
+  An <dfn>entropy ledger</dfn> is a [=list=] of [=bit debits=].
+
+  A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} indicating a value in [=entropy bits=] along with a timestamp
+
+  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=] along with the current time as a [=bit debit=] in the [=budget table=].
+
+  Only [=bit debits=] whose timestamps are within the current [=epoch=] are used to [=determine remaining budget=]. When an [=calling origin=] has insufficient remaining budget, {{WindowSharedStorage/selectURL()}} will return its [=default value=].
+
+  The <dfn>default value</dfn> for a call to {{WindowSharedStorage/selectURL()}} is implementation-defined in such a way that it is independent from the result of the associated {{SharedStorageSelectURLOperation}}'s "`run`" method.
+
+  <div algorithm>
+    To <dfn>determine remaining budget</dfn>, given a calling [=calling origin=] |origin|, run the following steps:
+
+    1. Let |maxBits| be the value of the [=user agent=]'s [=entropy allowance=].
+    1. If the [=user agent=]'s [=budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
+    1. Otherwise, let |ledger| be [=budget table=][|origin|].
+    1. Let |time| be the current time.
+    1. Let |epochLength| be the length of an [=epoch=].
+    1. Let |threshold| be |time| - |epochLength|.
+    1. Let |debitSum| be 0.
+    1. For each [=list/item=] |item| in |ledger|, do the following steps:
+        1. Let |timeStamp| be |item|'s timestamp.
+        1. Let |debit| be |item|'s value in [=entropy bits=].
+        1. If |timeStamp| >= |threshold|, then add |debit| to |debitSum|.
+    1. Return |maxBits| - |debitSum|.
+  </div>
+
+  ### Run Operation Methods ### {#run-op}
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method steps are:
+
+    1. Let |promise| be a new promise.
+    1.  Run the following steps [=in parallel=]:
         1. If {{Worklet/addModule()}} has not yet been called, reject |promise|.
-        1. Let |outsideSettings| be worklet's [=relevant settings object=].
+        1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
         1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|. Run the rest of these steps in |agent|.
-        1. If module script has been loaded for this worklet:
-            1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s operation map.
+        1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
+            1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. Let |operation| be the operation registered to |name| in |operationMap|, if |operation| exists.
             1. If |operation| exists:
                 1. If |options| contains |data|, invoke |operation| with argument |data|.
@@ -252,33 +556,33 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
+    The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
     1. Let |configPromise| be a new promise.
-    1. If |urls| is empty or exceeds the maximum allowed length, reject |configPromise|.
-    1. Let |urlList| be an empty {{list}}.
-    1. For each |urlWithMetadata| in |urls|:
-        1. If |urlWithMetadata| has no field "|url|", reject |configPromise|.
-        1. Otherwise, let |urlString| be |urlWithMetadata|["|url|"].
-        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. If |url| is not a valid {{URL}}, reject |configPromise|.
-        1. Otherwise, [=list/append=] |urlString| to |urlList|.
-        1. If |urlWithMetadata| has field "|reportingMetadata|":
-            1. Let |reportingMetadata| be |urlWithMetadata|["|reportingMetadata|"].
-            1. If |reportingMetadata| is invalid, reject |configPromise|.
-    1. [=Enqueue the following steps=]:
+    1. Run the following steps [=in parallel=]:
+        1. If |urls| is empty or exceeds the maximum allowed length, reject |configPromise|.
+        1. Let |urlList| be an empty {{list}}.
+        1. For each |urlWithMetadata| in |urls|:
+            1. If |urlWithMetadata| has no field "`url`", reject |configPromise|.
+            1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
+            1. Let |url| be the result of running a [=URL parser=] on |urlString|.
+            1. If |url| is not a valid {{URL}}, reject |configPromise|.
+            1. Otherwise, [=list/append=] |urlString| to |urlList|.
+            1. If |urlWithMetadata| has field "`reportingMetadata`":
+                1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
+                1. If |reportingMetadata| is invalid, reject |configPromise|.
         1. If {{Worklet/addModule()}} has not yet been called, reject |configPromise|.
         1. Let |pendingUrl| be a newly generated [=urn:uuid=].
         1. Let |fencedFrameConfig| be a [=FencedFrameConfig=] constructed from |pendingUrl|.
         1. Resolve |configPromise| as |fencedFrameConfig|.
         1. Let |indexPromise| be a new promise.
-        1. Let |outsideSettings| be worklet's [=relevant settings object=].
+        1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
         1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|. Run the following steps in |agent|:
             1. Let |index| be 0.
-            1. If module script has been loaded for this worklet:
-                1. Let |operationMap| be the operation map in the associated {{SharedStorageWorkletGlobalScope}}.
-                1. Let |operation| be the operation registered to |name| in |operationMap|, if |operation| exists.
-                1. If |operation| exists:
+            1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
+                1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
+                1. If |operationMap| [=map/contains=] |name|:
+                    1.  Let |operation| be |operationMap|[|name|].
                     1. If |options| contains |data|, let |operationResult| be the result of invoking |operation| with arguments |urlList| and |data|.
                     1. Otherwise, let |operationResult| be the result of invoking |operation| with argument |urlList|.
                     1. If there are no errors:
@@ -287,111 +591,141 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
             1. Resolve |indexPromise| with |index|.
         1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
             1. Let |resultIndex| be its numerical value.
-            1. Let |remainingBudget| be the numerical result from {{SharedStorage/remainingBudget()}}.
+            1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+            1. Let |origin| be |context|'s [=active document=]'s [=origin=].
+            1. Let |remainingBudget| be the result of running [=determine remaining budget=] with |origin|.
             1. Let |currentDebit| be log_2(|urlList|.[=list/size=]).
             1. If |currentDebit| > |remainingBudget|, set |resultIndex| to 0.
             1. Store |currentDebit| so that it can be withdrawn from the database in the event of a frame created from |fencedFrameConfig| triggering a top-frame navigation.
             1. Internally map |pendingUrl| to |urlList|[|resultIndex|].
+    1. Return |configPromise|.
   </div>
 
-  ## Setter/Deleter Methods ## {#setter}
+  ## The {{WorkletSharedStorage}} interface ## {#worklet-shared-storage}
+
+<xmp class='idl'>
+  [Exposed=(SharedStorageWorklet)]
+  interface WorkletSharedStorage : SharedStorage {
+    Promise<DOMString> get(DOMString key);
+
+    Promise<unsigned long> length();
+
+    Promise<double> remainingBudget();
+
+    SharedStorageIterator keys();
+
+    SharedStorageIterator entries();
+  };
+</xmp>
+
+  ### Worklet Setter/Deleter Methods ### {#worklet-setter}
 
   <div algorithm>
-    The <dfn method for="SharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. Run the following steps [=in parallel=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |options| is empty, create |options| with "|ignoreIfPresent|" set to false.
-        1. Perform a database query to determine whether an |entry| for |key| already exists in the database for this context's origin.
-        1. If |entry| exists:
-            1. If |options|["|ignoreIfPresent|"] is true, resolve |promise| as undefined.
-            1. Otherwise, perform a database query to update |entry| with |key| and |value|.
+        1. If |options| is empty, create |options| with |options|["`ignoreIfPresent`"] set to false.
+        1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+            1. If |options|["`ignoreIfPresent`"] is true:
+                1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+                1. If |currentValue| is not failure, resolve |promise| as undefined.
+                1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+                1. Resolve |promise| as undefined.
+            1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
             1. Resolve |promise| as undefined.
-        1. Otherwise, perform a database query to insert an |entry| with |key| and |value| into the database for this context's origin.
-        1. Resolve |promise| as undefined.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">append(|key|, |value|)</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">append(|key|, |value|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. Run the following steps [=in parallel=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |value| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. Perform a database query to determine whether an |entry| for |key| already exists in the database for this context's origin.
-        1. If |entry| exists:
-            1. Let |currentValue| be the current value of |entry|.
-            1. Perform a database query to update |entry| with |key| and (|currentValue| + |value|).
+        1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+            1. If |currentValue| is not failure:
+                1. Let |list| be a new [=list=].
+                1. [=list/Append=] |currentValue| to |list|.
+                1. [=list/Append=] |value| to |list|.
+                1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
+                1. Run [=shared storage database/store an entry in the database=] with |context|, |key|, and |newValue|.
+                1. Resolve |promise| as undefined.
+            1. Otherwise, run [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|..
             1. Resolve |promise| as undefined.
-        1. Otherwise, perform a database query to insert an |entry| with |key| and |value| into the database for this context's origin.
-        1. Resolve |promise| as undefined.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">delete(|key|)</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">delete(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. Perform a database query to delete any entry for |key| in the database for this context's origin.
+        1. Run [=shared storage database/delete an entry from the database=] with |context| and |key|.
         1. Resolve |promise| as undefined.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">clear()</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">clear()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
-        1. Perform a database query to delete all entries in the database for this context's origin.
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. Run [=shared storage database/clear all entries in the database=] with |context|.
         1. Resolve |promise| as undefined.
     1. Return |promise|.
   </div>
 
-  ## Getter Methods ## {#getter}
+  ### Getter Methods ### {#getter}
 
   <div algorithm>
-    The <dfn method for="SharedStorage">get(|key|)</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">get(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
         1. If |key| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. Perform a database query to determine whether an |entry| for |key| exists in the database for this context's origin.
-        1. If |entry| exists:
-            1. Let |value| be the value of |entry|.
-            1. Resolve |promise| as |value|.
+        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|..
+        1. If |value| is not failure, resolve |promise| as |value|.
         1. Otherwise, resolve |promise| as undefined.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">length()</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">length()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
-        1. Let |numEntries| be the number of entries in the database for this context's origin, as determined by a database query to count them.
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |context|.
         1. Resolve |promise| as |numEntries|.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">remainingBudget()</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">remainingBudget()</dfn> method steps are:
 
     1. Let |promise| be a new promise.
-    1. [=Enqueue the following steps=]:
-        1. Let |totalBudget| be the allotted total [=bit budget=] per [=epoch=].
-        1. Perform a database query to retrieve the |debitSum| for the context's origin, i.e. the sum of the [=bit debit=]s whose timestamps are within the current [=epoch=].
-        1. Resolve |promise| as (|totalBudget| - |debitSum|).
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. Let |origin| be |context|'s [=active document=]'s [=origin=].
+    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
+        1. Let |remainingBudget| be the result of running [=determine remaining budget=] with |origin|.
+        1. Resolve |promise| as |remainingBudget|.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">keys()</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">keys()</dfn> method steps are:
 
     1. Let |mode| be "{{IteratorMode/key}}".
     1. Construct a {{SharedStorageIterator}} object |iterator| with |mode|.
@@ -399,25 +733,36 @@ Because bits of entropy can leak via {{SharedStorage/selectURL()}} if a user act
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">entries()</dfn> method steps are:
+    The <dfn method for="WorkletSharedStorage">entries()</dfn> method steps are:
 
     1. Let |mode| be "{{IteratorMode/keyValue}}".
     1. Construct a {{SharedStorageIterator}} object |iterator| with |mode|.
     1. Return |iterator|.
   </div>
 
-  ## {{SharedStorageIterator}} Interface Methods ## {#iterator}
+  ## The {{SharedStorageIterator}} Interface ## {#iterator}
+
+<xmp class='idl'>
+  enum IteratorMode { "key", "keyValue" };
+
+  [Exposed=(SharedStorageWorklet)]
+  interface SharedStorageIterator {
+    constructor(IteratorMode mode);
+    Promise<object> next();
+  };
+</xmp>
 
   <div algorithm>
     The <dfn method for="SharedStorageIterator">constructor(|mode|)</dfn> method steps are:
 
     1. Create an internal queue |pendingEntries|.
-    1. [=Enqueue the following steps=]:
+    1. Let |context| be {{SharedStorageIterator}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
+    1. Run the following steps [=in parallel=]:
         1. If |mode| is "{{IteratorMode/key}}":
-            1. Query the database for all |keys| with context origin.
+            1. Let |keys| be the result of running [=shared storage database/retrieve all keys from the database=] with |context|.
             1. Queue |keys| in |pendingEntries|, to be returned individually with the {{SharedStorageIterator/next()}} method.
         1. Otherwise:
-            1. Query the database for all key-value pairs |entries| with context origin.
+            1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |context|.
             1. Queue |entries| in |pendingEntries|, to be returned individually with the {{SharedStorageIterator/next()}} method.
   </div>
 
