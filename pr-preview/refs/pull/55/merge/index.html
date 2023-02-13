@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 859efb4bd, updated Fri Jan 27 16:04:01 2023 -0800" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="a94c5e7be55abf36a0f5c4cfbeecfac29759fc3f" name="document-revision">
+  <meta content="15a0696bd57e01564e228233239523b06ea4d89c" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -789,7 +789,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 </pre>
    <h3 class="heading settled" data-level="2.1" id="register-worklet"><span class="secno">2.1. </span><span class="content">Registering a Worklet</span><a class="self-link" href="#register-worklet"></a></h3>
    <div class="algorithm" data-algorithm="register(name, operationCtor)" data-algorithm-for="SharedStorageWorkletGlobalScope">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="method" data-export id="dom-sharedstorageworkletglobalscope-register"><code>register(<var>name</var>, <var>operationCtor</var>)</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="method" data-export id="dom-sharedstorageworkletglobalscope-register"><code>register(<var>name</var>, <var>operationCtor</var>)</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel">in parallel</a>: 
     <ol>
      <li data-md>
       <p>If <var>name</var> is missing or empty, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror">TypeError</a></code>.</p>
@@ -1065,7 +1065,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 </pre>
    <h4 class="heading settled" data-level="4.1.1" id="window-setter"><span class="secno">4.1.1. </span><span class="content">Window Setter/Deleter Methods</span><a class="self-link" href="#window-setter"></a></h4>
    <div class="algorithm" data-algorithm="set(key, value, options)" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-windowsharedstorage-set"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-windowsharedstorage-set"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1106,7 +1106,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="append(key, value)" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-append"><code>append(<var>key</var>, <var>value</var>)</code><a class="self-link" href="#dom-windowsharedstorage-append"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-append"><code>append(<var>key</var>, <var>value</var>)</code><a class="self-link" href="#dom-windowsharedstorage-append"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel②">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1149,7 +1149,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="delete(key)" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-delete"><code>delete(<var>key</var>)</code><a class="self-link" href="#dom-windowsharedstorage-delete"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-delete"><code>delete(<var>key</var>)</code><a class="self-link" href="#dom-windowsharedstorage-delete"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel③">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1172,7 +1172,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="clear()" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-clear"><code>clear()</code><a class="self-link" href="#dom-windowsharedstorage-clear"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-clear"><code>clear()</code><a class="self-link" href="#dom-windowsharedstorage-clear"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel④">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1214,7 +1214,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <p>In this case, whenever the <code class="idl"><a data-link-type="idl" href="#sharedstorageselecturloperation" id="ref-for-sharedstorageselecturloperation④">SharedStorageSelectURLOperation</a></code>'s "<code>run</code>" method encounters an error, or whenever there is insufficient <a data-link-type="dfn" href="#calling-origin-remaining-budget" id="ref-for-calling-origin-remaining-budget②">remaining budget</a>, <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl⑨">selectURL()</a></code> would return the last <code class="idl"><a data-link-type="idl" href="#dom-sharedstorageurlwithmetadata-url" id="ref-for-dom-sharedstorageurlwithmetadata-url②">url</a></code> in its <a data-link-type="dfn" href="#selecturl-input-url-list" id="ref-for-selecturl-input-url-list③">input URL list</a>.</p>
    </div>
    <div class="algorithm" data-algorithm="determine remaining budget">
-     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="determine-remaining-budget">determine remaining budget</dfn>, given a calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑦">calling origin</a> <var>origin</var>, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel">in parallel</a>: 
+     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="determine-remaining-budget">determine remaining budget</dfn>, given a calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑦">calling origin</a> <var>origin</var>, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑤">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>maxBits</var> be the value of the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⓪">user agent</a>'s <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance④">entropy allowance</a>.</p>
@@ -1249,7 +1249,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p>A <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit③">bit debit</a> will need to be charged to the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table③">shared storage budget table</a> for each top-frame navigation initiated by a fenced frame whose source was generated via <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①⓪">selectURL()</a></code>, as this can leak cross-site data. Since the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits①">bits</a> to charge is calculated during the call to <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①①">selectURL()</a></code> but only actually recorded in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table④">shared storage budget table</a> if and when the resulting fenced frame initiates a top-frame navigation, the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits②">bits</a> must be stored as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="pending-shared-storage-budget-debit">pending shared storage budget debit</dfn> in the corresponding <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig②">FencedframeConfig</a> until this time.</p>
    <p>Between <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation">beginning navigation</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#ending-navigation" id="ref-for-ending-navigation">ending navigation</a>, a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①③">user agent</a> will perform the <a data-link-type="dfn" href="#charge-shared-storage-budget" id="ref-for-charge-shared-storage-budget">charge shared storage budget</a> algorithm.</p>
    <div class="algorithm" data-algorithm="charge shared storage budget">
-     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="charge-shared-storage-budget">charge shared storage budget</dfn> during a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation①">navigation</a> with <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#navigable" id="ref-for-navigable">navigable</a> <var>navigable</var> and <code class="idl"><a data-link-type="idl" href="https://dom.spec.whatwg.org/#document" id="ref-for-document">Document</a></code> <var>sourceDocument</var>, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①">in parallel</a>: 
+     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="charge-shared-storage-budget">charge shared storage budget</dfn> during a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation①">navigation</a> with <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#navigable" id="ref-for-navigable">navigable</a> <var>navigable</var> and <code class="idl"><a data-link-type="idl" href="https://dom.spec.whatwg.org/#document" id="ref-for-document">Document</a></code> <var>sourceDocument</var>, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑥">in parallel</a>: 
     <ol>
      <li data-md>
       <p>If <var>navigable</var> is not a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#nav-traversable" id="ref-for-nav-traversable">traversable navigable</a>, return.</p>
@@ -1289,12 +1289,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    </div>
    <h4 class="heading settled" data-level="4.1.3" id="run-op"><span class="secno">4.1.3. </span><span class="content">Run Operation Methods</span><a class="self-link" href="#run-op"></a></h4>
    <div class="algorithm" data-algorithm="run(name, options)" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export data-lt="run(name, options)|run(name)" id="dom-windowsharedstorage-run"><code>run(<var>name</var>, <var>options</var>)</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export data-lt="run(name, options)|run(name)" id="dom-windowsharedstorage-run"><code>run(<var>name</var>, <var>options</var>)</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑦">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel②">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑧">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule①">addModule()</a></code> has not yet been called, reject <var>promise</var>.</p>
@@ -1334,12 +1334,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="selectURL(name, urls, options)" data-algorithm-for="WindowSharedStorage">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export data-lt="selectURL(name, urls, options)|selectURL(name, urls)" id="dom-windowsharedstorage-selecturl"><code>selectURL(<var>name</var>, <var>urls</var>, <var>options</var>)</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export data-lt="selectURL(name, urls, options)|selectURL(name, urls)" id="dom-windowsharedstorage-selecturl"><code>selectURL(<var>name</var>, <var>urls</var>, <var>options</var>)</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑨">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>configPromise</var> be a new promise.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel③">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⓪">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>urls</var> is empty or exceeds the maximum allowed length, reject <var>configPromise</var>.</p>
@@ -1454,7 +1454,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 </pre>
    <h4 class="heading settled" data-level="4.2.1" id="worklet-setter"><span class="secno">4.2.1. </span><span class="content">Worklet Setter/Deleter Methods</span><a class="self-link" href="#worklet-setter"></a></h4>
    <div class="algorithm" data-algorithm="set(key, value, options)" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-workletsharedstorage-set"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-workletsharedstorage-set"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①①">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1463,7 +1463,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑤">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel④">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①②">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is not a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString①⑦">DOMString</a></code> or exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑥">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑥">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑥">DOMException</a></code>.</p>
@@ -1499,7 +1499,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="append(key, value)" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-append"><code>append(<var>key</var>, <var>value</var>)</code><a class="self-link" href="#dom-workletsharedstorage-append"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-append"><code>append(<var>key</var>, <var>value</var>)</code><a class="self-link" href="#dom-workletsharedstorage-append"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①③">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1508,7 +1508,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑥">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑤">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①④">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>key</var> is not a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString①⑨">DOMString</a></code> or exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑦">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑨">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑨">DOMException</a></code>.</p>
@@ -1546,7 +1546,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="delete(key)" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-delete"><code>delete(<var>key</var>)</code><a class="self-link" href="#dom-workletsharedstorage-delete"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-delete"><code>delete(<var>key</var>)</code><a class="self-link" href="#dom-workletsharedstorage-delete"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⑤">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1569,7 +1569,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="clear()" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-clear"><code>clear()</code><a class="self-link" href="#dom-workletsharedstorage-clear"></a></dfn> method steps are: 
+     For the <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-clear"><code>clear()</code><a class="self-link" href="#dom-workletsharedstorage-clear"></a></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⑥">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1591,7 +1591,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    </div>
    <h4 class="heading settled" data-level="4.2.2" id="getter"><span class="secno">4.2.2. </span><span class="content">Getter Methods</span><a class="self-link" href="#getter"></a></h4>
    <div class="algorithm" data-algorithm="get(key)" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-get"><code>get(<var>key</var>)</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-get"><code>get(<var>key</var>)</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⑦">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1616,7 +1616,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="length()" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-length"><code>length()</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-length"><code>length()</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⑧">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1635,7 +1635,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <div class="algorithm" data-algorithm="remainingBudget()" data-algorithm-for="WorkletSharedStorage">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-remainingbudget"><code>remainingBudget()</code></dfn> method steps are: 
+     For the <dfn class="dfn-paneled idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-remainingbudget"><code>remainingBudget()</code></dfn> method, run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel①⑨">in parallel</a>: 
     <ol>
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
@@ -1669,7 +1669,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①①">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑥">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel②⓪">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-all-entries-from-the-database" id="ref-for-shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</a> with <var>context</var>.</p>
@@ -1692,7 +1692,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new promise.</p>
      <li data-md>
-      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel⑦">in parallel</a>:</p>
+      <p>Run the following steps <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel" id="ref-for-in-parallel②①">in parallel</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-error" id="ref-for-workletsharedstorageiterator-error①">error</a> is true, reject <var>promise</var>.</p>
@@ -2141,10 +2141,13 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside class="dfn-panel" data-for="term-for-in-parallel">
    <a href="https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel">https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-in-parallel">4.1.2. Entropy Budget</a> <a href="#ref-for-in-parallel①">(2)</a>
-    <li><a href="#ref-for-in-parallel②">4.1.3. Run Operation Methods</a> <a href="#ref-for-in-parallel③">(2)</a>
-    <li><a href="#ref-for-in-parallel④">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-in-parallel⑤">(2)</a>
-    <li><a href="#ref-for-in-parallel⑥">4.2.3. Iteration</a> <a href="#ref-for-in-parallel⑦">(2)</a>
+    <li><a href="#ref-for-in-parallel">2.1. Registering a Worklet</a>
+    <li><a href="#ref-for-in-parallel①">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-in-parallel②">(2)</a> <a href="#ref-for-in-parallel③">(3)</a> <a href="#ref-for-in-parallel④">(4)</a>
+    <li><a href="#ref-for-in-parallel⑤">4.1.2. Entropy Budget</a> <a href="#ref-for-in-parallel⑥">(2)</a>
+    <li><a href="#ref-for-in-parallel⑦">4.1.3. Run Operation Methods</a> <a href="#ref-for-in-parallel⑧">(2)</a> <a href="#ref-for-in-parallel⑨">(3)</a> <a href="#ref-for-in-parallel①⓪">(4)</a>
+    <li><a href="#ref-for-in-parallel①①">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-in-parallel①②">(2)</a> <a href="#ref-for-in-parallel①③">(3)</a> <a href="#ref-for-in-parallel①④">(4)</a> <a href="#ref-for-in-parallel①⑤">(5)</a> <a href="#ref-for-in-parallel①⑥">(6)</a>
+    <li><a href="#ref-for-in-parallel①⑦">4.2.2. Getter Methods</a> <a href="#ref-for-in-parallel①⑧">(2)</a> <a href="#ref-for-in-parallel①⑨">(3)</a>
+    <li><a href="#ref-for-in-parallel②⓪">4.2.3. Iteration</a> <a href="#ref-for-in-parallel②①">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-isconstructor">
