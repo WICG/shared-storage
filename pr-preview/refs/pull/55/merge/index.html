@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 859efb4bd, updated Fri Jan 27 16:04:01 2023 -0800" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="753e04062c0cd1604375ff54cddfcdca48c87348" name="document-revision">
+  <meta content="a94c5e7be55abf36a0f5c4cfbeecfac29759fc3f" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -1044,7 +1044,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 };
 
 <c- b>dictionary</c-> <dfn class="dfn-paneled idl-code" data-dfn-type="dictionary" data-export id="dictdef-sharedstoragesetmethodoptions"><code><c- g>SharedStorageSetMethodOptions</c-></code></dfn> {
-  <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean" id="ref-for-idl-boolean"><c- b>boolean</c-></a> <dfn class="idl-code" data-dfn-for="SharedStorageSetMethodOptions" data-dfn-type="dict-member" data-export data-type="boolean " id="dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code><a class="self-link" href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"></a></dfn>;
+  <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean" id="ref-for-idl-boolean"><c- b>boolean</c-></a> <dfn class="idl-code" data-default="false" data-dfn-for="SharedStorageSetMethodOptions" data-dfn-type="dict-member" data-export data-type="boolean " id="dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code><a class="self-link" href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"></a></dfn> = <c- b>false</c->;
 };
 </pre>
    <h3 class="heading settled" data-level="4.1" id="window"><span class="secno">4.1. </span><span class="content">The <code class="idl"><a data-link-type="idl" href="#windowsharedstorage" id="ref-for-windowsharedstorage②">WindowSharedStorage</a></code> interface</span><a class="self-link" href="#window"></a></h3>
@@ -1083,7 +1083,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>If <var>options</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException②">DOMException</a></code>.</p>
        <li data-md>
-        <p>If <var>options</var> is empty, create <var>options</var> with <var>options</var>["<code>ignoreIfPresent</code>"] set to false.</p>
+        <p>If <var>options</var> is empty, create <var>options</var>.</p>
        <li data-md>
         <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true:</p>
         <ol>
@@ -2804,7 +2804,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 };
 
 <c- b>dictionary</c-> <a href="#dictdef-sharedstoragesetmethodoptions"><code><c- g>SharedStorageSetMethodOptions</c-></code></a> {
-  <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean"><c- b>boolean</c-></a> <a data-type="boolean " href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code></a>;
+  <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean"><c- b>boolean</c-></a> <a data-default="false" data-type="boolean " href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code></a> = <c- b>false</c->;
 };
 
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=(<c- n>Window</c->)]
