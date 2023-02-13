@@ -262,7 +262,7 @@ A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that take
 
   ## Registering a Worklet ## {#register-worklet}
   <div algorithm>
-    The <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method steps are:
+    For the <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method, run the following steps [=in parallel=]:
 
     1. If |name| is missing or empty, throw a {{TypeError}}.
     1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
@@ -492,7 +492,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Window Setter/Deleter Methods ### {#window-setter}
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -513,7 +513,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -535,7 +535,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -548,7 +548,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">clear()</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">clear()</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -641,7 +641,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Run Operation Methods ### {#run-op}
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1.  Run the following steps [=in parallel=]:
@@ -662,7 +662,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
+    For the <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |configPromise| be a new promise.
     1. Run the following steps [=in parallel=]:
@@ -726,7 +726,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Worklet Setter/Deleter Methods ### {#worklet-setter}
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">set(|key|, |value|, |options|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -748,7 +748,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">append(|key|, |value|)</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">append(|key|, |value|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -771,7 +771,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">delete(|key|)</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">delete(|key|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -784,7 +784,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">clear()</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">clear()</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -798,7 +798,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Getter Methods ### {#getter}
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">get(|key|)</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">get(|key|)</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -812,7 +812,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">length()</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">length()</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
@@ -823,7 +823,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WorkletSharedStorage">remainingBudget()</dfn> method steps are:
+    For the <dfn method for="WorkletSharedStorage">remainingBudget()</dfn> method, run the following steps [=in parallel=]:
 
     1. Let |promise| be a new promise.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [[=outside settings=]'s [=target browsing context=].
