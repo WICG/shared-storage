@@ -466,7 +466,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   };
 
   dictionary SharedStorageSetMethodOptions {
-    boolean ignoreIfPresent;
+    boolean ignoreIfPresent = false;
   };
 </xmp>
 
@@ -501,7 +501,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |value| is not a {{DOMString}} or exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |options| is empty, create |options| with |options|["`ignoreIfPresent`"] set to false.
+        1. If |options| is empty, create |options|.
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
             1. If |currentValue| is not failure, resolve |promise| as undefined.
