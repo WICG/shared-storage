@@ -119,6 +119,7 @@ spec: html; urlPrefix: https://www.rfc-editor.org/rfc/rfc4122
         text: urn:uuid
 spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
+        text: fenced frame; url: the-fencedframe-element
         text: FencedFrameConfig; url: fencedframeconfig
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
 spec: md; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
@@ -158,11 +159,9 @@ Introduction {#intro}
 =====================
 <em>This section is not normative.</em>
 
-In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by top-frame site; see .[=Client-Side Storage Partitioning=]. But, there are many legitimate use cases currently relying on unpartitioned storage.
+In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by top-frame site; see [=Client-Side Storage Partitioning=]. But, there are many legitimate use cases currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, there may be additional ouput gates included in the standard.
-
-<span class=todo>Talk about Fenced Frames.</span>
+This document introduces a new storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, such as in a [=fenced frame=] or via the [=private aggregation|private aggregation service=]. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -185,6 +184,7 @@ This document introduces a new storage API that is intentionally not partitioned
       { data: { name: 'experimentA' } }
     );
 
+    // Assumes that the fenced frame 'my-fenced-frame' has already been attached.
     document.getElementById('my-fenced-frame').config = fencedFrameConfig;
   </pre>
 
@@ -212,53 +212,55 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
   };
 </xmp>
 
-The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}. 
+  ## The {{SharedStorageWorkletGlobalScope}} ## {#global-scope}
 
-<xmp class='idl'>
-  [Exposed=SharedStorageWorklet, Global=SharedStorageWorklet]
-  interface SharedStorageWorkletGlobalScope : WorkletGlobalScope {
-    undefined register(DOMString name,
-                       SharedStorageOperationConstructor operationCtor);
-  };
+  The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}. 
 
-  callback SharedStorageOperationConstructor = SharedStorageOperation(object options);
+  <xmp class='idl'>
+    [Exposed=SharedStorageWorklet, Global=SharedStorageWorklet]
+    interface SharedStorageWorkletGlobalScope : WorkletGlobalScope {
+      undefined register(DOMString name,
+                         SharedStorageOperationConstructor operationCtor);
+    };
 
-  [Exposed=SharedStorageWorklet]
-  interface SharedStorageOperation {
-  };
-</xmp>
+    callback SharedStorageOperationConstructor = SharedStorageOperation(object options);
 
-Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
+    [Exposed=SharedStorageWorklet]
+    interface SharedStorageOperation {
+    };
+  </xmp>
 
-The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s. 
+  Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
 
-Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is an [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
+  The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s. 
 
-Currently each {{SharedStorageOperation}} registered via {{SharedStorageWorkletGlobalScope/register()}} must be one of the following two types:
-* {{SharedStorageRunOperation}}
-* {{SharedStorageSelectURLOperation}}
+  Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is an [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
 
-A {{SharedStorageRunOperation}} is an {{SharedStorageOperation}} that has no JavaScript return value, and hence is especially suited for calling into the [=private aggregation=] service.
+  Currently each {{SharedStorageOperation}} registered via {{SharedStorageWorkletGlobalScope/register()}} must be one of the following two types:
+  * {{SharedStorageRunOperation}}
+  * {{SharedStorageSelectURLOperation}}
 
-A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with metadata) and returns a {{long}} integer index specifying which of these {{URL}}s should be selected.
+  A {{SharedStorageRunOperation}} is an {{SharedStorageOperation}} that has no JavaScript return value, and hence is especially suited for calling into the [=private aggregation=] service.
 
-<xmp class='idl'>
-  [Exposed=SharedStorageWorklet]
-  interface SharedStorageRunOperation : SharedStorageOperation {
-    Promise<undefined> run(object data);
-  };
+  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with metadata) and returns a {{long}} integer index specifying which of these {{URL}}s should be selected.
 
-  [Exposed=SharedStorageWorklet]
-  interface SharedStorageSelectURLOperation : SharedStorageOperation {
-    Promise<long> run(object data,
-                      FrozenArray<SharedStorageUrlWithMetadata> urls);
-  };
+  <xmp class='idl'>
+    [Exposed=SharedStorageWorklet]
+    interface SharedStorageRunOperation : SharedStorageOperation {
+      Promise<undefined> run(object data);
+    };
 
-  dictionary SharedStorageUrlWithMetadata {
-    USVString url;
-    object reportingMetadata;
-  };
-</xmp>
+    [Exposed=SharedStorageWorklet]
+    interface SharedStorageSelectURLOperation : SharedStorageOperation {
+      Promise<long> run(object data,
+                        FrozenArray<SharedStorageUrlWithMetadata> urls);
+    };
+
+    dictionary SharedStorageUrlWithMetadata {
+      USVString url;
+      object reportingMetadata;
+    };
+  </xmp>
 
   ## Registering a Worklet ## {#register-worklet}
   <div algorithm>
@@ -296,6 +298,8 @@ An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=
 [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default duration between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires.
 
 A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=parallel queue=] on which the each of the [=shared storage database=]'s methods run when calls to them are initiated from that [=/browsing context=].
+
+  ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
 
   <div algorithm>
     To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=/browsing context=] |context|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, [=enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
@@ -400,7 +404,7 @@ A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=pa
   A <dfn>shared storage shelf</dfn> is a [=storage shelf=] in a [=shared storage shed=].
 
   <div algorithm>
-    To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed| and an [=environment settings object=] |environment|, run these steps:
+    To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed| and an [=environment settings object=] |environment|, run these steps [=in parallel=]:
 
     1. Let |origin| be |environment|'s [=url/origin=].
     1. If |origin| is an [=opaque origin=], then return failure.
@@ -410,7 +414,7 @@ A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=pa
   </div>
 
   <div algorithm>
-    To <dfn>create a shared storage shelf</dfn>, run these steps:
+    To <dfn>create a shared storage shelf</dfn>, run these steps [=in parallel=]:
 
     1. Let |shelf| be a new [=storage shelf=].
     1. Set |shelf|'s [=bucket map=]["`default`"] to the result of running [=create a shared storage bucket=].
@@ -420,7 +424,7 @@ A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=pa
   A <dfn>shared storage bucket</dfn> is a [=storage bucket=] in a [=shared storage shelf=].
 
   <div algorithm>
-    To <dfn>create a shared storage bucket</dfn>, run these steps:
+    To <dfn>create a shared storage bucket</dfn>, run these steps [=in parallel=]:
 
     1. Let |endpoint| be the [=storage endpoint=] with [=storage identifier=] "`sharedStorage`".
     1. Let |bucket| be a new [=shared storage bucket=].
@@ -431,7 +435,7 @@ A <dfn>shared storage database queue</dfn> for a [=/browsing context=] is a [=pa
   Note: Currently, a [=shared storage bucket=]'s [=bottle map=] has [=map/size=] `1`, since there is only one [=storage endpoint=] [=storage endpoint/registered=] with [=storage type|type=] "`shared`".
 
   <div algorithm>
-    To <dfn>obtain a shared storage bottle map</dfn>, given an [=environment settings object=] |environment|, run these steps:
+    To <dfn>obtain a shared storage bottle map</dfn>, given an [=environment settings object=] |environment|, run these steps [=in parallel=]:
 
     1. Let |shed| be the [=user agent=]'s [=shared storage shed=].
     1. Let |shelf| be the result of running [=obtain a shared storage shelf=] with |shed| and |environment|.
@@ -471,6 +475,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
 </xmp>
 
   ## The {{WindowSharedStorage}} interface ## {#window}
+
+  The {{WindowSharedStorage}} interface is as follows.
 
 <xmp class='idl'>
   [Exposed=(Window)]
@@ -600,8 +606,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     To <dfn>determine remaining budget</dfn>, given a calling [=calling origin=] |origin|, run the following steps [=in parallel=]:
 
+    1. If |origin| is [=opaque origin|opaque=], return failure.
     1. Let |maxBits| be the value of the [=user agent=]'s [=entropy allowance=].
-    1. If the [=user agent=]'s [=shared storage budget table=] does not [=map/contain=] |origin|, then return |maxBits|. <span class=todo>Should we check for whether origin is opaque?</span>
+    1. If the [=user agent=]'s [=shared storage budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
     1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
     1. Let |time| be the current time.
     1. Let |epochLength| be the length of an [=epoch=].
@@ -712,6 +719,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   ## The {{WorkletSharedStorage}} interface ## {#worklet-shared-storage}
 
+  The {{WorkletSharedStorage}} interface is as follows.
+
 <xmp class='idl'>
   [Exposed=(SharedStorageWorklet)]
   interface WorkletSharedStorage : SharedStorage {
@@ -805,9 +814,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Assert=] that |context| is not null.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database queue=]:
         1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|..
-        1. If |value| is not failure, resolve |promise| as |value|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+        1. If |value| is failure, reject |promise|.
+        1. If |value| is undefined, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| as |value|.
     1. Return |promise|.
   </div>
 
