@@ -259,7 +259,7 @@ In the embedder page:
 const auctionConfig = { ... };
 
 // Run a FLEDGE auction, setting the option to "resolveToConfig" to true. 
-auction_config.resolveToConfig = true;
+auctionConfig.resolveToConfig = true;
 const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
 // Write any desired embedder contextual information as a string.
