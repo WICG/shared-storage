@@ -272,7 +272,7 @@ document.getElementById('my-fenced-frame').config = fencedFrameConfig;
 In the fenced frame (`my-fenced-frame`):
 
 ```js
-// Save some information that you want to report and is only available inside the fenced frame
+// Save some information you want to report and is only available inside the fenced frame
 const frameInfo = { ... };
 
 await window.sharedStorage.worklet.addModule('report.js');
