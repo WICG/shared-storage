@@ -1,8 +1,8 @@
 name: Build
 on:
   push:
-    branches:
-    - main
+    branches: [main]
+    paths: ["**.bs"]
 jobs:
   build:
     name: Build
