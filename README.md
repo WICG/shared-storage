@@ -293,12 +293,12 @@ class ReportingOperation {
     function convertEmbedderContextToBucketId(context) { ... }
     function convertFrameInfoToValue(info) { ... }
     
-  // The user agent sends the report to the reporting endpoint of the script's
-  // origin (that is, the caller of `sharedStorage.run()`) after a delay.
-  privateAggregation.sendHistogramReport({
-    bucket: convertEmbedderContextToBucketId(sharedStorage.embedderContext()) ,
-    value: convertFrameInfoToValue(data.info)
-  });
+    // The user agent sends the report to the reporting endpoint of the script's
+    // origin (that is, the caller of `sharedStorage.run()`) after a delay.
+    privateAggregation.sendHistogramReport({
+      bucket: convertEmbedderContextToBucketId(sharedStorage.embedderContext()) ,
+      value: convertFrameInfoToValue(data.info)
+    });
   }
 }
 register('send-report', ReportingOperation);
