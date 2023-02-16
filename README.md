@@ -140,8 +140,8 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 *   `sharedStorage.remainingBudget()`
     *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
 *  `sharedStorage.embedderContext()`
-    *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a promise that resolves to a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
-    *   If no contextual information string had been written for the given frame, returns a promise that resolves to undefined.
+    *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
+    *   If no contextual information string had been written for the given frame, returns undefined.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -244,7 +244,7 @@ By instead maintaining a counter in shared storage, the approach for cross-site 
 
 ### Reporting embedder context
 
-In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, you might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
+In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, we might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
 
 In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig) from running a [FLEDGE auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
 
