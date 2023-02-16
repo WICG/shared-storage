@@ -139,7 +139,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
     *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
-*  `sharedStorage.embedderContext()`
+*  `sharedStorage.context()`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
@@ -248,9 +248,9 @@ In using the [Private Aggregation API](https://github.com/patcg-individual-draft
 
 In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig) from running a [FLEDGE auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
 
-Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig), we could write the event-level ID to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `embedderContext` as in the example below. 
+Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig), we could write the event-level ID to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `context` as in the example below. 
 
-Subsequently, anything we've written to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `embedderContext` prior to navigation to that config, can be read from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children, via `sharedStorage.embedderContext()`.
+Subsequently, anything we've written to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `embedderContext` prior to navigation to that config, can be read from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children, via `sharedStorage.context()`.
 
 In the embedder page:
 
@@ -263,7 +263,7 @@ auction_config.resolveToConfig = true;
 const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
 // Write any desired embedder contextual information as a string.
-fencedFrameConfig.embedderContext = "My Event ID 123";
+fencedFrameConfig.context = "My Event ID 123";
 
 // Navigate the fenced frame to the config.
 document.getElementById('my-fenced-frame').config = fencedFrameConfig;
@@ -296,7 +296,7 @@ class ReportingOperation {
     // The user agent sends the report to the reporting endpoint of the script's
     // origin (that is, the caller of `sharedStorage.run()`) after a delay.
     privateAggregation.sendHistogramReport({
-      bucket: convertEmbedderContextToBucketId(sharedStorage.embedderContext()) ,
+      bucket: convertEmbedderContextToBucketId(sharedStorage.context()) ,
       value: convertFrameInfoToValue(data.info)
     });
   }
