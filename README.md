@@ -250,7 +250,7 @@ In a scenario where the input URLs for the [fenced frame](https://github.com/wic
 
 Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig), we could write the event-level ID to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `context` as in the example below. 
 
-Subsequently, anything we've written to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `embedderContext` prior to navigation to that config, can be read from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children, via `sharedStorage.context()`.
+Subsequently, anything we've written to the [FencedFrameConfig](https://wicg.github.io/fenced-frame/#fencedframeconfig)'s `context` prior to navigation to that config, can be read from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children, via `sharedStorage.context()`.
 
 In the embedder page:
 
