@@ -262,7 +262,7 @@ const auctionConfig = { ... };
 auctionConfig.resolveToConfig = true;
 const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
-// Write any desired embedder contextual information as a string.
+// Write to the config any desired embedder contextual information as a string.
 fencedFrameConfig.context = "My Event ID 123";
 
 // Navigate the fenced frame to the config.
