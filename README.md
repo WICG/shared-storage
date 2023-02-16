@@ -275,6 +275,7 @@ In the fenced frame (`my-fenced-frame`):
 // Save some information we want to report that's only available inside the fenced frame.
 const frameInfo = { ... };
 
+// Send a report using shared storage and private aggregation.
 await window.sharedStorage.worklet.addModule('report.js');
 await window.sharedStorage.run('send-report', {
   data: { info: frameInfo },
