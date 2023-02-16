@@ -287,7 +287,7 @@ In the worklet script (`report.js`):
 ```js
 class ReportingOperation {
   async run(data) {
-    // Helper functions that map the embedder context to a pretermined bucket and the 
+    // Helper functions that map the embedder context to a predetermined bucket and the 
     // frame info to an appropriately-scaled value. 
     // See also https://github.com/patcg-individual-drafts/private-aggregation-api#examples
     function convertEmbedderContextToBucketId(context) { ... }
