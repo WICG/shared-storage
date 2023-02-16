@@ -277,7 +277,6 @@ const frameInfo = { ... };
 
 await window.sharedStorage.worklet.addModule('report.js');
 await window.sharedStorage.run('send-report', {
-  // optional one-time context
   data: { info: frameInfo },
 });
 ```
