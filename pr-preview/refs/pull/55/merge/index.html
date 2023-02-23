@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version f043d3484, updated Fri Feb 17 10:53:48 2023 -0800" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="0f0754f36945da0a3a42f8ca578ac2be00019696" name="document-revision">
+  <meta content="a4cefbe26c209a0bca9fd54c4dfa0e0f0019bec4" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -830,8 +830,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p><span class="todo">This <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-endpoint-quota" id="ref-for-storage-endpoint-quota①">quota</a> is calculated from the current implementation. Consider bringing the current implementation in line with the spec for <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-endpoint" id="ref-for-storage-endpoint③">storage endpoints</a> "<code>localStorage</code>" and "<code>sessionStorage</code>", i.e. <code>5 * 2</code><sup><code>20</code></sup> bytes. For example, decreasing the per-origin entry limit from 10,000 to 1,280 would achieve this.</span></p>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-shed">shared storage shed</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map①">map</a> of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/browsers.html#concept-origin" id="ref-for-concept-origin">origins</a> to to <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf">storage shelves</a>. It is initially empty.</p>
    <p class="note" role="note"><span class="marker">Note:</span> Unlike <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shed" id="ref-for-storage-shed">storage sheds</a>, whose keys are <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-key" id="ref-for-storage-key">storage keys</a>, <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed①">shared storage sheds</a> use <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/browsers.html#concept-origin" id="ref-for-concept-origin①">origins</a> as keys directly. <a data-link-type="dfn" href="#shared-storage" id="ref-for-shared-storage①">Shared storage</a> will be intentionally excluded from <a data-link-type="dfn" href="https://privacycg.github.io/storage-partitioning/#client-side-storage-partitioning" id="ref-for-client-side-storage-partitioning①">client-side storage partitioning</a>.</p>
-   <p>A <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed②">shared storage shed</a> holds all <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage">shared storage</dfn> data.</p>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-shelf">shared storage shelf</dfn> is a <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf①">storage shelf</a> in a <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed③">shared storage shed</a>.</p>
+   <p>For each <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf①">storage shelf</a> in a <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed②">shared storage shed</a>, the <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf②">storage shelf</a>'s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bucket-map" id="ref-for-bucket-map">bucket map</a> currently has only a single key of "<code>default</code>".</p>
+   <p>A <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed③">shared storage shed</a> holds all <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage">shared storage</dfn> data.</p>
    <div class="algorithm" data-algorithm="obtain a shared storage shelf">
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="obtain-a-shared-storage-shelf">obtain a shared storage shelf</dfn>, given a <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed④">shared storage shed</a> <var>shed</var> and an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object①">environment settings object</a> <var>environment</var>, run these steps: 
     <ol>
@@ -851,14 +851,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="create-a-shared-storage-shelf">create a shared storage shelf</dfn>, run these steps: 
     <ol>
      <li data-md>
-      <p>Let <var>shelf</var> be a new <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf②">storage shelf</a>.</p>
+      <p>Let <var>shelf</var> be a new <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf③">storage shelf</a>.</p>
      <li data-md>
-      <p>Set <var>shelf</var>’s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bucket-map" id="ref-for-bucket-map">bucket map</a>["<code>default</code>"] to the result of running <a data-link-type="dfn" href="#create-a-shared-storage-bucket" id="ref-for-create-a-shared-storage-bucket">create a shared storage bucket</a>.</p>
+      <p>Set <var>shelf</var>’s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bucket-map" id="ref-for-bucket-map①">bucket map</a>["<code>default</code>"] to the result of running <a data-link-type="dfn" href="#create-a-shared-storage-bucket" id="ref-for-create-a-shared-storage-bucket">create a shared storage bucket</a>.</p>
      <li data-md>
       <p>Return <var>shelf</var>.</p>
     </ol>
    </div>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-bucket">shared storage bucket</dfn> is a <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-bucket" id="ref-for-storage-bucket">storage bucket</a> in a <a data-link-type="dfn" href="#shared-storage-shelf" id="ref-for-shared-storage-shelf">shared storage shelf</a>.</p>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-bucket">shared storage bucket</dfn> is a <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-bucket" id="ref-for-storage-bucket">storage bucket</a> in one of a <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed⑤">shared storage shed</a>'s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#storage-shelf" id="ref-for-storage-shelf④">shelves</a>.</p>
    <div class="algorithm" data-algorithm="create a shared storage bucket">
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="create-a-shared-storage-bucket">create a shared storage bucket</dfn>, run these steps: 
     <ol>
@@ -877,13 +877,13 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="obtain-a-shared-storage-bottle-map">obtain a shared storage bottle map</dfn>, given an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object②">environment settings object</a> <var>environment</var>, run these steps: 
     <ol>
      <li data-md>
-      <p>Let <var>shed</var> be the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent②">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed⑤">shared storage shed</a>.</p>
+      <p>Let <var>shed</var> be the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent②">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed⑥">shared storage shed</a>.</p>
      <li data-md>
       <p>Let <var>shelf</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-shelf" id="ref-for-obtain-a-shared-storage-shelf">obtain a shared storage shelf</a> with <var>shed</var> and <var>environment</var>.</p>
      <li data-md>
       <p>If <var>shelf</var> is failure, then return failure.</p>
      <li data-md>
-      <p>Let <var>bucket</var> be <var>shelf</var>’s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bucket-map" id="ref-for-bucket-map①">bucket map</a>["<code>default</code>"].</p>
+      <p>Let <var>bucket</var> be <var>shelf</var>’s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bucket-map" id="ref-for-bucket-map②">bucket map</a>["<code>default</code>"].</p>
      <li data-md>
       <p>Let <var>bottle</var> be <var>bucket</var>’s <a data-link-type="dfn" href="https://storage.spec.whatwg.org/#bottle-map" id="ref-for-bottle-map②">bottle map</a>["<code>sharedStorage</code>"].</p>
      <li data-md>
@@ -900,7 +900,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p>Each <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-entry">entry</dfn> consists of a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key">key</a> and a <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct">value struct</a>.</p>
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry①">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-key">key</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string②">string</a>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent③">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="key" data-dfn-type="dfn" data-noexport id="key-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key①">key</a>.</p>
-   <p>Since <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key②">keys</a> are used to organize and efficiently retrieve <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry②">entries</a>, <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key③">keys</a> must appear at most once on any given <a data-link-type="dfn" href="#shared-storage-shelf" id="ref-for-shared-storage-shelf①">shared storage shelf</a> in a <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database④">database</a>'s <a data-link-type="dfn" href="#shared-storage-shed" id="ref-for-shared-storage-shed⑥">shared storage shed</a>.</p>
+   <p>Since <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key②">keys</a> are used to organize and efficiently retrieve <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry②">entries</a>, <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key③">keys</a> must appear at most once in any given <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database④">shared storage database</a>.</p>
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry③">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-value-struct">value struct</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct">struct</a> composed of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string③">string</a> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-value">value</dfn> and timestamp <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-last-updated">last updated</dfn>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent④">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="value" data-dfn-type="dfn" data-noexport id="value-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value">value</a>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default duration between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires.</p>
@@ -1941,7 +1941,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <li><a href="#sharedstorageselecturloperation">SharedStorageSelectURLOperation</a><span>, in § 2.1</span>
    <li><a href="#dictdef-sharedstoragesetmethodoptions">SharedStorageSetMethodOptions</a><span>, in § 4</span>
    <li><a href="#shared-storage-shed">shared storage shed</a><span>, in § 3.1</span>
-   <li><a href="#shared-storage-shelf">shared storage shelf</a><span>, in § 3.1</span>
    <li><a href="#dictdef-sharedstorageurlwithmetadata">SharedStorageUrlWithMetadata</a><span>, in § 2.1</span>
    <li><a href="#sharedstorageworklet">SharedStorageWorklet</a><span>, in § 2</span>
    <li><a href="#sharedstorageworkletglobalscope">SharedStorageWorkletGlobalScope</a><span>, in § 2.1</span>
@@ -2093,7 +2092,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-7bed712fb187b01e9a5fb930d421c3c9" class="dfn-panel" data-for="7bed712fb187b01e9a5fb930d421c3c9" id="infopanel-for-7bed712fb187b01e9a5fb930d421c3c9">
    <span id="infopaneltitle-for-7bed712fb187b01e9a5fb930d421c3c9" style="display:none">Info about the 'bucket map' external reference.</span><a href="https://storage.spec.whatwg.org/#bucket-map">https://storage.spec.whatwg.org/#bucket-map</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-bucket-map">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-bucket-map①">(2)</a>
+    <li><a href="#ref-for-bucket-map">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-bucket-map①">(2)</a> <a href="#ref-for-bucket-map②">(3)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-664d5dfcb76cca05487dc6cce044cd55" class="dfn-panel" data-for="664d5dfcb76cca05487dc6cce044cd55" id="infopanel-for-664d5dfcb76cca05487dc6cce044cd55">
@@ -2471,7 +2470,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-4ae96685c778dd1d6d81ae3c132bce0e" class="dfn-panel" data-for="4ae96685c778dd1d6d81ae3c132bce0e" id="infopanel-for-4ae96685c778dd1d6d81ae3c132bce0e">
    <span id="infopaneltitle-for-4ae96685c778dd1d6d81ae3c132bce0e" style="display:none">Info about the 'storage shelf' external reference.</span><a href="https://storage.spec.whatwg.org/#storage-shelf">https://storage.spec.whatwg.org/#storage-shelf</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-storage-shelf">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-storage-shelf①">(2)</a> <a href="#ref-for-storage-shelf②">(3)</a>
+    <li><a href="#ref-for-storage-shelf">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-storage-shelf①">(2)</a> <a href="#ref-for-storage-shelf②">(3)</a> <a href="#ref-for-storage-shelf③">(4)</a> <a href="#ref-for-storage-shelf④">(5)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-3454daa78ff554a5f17f57b16fa72e61" class="dfn-panel" data-for="3454daa78ff554a5f17f57b16fa72e61" id="infopanel-for-3454daa78ff554a5f17f57b16fa72e61">
@@ -3040,8 +3039,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-shared-storage-shed" class="dfn-panel" data-for="shared-storage-shed" id="infopanel-for-shared-storage-shed">
    <span id="infopaneltitle-for-shared-storage-shed" style="display:none">Info about the 'shared storage shed' definition.</span><b><a href="#shared-storage-shed">#shared-storage-shed</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-shared-storage-shed">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-shared-storage-shed①">(2)</a> <a href="#ref-for-shared-storage-shed②">(3)</a> <a href="#ref-for-shared-storage-shed③">(4)</a> <a href="#ref-for-shared-storage-shed④">(5)</a> <a href="#ref-for-shared-storage-shed⑤">(6)</a>
-    <li><a href="#ref-for-shared-storage-shed⑥">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-shared-storage-shed">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-shared-storage-shed①">(2)</a> <a href="#ref-for-shared-storage-shed②">(3)</a> <a href="#ref-for-shared-storage-shed③">(4)</a> <a href="#ref-for-shared-storage-shed④">(5)</a> <a href="#ref-for-shared-storage-shed⑤">(6)</a> <a href="#ref-for-shared-storage-shed⑥">(7)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-shared-storage" class="dfn-panel" data-for="shared-storage" id="infopanel-for-shared-storage">
@@ -3049,13 +3047,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <ul>
     <li><a href="#ref-for-shared-storage">2. The SharedStorageWorklet Interface</a>
     <li><a href="#ref-for-shared-storage①">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-shared-storage②">(2)</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-shared-storage-shelf" class="dfn-panel" data-for="shared-storage-shelf" id="infopanel-for-shared-storage-shelf">
-   <span id="infopaneltitle-for-shared-storage-shelf" style="display:none">Info about the 'shared storage shelf' definition.</span><b><a href="#shared-storage-shelf">#shared-storage-shelf</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-shared-storage-shelf">3.1. Monkey Patch for the Storage Model</a>
-    <li><a href="#ref-for-shared-storage-shelf①">3.2. The Shared Storage Database</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-obtain-a-shared-storage-shelf" class="dfn-panel" data-for="obtain-a-shared-storage-shelf" id="infopanel-for-obtain-a-shared-storage-shelf">
