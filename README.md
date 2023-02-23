@@ -139,7 +139,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
     *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
-*  `sharedStorage.context()`
+*  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
@@ -250,7 +250,7 @@ In a scenario where the input URLs for the [fenced frame](https://github.com/wic
 
 Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setContext()` as in the example below. 
 
-Subsequently, anything we've written to `fencedFrameConfig` through `setContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context()` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
+Subsequently, anything we've written to `fencedFrameConfig` through `setContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
 
 In the embedder page:
 
@@ -296,7 +296,7 @@ class ReportingOperation {
     // The user agent sends the report to the reporting endpoint of the script's
     // origin (that is, the caller of `sharedStorage.run()`) after a delay.
     privateAggregation.sendHistogramReport({
-      bucket: convertEmbedderContextToBucketId(sharedStorage.context()) ,
+      bucket: convertEmbedderContextToBucketId(sharedStorage.context) ,
       value: convertFrameInfoToValue(data.info)
     });
   }
