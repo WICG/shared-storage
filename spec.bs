@@ -302,9 +302,9 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   Note: Unlike [=storage sheds=], whose keys are [=storage keys=], [=shared storage sheds=] use [=/origins=] as keys directly. [=Shared storage=] will be intentionally excluded from [=client-side storage partitioning=].
 
-  A [=user agent=]'s [=shared storage shed=] holds all <dfn>shared storage</dfn> data.
+  For each [=storage shelf=] in a [=shared storage shed=], the [=storage shelf=]'s [=bucket map=] currently has only a single key of "`default`".
 
-  A <dfn>shared storage shelf</dfn> is a [=storage shelf=] in a [=shared storage shed=].
+  A [=user agent=]'s [=shared storage shed=] holds all <dfn>shared storage</dfn> data.
 
   <div algorithm>
     To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed| and an [=environment settings object=] |environment|, run these steps:
@@ -324,7 +324,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Return |shelf|.
   </div>
 
-  A <dfn>shared storage bucket</dfn> is a [=storage bucket=] in a [=shared storage shelf=].
+  A <dfn>shared storage bucket</dfn> is a [=storage bucket=] in one of a [=shared storage shed=]'s [=storage shelf|shelves=].
 
   <div algorithm>
     To <dfn>create a shared storage bucket</dfn>, run these steps:
@@ -362,7 +362,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   [=User agents=] may specify the <dfn for=key>maximum length</dfn> of a [=entry/key=].
 
-  Since [=entry/keys=] are used to organize and efficiently retrieve [=shared storage database/entry|entries=], [=entry/keys=] must appear at most once on any given [=shared storage shelf=] in a [=shared storage database|database=]'s [=shared storage shed=].
+  Since [=entry/keys=] are used to organize and efficiently retrieve [=shared storage database/entry|entries=], [=entry/keys=] must appear at most once in any given [=shared storage database=].
 
   An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=string=] <dfn for="value struct">value</dfn> and timestamp <dfn for="value struct">last updated</dfn>.
 
