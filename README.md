@@ -141,6 +141,9 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
     *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
+*  `sharedStorage.context`
+    *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
+    *   If no contextual information string had been written for the given frame, returns undefined.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -241,6 +244,67 @@ register('frequency-cap', FrequencyCapOperation);
 
 By instead maintaining a counter in shared storage, the approach for cross-site reach measurement could be extended to _K_+ frequency measurement, i.e. measuring the number of users who have seen _K_ or more ads on a given browser, for a pre-chosen value of _K_. A unary counter can be maintained by calling `window.sharedStorage.append("freq", "1")` on each ad view. Then, the `send-reach-report` operation would only send a report if there are more than _K_ characters stored at the key `"freq"`. This counter could also be used to filter out ads that have been shown too frequently (similarly to the A/B example above).
 
+### Reporting embedder context
+
+In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, we might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
+
+In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [FLEDGE auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
+
+Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below. 
+
+Subsequently, anything we've written to `fencedFrameConfig` through `setSharedStorageContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
+
+In the embedder page:
+
+```js
+// See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
+const auctionConfig = { ... };
+
+// Run a FLEDGE auction, setting the option to "resolveToConfig" to true. 
+auctionConfig.resolveToConfig = true;
+const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
+
+// Write to the config any desired embedder contextual information as a string.
+fencedFrameConfig.setSharedStorageContext("My Event ID 123");
+
+// Navigate the fenced frame to the config.
+document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+```
+
+In the fenced frame (`my-fenced-frame`):
+
+```js
+// Save some information we want to report that's only available inside the fenced frame.
+const frameInfo = { ... };
+
+// Send a report using shared storage and private aggregation.
+await window.sharedStorage.worklet.addModule('report.js');
+await window.sharedStorage.run('send-report', {
+  data: { info: frameInfo },
+});
+```
+
+In the worklet script (`report.js`):
+
+```js
+class ReportingOperation {
+  async run(data) {
+    // Helper functions that map the embedder context to a predetermined bucket and the 
+    // frame info to an appropriately-scaled value. 
+    // See also https://github.com/patcg-individual-drafts/private-aggregation-api#examples
+    function convertEmbedderContextToBucketId(context) { ... }
+    function convertFrameInfoToValue(info) { ... }
+    
+    // The user agent sends the report to the reporting endpoint of the script's
+    // origin (that is, the caller of `sharedStorage.run()`) after a delay.
+    privateAggregation.sendHistogramReport({
+      bucket: convertEmbedderContextToBucketId(sharedStorage.context) ,
+      value: convertFrameInfoToValue(data.info)
+    });
+  }
+}
+register('send-report', ReportingOperation);
+```
 
 ## Keep-alive worklet
 
