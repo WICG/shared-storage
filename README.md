@@ -82,7 +82,9 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 
 ### Outside the worklet
+The setter methods (`set`, `append`, `delete`, and `clear`) should be made generally available across most any context. That includes top-level documents, iframes, shared storage worklets,  fledge worklets, service workers, dedicated workers, etc.
 
+The shared storage worklet invocation methods (`addModule`, `run`, and `selectURL`) are available within document contexts.
 
 
 *   `window.sharedStorage.set(key, value, options)`
