@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 79b02508e, updated Tue Feb 28 10:48:19 2023 -0800" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="96606c420c568bcd8abee117834e477b32a439d6" name="document-revision">
+  <meta content="d15aeba09c116a884803fa0c019a4dc56c2ebf9e" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -901,9 +901,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry①">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-key">key</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string②">string</a>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent③">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="key" data-dfn-type="dfn" data-noexport id="key-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key①">key</a>.</p>
    <p>Since <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key②">keys</a> are used to organize and efficiently retrieve <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry②">entries</a>, <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key③">keys</a> must appear at most once in any given <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database④">shared storage database</a>.</p>
-   <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry③">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-value-struct">value struct</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct">struct</a> composed of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string③">string</a> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-value">value</dfn> and timestamp <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-last-updated">last updated</dfn>.</p>
+   <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry③">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-value-struct">value struct</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct">struct</a> composed of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string③">string</a> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-value">value</dfn> and <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-last-updated">last updated</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch">Unix Epoch</a>).</p>
+   <p class="note" role="note"><span class="marker">Note:</span> Some Shared Storage implementations may use SQLite implementations that store timestamps as 64-bit unsigned integers rather than doubles, thereby making it necessary to use legacy <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-epochtimestamp" id="ref-for-dom-epochtimestamp">EpochTimeStamp</a></code>s instead of <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp①">DOMHighResTimeStamp</a></code>s.</p>
+   <p><span class="todo">In Chrome, for the reason given in the note above, we use <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-epochtimestamp" id="ref-for-dom-epochtimestamp①">EpochTimeStamp</a></code>s, which are discouraged. How can we reconcile this?</span></p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent④">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="value" data-dfn-type="dfn" data-noexport id="value-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value">value</a>.</p>
-   <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default duration between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires.</p>
+   <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration">duration</a> between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires.</p>
    <h3 class="heading settled" data-level="3.3" id="database-algorithms"><span class="secno">3.3. </span><span class="content">The <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database⑤">Database</a> Algorithms</span><a class="self-link" href="#database-algorithms"></a></h3>
    <div class="algorithm" data-algorithm="store an entry in the database" data-algorithm-for="shared storage database">
      To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-store-an-entry-in-the-database">store an entry in the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context②">browsing context</a> <var>context</var>, a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key④">key</a> <var>key</var>, and a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value①">value</a> <var>value</var>, run the following steps: 
@@ -922,13 +924,17 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>If <var>databaseMap</var> is failure, then return null.</p>
        <li data-md>
-        <p>Let <var>time</var> be the current time.</p>
-       <li data-md>
         <p>Let <var>valueStruct</var> be a new <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct①">value struct</a>.</p>
        <li data-md>
         <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value②">value</a> to <var>value</var>.</p>
        <li data-md>
-        <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated">last updated</a> to <var>time</var>.</p>
+        <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0">unsafe current time</a>.</p>
+       <li data-md>
+        <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock①">wall clock</a> as input.</p>
+       <li data-md>
+        <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch①">Unix epoch</a> to <var>moment</var>.</p>
+       <li data-md>
+        <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated">last updated</a> to <var>fromUnixEpochTime</var>.</p>
        <li data-md>
         <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-set" id="ref-for-map-set①">Set</a> <var>databaseMap</var>[<var>key</var>] to <var>valueStruct</var>.</p>
        <li data-md>
@@ -1080,9 +1086,13 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>expiration</var> be the sum of <var>lastUpdated</var> and <var>lifetime</var>.</p>
      <li data-md>
-      <p>let <var>time</var> be the current time.</p>
+      <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock②">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0①">unsafe current time</a>.</p>
      <li data-md>
-      <p>If <var>expiration</var> is less than or equal to <var>time</var>, return true.</p>
+      <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time①">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock③">wall clock</a> as input.</p>
+     <li data-md>
+      <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from①">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch②">Unix epoch</a> to <var>moment</var>.</p>
+     <li data-md>
+      <p>If <var>expiration</var> is less than or equal to <var>fromUnixEpochTime</var>, return true.</p>
      <li data-md>
       <p>Otherwise, return false.</p>
     </ol>
@@ -1266,13 +1276,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <h4 class="heading settled" data-level="4.1.2" id="budget"><span class="secno">4.1.2. </span><span class="content">Entropy Budget</span><a class="self-link" href="#budget"></a></h4>
    <p>Because <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#bits-of-entropy" id="ref-for-bits-of-entropy">bits of entropy</a> can leak via <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl②">selectURL()</a></code> if a user activates the fenced frame from the resulting <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig①">FencedFrameConfig</a></code>, there is a per-<a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin">calling origin</a> <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance">entropy allowance</a>.</p>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="calling-origin">calling origin</dfn> for <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl③">selectURL()</a></code> is the <a data-link-type="dfn" href="https://url.spec.whatwg.org#concept-url-origin" id="ref-for-concept-url-origin①">origin</a> of an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment" id="ref-for-environment①">environment</a> that makes a <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl④">selectURL()</a></code> call.</p>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-allowance">entropy allowance</dfn> is a maximum allowance of <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits">entropy bits</a> that are permitted to leak during a given <a data-link-type="dfn" href="#epoch" id="ref-for-epoch">epoch</a> and for a given calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin①">calling origin</a>. This <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance①">allowance</a> is defined by the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑦">user agent</a> and is <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin②">calling origin</a>-agnostic.</p>
-   <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="epoch">epoch</dfn> is a time period whose duration is a fixed pretermined length.</p>
-   <p>To keep track of how this <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance②">entropy allowance</a> is used, the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑧">user agent</a> uses a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-budget-table">shared storage budget table</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map③">map</a> of <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin③">calling origins</a> to <a data-link-type="dfn" href="#entropy-ledger" id="ref-for-entropy-ledger">entropy ledgers</a>.</p>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-allowance">entropy allowance</dfn> is a maximum allowance of <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits">entropy bits</a> that are permitted to leak during a given <a data-link-type="dfn" href="#budget-epoch" id="ref-for-budget-epoch">budget epoch</a> and for a given calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin①">calling origin</a>. This <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance①">allowance</a> is defined by the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑦">user agent</a> and is <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin②">calling origin</a>-agnostic.</p>
+   <p>A <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑧">user agent</a> will define a fixed predetermined <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration①">duration</a> <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-lifetime">budget lifetime</dfn>.</p>
+   <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-epoch">budget epoch</dfn> is any interval of time whose <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration②">duration</a> is the <a data-link-type="dfn" href="#budget-lifetime" id="ref-for-budget-lifetime">budget lifetime</a>.</p>
+   <p>To keep track of how this <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance②">entropy allowance</a> is used, the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑨">user agent</a> uses a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-budget-table">shared storage budget table</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map③">map</a> of <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin③">calling origins</a> to <a data-link-type="dfn" href="#entropy-ledger" id="ref-for-entropy-ledger">entropy ledgers</a>.</p>
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-ledger">entropy ledger</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list" id="ref-for-list②">list</a> of <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit">bit debits</a>.</p>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="bit-debit">bit debit</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct①">struct</a> containing a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double">double</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-bits">bits</dfn>, indicating a value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits①">entropy bits</a>, along with a time <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-timestamp">timestamp</dfn>.</p>
-   <p>When a leak occurs, its value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits②">entropy bits</a> is calculated and stored for that <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin④">calling origin</a> along with the current time as a <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit①">bit debit</a> in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table">shared storage budget table</a>.</p>
-   <p>A <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑤">calling origin</a>'s <dfn class="dfn-paneled" data-dfn-for="calling origin" data-dfn-type="dfn" data-noexport id="calling-origin-remaining-budget">remaining budget</dfn> is the <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance③">entropy allowance</a> minus any <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit②">bit debits</a> whose timestamps are within the current <a data-link-type="dfn" href="#epoch" id="ref-for-epoch①">epoch</a>.</p>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="bit-debit">bit debit</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct①">struct</a> containing a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double">double</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-bits">bits</dfn>, indicating a value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits①">entropy bits</a>, along with a <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp②">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-timestamp">timestamp</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch③">Unix Epoch</a>).</p>
+   <p>When a leak occurs, its value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits②">entropy bits</a> is calculated and stored for that <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin④">calling origin</a>, along with the current time as a <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp">timestamp</a>, together as a <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit①">bit debit</a> in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table">shared storage budget table</a>.</p>
+   <p>A <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑤">calling origin</a>'s <dfn class="dfn-paneled" data-dfn-for="calling origin" data-dfn-type="dfn" data-noexport id="calling-origin-remaining-budget">remaining budget</dfn> is the <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance③">entropy allowance</a> minus any <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit②">bit debits</a> whose <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp①">timestamps</a> are within the current <a data-link-type="dfn" href="#budget-epoch" id="ref-for-budget-epoch①">budget epoch</a>.</p>
    <p><code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl⑤">selectURL()</a></code>'s argument "<code>urls</code>" is its <dfn class="dfn-paneled" data-dfn-for="selectURL" data-dfn-type="dfn" data-noexport id="selecturl-input-url-list">input URL list</dfn>.</p>
    <p>When an <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑥">calling origin</a> has insufficient <a data-link-type="dfn" href="#calling-origin-remaining-budget" id="ref-for-calling-origin-remaining-budget">remaining budget</a>, <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl⑥">selectURL()</a></code> will return a <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig②">FencedFrameConfig</a></code> for the <code class="idl"><a data-link-type="idl" href="#dom-sharedstorageurlwithmetadata-url" id="ref-for-dom-sharedstorageurlwithmetadata-url">url</a></code> in the <code class="idl"><a data-link-type="idl" href="#dictdef-sharedstorageurlwithmetadata" id="ref-for-dictdef-sharedstorageurlwithmetadata③">SharedStorageUrlWithMetadata</a></code> at the <a data-link-type="dfn" href="#default-index" id="ref-for-default-index">default index</a> in its <a data-link-type="dfn" href="#selecturl-input-url-list" id="ref-for-selecturl-input-url-list">input URL list</a>.</p>
    <p>The <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-index">default index</dfn> for a call to <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl⑦">selectURL()</a></code> is implementation-defined in such a way that it is independent from the result of the associated <code class="idl"><a data-link-type="idl" href="#sharedstorageselecturloperation" id="ref-for-sharedstorageselecturloperation②">SharedStorageSelectURLOperation</a></code>'s "<code>run</code>" method.</p>
@@ -1290,24 +1301,28 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>origin</var> is <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/browsers.html#concept-opaque-origin" id="ref-for-concept-opaque-origin①">opaque</a>, return undefined.</p>
      <li data-md>
-      <p>Let <var>maxBits</var> be the value of the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑨">user agent</a>'s <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance④">entropy allowance</a>.</p>
+      <p>Let <var>maxBits</var> be the value of the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⓪">user agent</a>'s <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance④">entropy allowance</a>.</p>
      <li data-md>
-      <p>If the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⓪">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table①">shared storage budget table</a> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists②">contain</a> <var>origin</var>, then return <var>maxBits</var>.</p>
+      <p>If the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①①">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table①">shared storage budget table</a> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists②">contain</a> <var>origin</var>, then return <var>maxBits</var>.</p>
      <li data-md>
-      <p>Otherwise, let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①①">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table②">shared storage budget table</a>[<var>origin</var>].</p>
+      <p>Otherwise, let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①②">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table②">shared storage budget table</a>[<var>origin</var>].</p>
      <li data-md>
-      <p>Let <var>time</var> be the current time.</p>
+      <p>Let <var>epochLength</var> be <a data-link-type="dfn" href="#budget-lifetime" id="ref-for-budget-lifetime①">budget lifetime</a>.</p>
      <li data-md>
-      <p>Let <var>epochLength</var> be the length of an <a data-link-type="dfn" href="#epoch" id="ref-for-epoch②">epoch</a>.</p>
+      <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock④">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0②">unsafe current time</a>.</p>
      <li data-md>
-      <p>Let <var>threshold</var> be <var>time</var> - <var>epochLength</var>.</p>
+      <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time②">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock⑤">wall clock</a> as input.</p>
+     <li data-md>
+      <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from②">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch④">Unix epoch</a> to <var>moment</var>.</p>
+     <li data-md>
+      <p>Let <var>threshold</var> be <var>fromUnixEpochTime</var> minus <var>epochLength</var>.</p>
      <li data-md>
       <p>Let <var>debitSum</var> be 0.</p>
      <li data-md>
       <p>For each <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-item" id="ref-for-list-item">item</a> <var>bitDebit</var> in <var>ledger</var>, do the following steps:</p>
       <ol>
        <li data-md>
-        <p>Let <var>timestamp</var> be <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp">timestamp</a>.</p>
+        <p>Let <var>timestamp</var> be <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp②">timestamp</a>.</p>
        <li data-md>
         <p>Let <var>debit</var> be <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits">bits</a>.</p>
        <li data-md>
@@ -1320,7 +1335,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     </ol>
    </div>
    <p>A <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit③">bit debit</a> will need to be charged to the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table③">shared storage budget table</a> for each top-frame navigation initiated by a fenced frame whose source was generated via <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①⓪">selectURL()</a></code>, as this can leak cross-site data. Since the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits①">bits</a> to charge is calculated during the call to <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①①">selectURL()</a></code> but only actually recorded in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table④">shared storage budget table</a> if and when the resulting fenced frame initiates a top-frame navigation, the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits②">bits</a> must be stored as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="pending-shared-storage-budget-debit">pending shared storage budget debit</dfn> in the corresponding <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig③">FencedFrameConfig</a></code> until this time.</p>
-   <p>Between <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation">beginning navigation</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#ending-navigation" id="ref-for-ending-navigation">ending navigation</a>, a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①②">user agent</a> will perform the <a data-link-type="dfn" href="#charge-shared-storage-budget" id="ref-for-charge-shared-storage-budget">charge shared storage budget</a> algorithm.</p>
+   <p>Between <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation">beginning navigation</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#ending-navigation" id="ref-for-ending-navigation">ending navigation</a>, a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①③">user agent</a> will perform the <a data-link-type="dfn" href="#charge-shared-storage-budget" id="ref-for-charge-shared-storage-budget">charge shared storage budget</a> algorithm.</p>
    <div class="algorithm" data-algorithm="charge shared storage budget">
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="charge-shared-storage-budget">charge shared storage budget</dfn> during a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation①">navigation</a> with <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#navigable" id="ref-for-navigable">navigable</a> <var>navigable</var> and <code class="idl"><a data-link-type="idl" href="https://dom.spec.whatwg.org/#document" id="ref-for-document">Document</a></code> <var>sourceDocument</var>, run the following steps: 
     <ol>
@@ -1342,13 +1357,19 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
           <p>If <var>pendingBits</var> is greater than 0, run the following steps:</p>
           <ol>
            <li data-md>
-            <p>Let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①③">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table⑤">shared storage budget table</a>[<var>origin</var>].</p>
+            <p>Let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①④">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table⑤">shared storage budget table</a>[<var>origin</var>].</p>
            <li data-md>
             <p>Let <var>bitDebit</var> be a new <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit④">bit debit</a>.</p>
            <li data-md>
             <p>Set <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits③">bits</a> to <var>pendingBits</var>.</p>
            <li data-md>
-            <p>Set <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp①">timestamp</a> to the current time.</p>
+            <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock⑥">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0③">unsafe current time</a>.</p>
+           <li data-md>
+            <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time③">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock⑦">wall clock</a> as input.</p>
+           <li data-md>
+            <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from③">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch⑤">Unix epoch</a> to <var>moment</var>.</p>
+           <li data-md>
+            <p>Set <var>bitDebit</var>’s <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp③">timestamp</a> to <var>fromUnixEpochTime</var>.</p>
            <li data-md>
             <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-append" id="ref-for-list-append②">Append</a> <var>bitDebit</var> to <var>ledger</var>.</p>
            <li data-md>
@@ -1865,6 +1886,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <li><a href="#workletsharedstorageiterator-asynchronous-iterator-initialization-steps">asynchronous iterator initialization steps</a><span>, in § 4.2.3</span>
    <li><a href="#bit-debit">bit debit</a><span>, in § 4.1.2</span>
    <li><a href="#bit-debit-bits">bits</a><span>, in § 4.1.2</span>
+   <li><a href="#budget-epoch">budget epoch</a><span>, in § 4.1.2</span>
+   <li><a href="#budget-lifetime">budget lifetime</a><span>, in § 4.1.2</span>
    <li><a href="#calling-origin">calling origin</a><span>, in § 4.1.2</span>
    <li><a href="#charge-shared-storage-budget">charge shared storage budget</a><span>, in § 4.1.2</span>
    <li>
@@ -1894,7 +1917,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <li><a href="#entropy-allowance">entropy allowance</a><span>, in § 4.1.2</span>
    <li><a href="#entropy-ledger">entropy ledger</a><span>, in § 4.1.2</span>
    <li><a href="#shared-storage-database-entry">entry</a><span>, in § 3.2</span>
-   <li><a href="#epoch">epoch</a><span>, in § 4.1.2</span>
    <li><a href="#workletsharedstorageiterator-error">error</a><span>, in § 4.2.3</span>
    <li><a href="#dom-workletsharedstorage-get">get(key)</a><span>, in § 4.2.2</span>
    <li><a href="#workletsharedstorageiterator-get-the-next-iteration-result">get the next iteration result</a><span>, in § 4.2.3</span>
@@ -1965,6 +1987,54 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-07886e33695d0e7b473ef18f656ad7ac" style="display:none">Info about the 'Document' external reference.</span><a href="https://dom.spec.whatwg.org/#document">https://dom.spec.whatwg.org/#document</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-document">4.1.2. Entropy Budget</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-0527034ee7070fda15ffa50c34dbbc63" class="dfn-panel" data-for="0527034ee7070fda15ffa50c34dbbc63" id="infopanel-for-0527034ee7070fda15ffa50c34dbbc63">
+   <span id="infopaneltitle-for-0527034ee7070fda15ffa50c34dbbc63" style="display:none">Info about the 'DOMHighResTimeStamp' external reference.</span><a href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp">https://w3c.github.io/hr-time/#dom-domhighrestimestamp</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dom-domhighrestimestamp">3.2. The Shared Storage Database</a> <a href="#ref-for-dom-domhighrestimestamp①">(2)</a>
+    <li><a href="#ref-for-dom-domhighrestimestamp②">4.1.2. Entropy Budget</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-0395c6c21ea99634e2e481b3d8a57fc5" class="dfn-panel" data-for="0395c6c21ea99634e2e481b3d8a57fc5" id="infopanel-for-0395c6c21ea99634e2e481b3d8a57fc5">
+   <span id="infopaneltitle-for-0395c6c21ea99634e2e481b3d8a57fc5" style="display:none">Info about the 'EpochTimeStamp' external reference.</span><a href="https://w3c.github.io/hr-time/#dom-epochtimestamp">https://w3c.github.io/hr-time/#dom-epochtimestamp</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dom-epochtimestamp">3.2. The Shared Storage Database</a> <a href="#ref-for-dom-epochtimestamp①">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-c626b66893b5c29e4adba851077ed0e2" class="dfn-panel" data-for="c626b66893b5c29e4adba851077ed0e2" id="infopanel-for-c626b66893b5c29e4adba851077ed0e2">
+   <span id="infopaneltitle-for-c626b66893b5c29e4adba851077ed0e2" style="display:none">Info about the 'coarsen time' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-coarsen-time">https://w3c.github.io/hr-time/#dfn-coarsen-time</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-coarsen-time">3.3. The Database Algorithms</a> <a href="#ref-for-dfn-coarsen-time①">(2)</a>
+    <li><a href="#ref-for-dfn-coarsen-time②">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-coarsen-time③">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-9213a3aff5ff1021ab4c2d780aa70cee" class="dfn-panel" data-for="9213a3aff5ff1021ab4c2d780aa70cee" id="infopanel-for-9213a3aff5ff1021ab4c2d780aa70cee">
+   <span id="infopaneltitle-for-9213a3aff5ff1021ab4c2d780aa70cee" style="display:none">Info about the 'duration' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-duration">https://w3c.github.io/hr-time/#dfn-duration</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-duration">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-dfn-duration①">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-duration②">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-73fffec128d2fef2b2301baf9dc7fa01" class="dfn-panel" data-for="73fffec128d2fef2b2301baf9dc7fa01" id="infopanel-for-73fffec128d2fef2b2301baf9dc7fa01">
+   <span id="infopaneltitle-for-73fffec128d2fef2b2301baf9dc7fa01" style="display:none">Info about the 'duration from' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-duration-from">https://w3c.github.io/hr-time/#dfn-duration-from</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-duration-from">3.3. The Database Algorithms</a> <a href="#ref-for-dfn-duration-from①">(2)</a>
+    <li><a href="#ref-for-dfn-duration-from②">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-duration-from③">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-5602165fe91a6a9a9ba8f7f873e44aef" class="dfn-panel" data-for="5602165fe91a6a9a9ba8f7f873e44aef" id="infopanel-for-5602165fe91a6a9a9ba8f7f873e44aef">
+   <span id="infopaneltitle-for-5602165fe91a6a9a9ba8f7f873e44aef" style="display:none">Info about the 'unsafe current time' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0">https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-unsafe-current-time-0">3.3. The Database Algorithms</a> <a href="#ref-for-dfn-unsafe-current-time-0①">(2)</a>
+    <li><a href="#ref-for-dfn-unsafe-current-time-0②">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-unsafe-current-time-0③">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-9ce1d97c81991af84a4cfb8251a89c4e" class="dfn-panel" data-for="9ce1d97c81991af84a4cfb8251a89c4e" id="infopanel-for-9ce1d97c81991af84a4cfb8251a89c4e">
+   <span id="infopaneltitle-for-9ce1d97c81991af84a4cfb8251a89c4e" style="display:none">Info about the 'wall clock' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-wall-clock">https://w3c.github.io/hr-time/#dfn-wall-clock</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-wall-clock">3.3. The Database Algorithms</a> <a href="#ref-for-dfn-wall-clock①">(2)</a> <a href="#ref-for-dfn-wall-clock②">(3)</a> <a href="#ref-for-dfn-wall-clock③">(4)</a>
+    <li><a href="#ref-for-dfn-wall-clock④">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-wall-clock⑤">(2)</a> <a href="#ref-for-dfn-wall-clock⑥">(3)</a> <a href="#ref-for-dfn-wall-clock⑦">(4)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-7035dd3562cfc316632c23d976c085fe" class="dfn-panel" data-for="7035dd3562cfc316632c23d976c085fe" id="infopanel-for-7035dd3562cfc316632c23d976c085fe">
@@ -2516,6 +2586,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-nav-traversable">4.1.2. Entropy Budget</a>
    </ul>
   </aside>
+  <aside aria-labelledby="infopaneltitle-for-c6a6e18a0bfb0f6727343f416cd90c01" class="dfn-panel" data-for="c6a6e18a0bfb0f6727343f416cd90c01" id="infopanel-for-c6a6e18a0bfb0f6727343f416cd90c01">
+   <span id="infopaneltitle-for-c6a6e18a0bfb0f6727343f416cd90c01" style="display:none">Info about the 'unix epoch' external reference.</span><a href="https://w3c.github.io/hr-time/#dfn-unix-epoch">https://w3c.github.io/hr-time/#dfn-unix-epoch</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-dfn-unix-epoch">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-dfn-unix-epoch①">3.3. The Database Algorithms</a> <a href="#ref-for-dfn-unix-epoch②">(2)</a>
+    <li><a href="#ref-for-dfn-unix-epoch③">4.1.2. Entropy Budget</a> <a href="#ref-for-dfn-unix-epoch④">(2)</a> <a href="#ref-for-dfn-unix-epoch⑤">(3)</a>
+   </ul>
+  </aside>
   <aside aria-labelledby="infopaneltitle-for-dcf29be761156b598247854e294e3705" class="dfn-panel" data-for="dcf29be761156b598247854e294e3705" id="infopanel-for-dcf29be761156b598247854e294e3705">
    <span id="infopaneltitle-for-dcf29be761156b598247854e294e3705" style="display:none">Info about the 'upon fulfillment' external reference.</span><a href="https://webidl.spec.whatwg.org#upon-fulfillment">https://webidl.spec.whatwg.org#upon-fulfillment</a><b>Referenced in:</b>
    <ul>
@@ -2548,7 +2626,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-user-agent">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-user-agent①">(2)</a> <a href="#ref-for-user-agent②">(3)</a>
     <li><a href="#ref-for-user-agent③">3.2. The Shared Storage Database</a> <a href="#ref-for-user-agent④">(2)</a> <a href="#ref-for-user-agent⑤">(3)</a>
     <li><a href="#ref-for-user-agent⑥">3.3. The Database Algorithms</a>
-    <li><a href="#ref-for-user-agent⑦">4.1.2. Entropy Budget</a> <a href="#ref-for-user-agent⑧">(2)</a> <a href="#ref-for-user-agent⑨">(3)</a> <a href="#ref-for-user-agent①⓪">(4)</a> <a href="#ref-for-user-agent①①">(5)</a> <a href="#ref-for-user-agent①②">(6)</a> <a href="#ref-for-user-agent①③">(7)</a>
+    <li><a href="#ref-for-user-agent⑦">4.1.2. Entropy Budget</a> <a href="#ref-for-user-agent⑧">(2)</a> <a href="#ref-for-user-agent⑨">(3)</a> <a href="#ref-for-user-agent①⓪">(4)</a> <a href="#ref-for-user-agent①①">(5)</a> <a href="#ref-for-user-agent①②">(6)</a> <a href="#ref-for-user-agent①③">(7)</a> <a href="#ref-for-user-agent①④">(8)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-81a3f446d4ec5b7ccd239f33895a87fc" class="dfn-panel" data-for="81a3f446d4ec5b7ccd239f33895a87fc" id="infopanel-for-81a3f446d4ec5b7ccd239f33895a87fc">
@@ -2742,6 +2820,17 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="07886e33695d0e7b473ef18f656ad7ac">Document</span>
     </ul>
    <li>
+    <a data-link-type="biblio">[HR-TIME-3]</a> defines the following terms:
+    <ul>
+     <li><span class="dfn-paneled" id="0527034ee7070fda15ffa50c34dbbc63">DOMHighResTimeStamp</span>
+     <li><span class="dfn-paneled" id="0395c6c21ea99634e2e481b3d8a57fc5">EpochTimeStamp</span>
+     <li><span class="dfn-paneled" id="c626b66893b5c29e4adba851077ed0e2">coarsen time</span>
+     <li><span class="dfn-paneled" id="9213a3aff5ff1021ab4c2d780aa70cee">duration</span>
+     <li><span class="dfn-paneled" id="73fffec128d2fef2b2301baf9dc7fa01">duration from</span>
+     <li><span class="dfn-paneled" id="5602165fe91a6a9a9ba8f7f873e44aef">unsafe current time</span>
+     <li><span class="dfn-paneled" id="9ce1d97c81991af84a4cfb8251a89c4e">wall clock</span>
+    </ul>
+   <li>
     <a data-link-type="biblio">[HTML]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="7035dd3562cfc316632c23d976c085fe">FencedFrameConfig</span>
@@ -2826,6 +2915,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="f4cd6265b36800faa2839af29623c32c">struct</span>
      <li><span class="dfn-paneled" id="88acb424f236089050e7f4c429bc07ea">target browsing context</span>
      <li><span class="dfn-paneled" id="0e2f334f68df47e02e59c1bb0e056e13">traversable navigable</span>
+     <li><span class="dfn-paneled" id="c6a6e18a0bfb0f6727343f416cd90c01">unix epoch</span>
      <li><span class="dfn-paneled" id="dcf29be761156b598247854e294e3705">upon fulfillment</span>
      <li><span class="dfn-paneled" id="f4113d72a91aadf0789f9e5cf76669be">upon rejection</span>
      <li><span class="dfn-paneled" id="16a92f623ebe9cfba0dc012666fa3fe3">url</span>
@@ -2884,6 +2974,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <dl>
    <dt id="biblio-dom">[DOM]
    <dd>Anne van Kesteren. <a href="https://dom.spec.whatwg.org/"><cite>DOM Standard</cite></a>. Living Standard. URL: <a href="https://dom.spec.whatwg.org/">https://dom.spec.whatwg.org/</a>
+   <dt id="biblio-hr-time-3">[HR-TIME-3]
+   <dd>Yoav Weiss. <a href="https://w3c.github.io/hr-time/"><cite>High Resolution Time</cite></a>. URL: <a href="https://w3c.github.io/hr-time/">https://w3c.github.io/hr-time/</a>
    <dt id="biblio-html">[HTML]
    <dd>Anne van Kesteren; et al. <a href="https://html.spec.whatwg.org/multipage/"><cite>HTML Standard</cite></a>. Living Standard. URL: <a href="https://html.spec.whatwg.org/multipage/">https://html.spec.whatwg.org/multipage/</a>
    <dt id="biblio-infra">[INFRA]
@@ -3274,10 +3366,16 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-entropy-allowance">4.1.2. Entropy Budget</a> <a href="#ref-for-entropy-allowance①">(2)</a> <a href="#ref-for-entropy-allowance②">(3)</a> <a href="#ref-for-entropy-allowance③">(4)</a> <a href="#ref-for-entropy-allowance④">(5)</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-epoch" class="dfn-panel" data-for="epoch" id="infopanel-for-epoch">
-   <span id="infopaneltitle-for-epoch" style="display:none">Info about the 'epoch' definition.</span><b><a href="#epoch">#epoch</a></b><b>Referenced in:</b>
+  <aside aria-labelledby="infopaneltitle-for-budget-lifetime" class="dfn-panel" data-for="budget-lifetime" id="infopanel-for-budget-lifetime">
+   <span id="infopaneltitle-for-budget-lifetime" style="display:none">Info about the 'budget lifetime' definition.</span><b><a href="#budget-lifetime">#budget-lifetime</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-epoch">4.1.2. Entropy Budget</a> <a href="#ref-for-epoch①">(2)</a> <a href="#ref-for-epoch②">(3)</a>
+    <li><a href="#ref-for-budget-lifetime">4.1.2. Entropy Budget</a> <a href="#ref-for-budget-lifetime①">(2)</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-budget-epoch" class="dfn-panel" data-for="budget-epoch" id="infopanel-for-budget-epoch">
+   <span id="infopaneltitle-for-budget-epoch" style="display:none">Info about the 'budget epoch' definition.</span><b><a href="#budget-epoch">#budget-epoch</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-budget-epoch">4.1.2. Entropy Budget</a> <a href="#ref-for-budget-epoch①">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-shared-storage-budget-table" class="dfn-panel" data-for="shared-storage-budget-table" id="infopanel-for-shared-storage-budget-table">
@@ -3307,7 +3405,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-bit-debit-timestamp" class="dfn-panel" data-for="bit-debit-timestamp" id="infopanel-for-bit-debit-timestamp">
    <span id="infopaneltitle-for-bit-debit-timestamp" style="display:none">Info about the 'timestamp' definition.</span><b><a href="#bit-debit-timestamp">#bit-debit-timestamp</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-bit-debit-timestamp">4.1.2. Entropy Budget</a> <a href="#ref-for-bit-debit-timestamp①">(2)</a>
+    <li><a href="#ref-for-bit-debit-timestamp">4.1.2. Entropy Budget</a> <a href="#ref-for-bit-debit-timestamp①">(2)</a> <a href="#ref-for-bit-debit-timestamp②">(3)</a> <a href="#ref-for-bit-debit-timestamp③">(4)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-calling-origin-remaining-budget" class="dfn-panel" data-for="calling-origin-remaining-budget" id="infopanel-for-calling-origin-remaining-budget">
