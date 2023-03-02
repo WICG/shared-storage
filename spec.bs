@@ -298,7 +298,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   <span class=todo>This [=storage endpoint/quota=] is calculated from the current implementation. Consider bringing the current implementation in line with the spec for [=storage endpoints=] "`localStorage`" and "`sessionStorage`", i.e. `5 * 2`<sup>`20`</sup> bytes. For example, decreasing the per-origin entry limit from 10,000 to 1,280 would achieve this.</span>
 
-  A <dfn>shared storage shed</dfn> is a [=map=] of [=/origins=] to to [=storage shelf|storage shelves=]. It is initially empty.
+  A <dfn>shared storage shed</dfn> is a [=map=] of [=/origins=] to [=storage shelf|storage shelves=]. It is initially empty.
 
   Note: Unlike [=storage sheds=], whose keys are [=storage keys=], [=shared storage sheds=] use [=/origins=] as keys directly. [=Shared storage=] will be intentionally excluded from [=client-side storage partitioning=].
 
@@ -375,8 +375,8 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   <div algorithm>
     To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=/browsing context=] |context|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps:
 
-    1. If |key| is not a [=string=] or exceeds the [=key/maximum length=], return false.
-    1. If |value| is not a [=string=] or exceeds the [=value/maximum length=], return false.
+    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return false.
+    1. If |value| is not a [=string=] or |value|'s [=string/length=] exceeds the [=value/maximum length=], return false.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
         1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -392,7 +392,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   <div algorithm>
     To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, run the following steps:
 
-    1. If |key| is not a [=string=] or exceeds the [=key/maximum length=], return null.
+    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return null.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
         1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -408,7 +408,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   <div algorithm>
     To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, run the following steps:
 
-    1. If |key| is not a [=string=] or exceeds the [=key/maximum length=], return false.
+    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return false.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
         1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -532,11 +532,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |options| is empty, create |options|.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |value| is not a {{DOMString}} or exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |options| is empty, create |options|.
+        1. Let |result| be null.
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
             1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| as undefined.
@@ -554,9 +555,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-        1. If |value| is not a {{DOMString}} or exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+        1. Let |result| be null.
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
         1. If |currentValue| is not failure:
             1. Let |list| be a new [=list=].
@@ -576,8 +578,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |context| and |key|.
         1. If |result| is false, reject |promise|.
         1. Otherwise, resolve |promise| as undefined.
@@ -775,11 +777,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value| is not a {{DOMString}} or exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |options| is empty, create |options| with |options|["`ignoreIfPresent`"] set to false.
+    1. If |options| is empty, create |options|.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+        1. Let |result| be null.
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
             1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| as undefined.
@@ -797,9 +800,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value| is not a {{DOMString}} or exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+        1. Let |result| be null.
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
         1. If |currentValue| is not failure:
             1. Let |list| be a new [=list=].
@@ -819,8 +823,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |context| and |key|.
         1. If |result| is false, reject |promise|.
         1. Otherwise, resolve |promise| as undefined.
@@ -848,8 +852,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. If |key| is not a {{DOMString}} or exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
         1. If |value| is null, reject |promise|.
         1. If |value| is undefined, resolve |promise| as undefined.
