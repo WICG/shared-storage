@@ -112,12 +112,9 @@ spec: html; urlPrefix: https://tc39.es/ecma262/
         text: GetMethod(); url: sec-getmethod
         text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
         text: assert; url: assert
-spec: html; urlPrefix: https://streams.spec.whatwg.org/
+spec: html; urlPrefix: https://w3c.github.io/hr-time/
     type: dfn
-        text: iterable; url: readablestream
-spec: html; urlPrefix: https://www.rfc-editor.org/rfc/rfc4122
-    type: dfn
-        text: urn:uuid
+        text: unix epoch; url: dfn-unix-epoch
 spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
@@ -364,11 +361,15 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   Since [=entry/keys=] are used to organize and efficiently retrieve [=shared storage database/entry|entries=], [=entry/keys=] must appear at most once in any given [=shared storage database=].
 
-  An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=string=] <dfn for="value struct">value</dfn> and timestamp <dfn for="value struct">last updated</dfn>.
+  An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=string=] <dfn for="value struct">value</dfn> and {{DOMHighResTimeStamp}} <dfn for="value struct">last updated</dfn> (from the [=Unix Epoch=]).
+
+  Note: Some Shared Storage implementations may use SQLite implementations that store timestamps as 64-bit unsigned integers rather than doubles, thereby making it necessary to use legacy {{EpochTimeStamp}}s instead of {{DOMHighResTimeStamp}}s.
+
+  <span class=todo>In Chrome, for the reason given in the note above, we use {{EpochTimeStamp}}s, which are discouraged. How can we reconcile this?</span>
 
   [=User agents=] may specify the <dfn for=value>maximum length</dfn> of a [=value struct/value=].
 
-  [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default duration between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires.
+  [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default [=duration=] between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires.
 
   ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
 
@@ -381,10 +382,12 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
         1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
         1. If |databaseMap| is failure, then return null.
-        1. Let |time| be the current time.
         1. Let |valueStruct| be a new [=entry/value struct=].
         1. Set |valueStruct|'s [=value struct/value=] to |value|.
-        1. Set |valueStruct|'s [=value struct/last updated=] to |time|.
+        1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
+        1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
+        1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
+        1. Set |valueStruct|'s [=value struct/last updated=] to |fromUnixEpochTime|.
         1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
         1. Return true.
   </div>
@@ -470,8 +473,10 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Let |lastUpdated| be |valueStruct|'s [=value struct/last updated=].
     1. Let |lifetime| be [=user agent=]'s [=default entry lifetime=].
     1. Let |expiration| be the sum of |lastUpdated| and |lifetime|.
-    1. let |time| be the current time.
-    1. If |expiration| is less than or equal to |time|, return true.
+    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
+    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
+    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
+    1. If |expiration| is less than or equal to |fromUnixEpochTime|, return true.
     1. Otherwise, return false.
   </div>
 
@@ -605,19 +610,21 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   A <dfn>calling origin</dfn> for {{WindowSharedStorage/selectURL()}} is the [=url/origin=] of an [=environment=] that makes a {{WindowSharedStorage/selectURL()}} call.
 
-  A <dfn>entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak during a given [=epoch=] and for a given calling [=calling origin=]. This [=entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling origin=]-agnostic.
+  A <dfn>entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak during a given [=budget epoch=] and for a given calling [=calling origin=]. This [=entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling origin=]-agnostic.
 
-  An <dfn>epoch</dfn> is a time period whose duration is a fixed pretermined length.
+  A [=user agent=] will define a fixed predetermined [=duration=] <dfn>budget lifetime</dfn>.
+
+  An <dfn>budget epoch</dfn> is any interval of time whose [=duration=] is the [=budget lifetime=].
 
   To keep track of how this [=entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage budget table</dfn>, which is a [=map=] of [=calling origins=] to [=entropy ledgers=].
 
   An <dfn>entropy ledger</dfn> is a [=list=] of [=bit debits=].
 
-  A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a time <dfn for="bit debit">timestamp</dfn>.
+  A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
 
-  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=] along with the current time as a [=bit debit=] in the [=shared storage budget table=].
+  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage budget table=].
 
-  A [=calling origin=]'s <dfn for="calling origin">remaining budget</dfn> is the [=entropy allowance=] minus any [=bit debits=] whose timestamps are within the current [=epoch=].
+  A [=calling origin=]'s <dfn for="calling origin">remaining budget</dfn> is the [=entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=budget epoch=].
 
   {{WindowSharedStorage/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
 
@@ -644,9 +651,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |maxBits| be the value of the [=user agent=]'s [=entropy allowance=].
     1. If the [=user agent=]'s [=shared storage budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
     1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
-    1. Let |time| be the current time.
-    1. Let |epochLength| be the length of an [=epoch=].
-    1. Let |threshold| be |time| - |epochLength|.
+    1. Let |epochLength| be [=budget lifetime=].
+    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
+    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
+    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
+    1. Let |threshold| be |fromUnixEpochTime| minus |epochLength|.
     1. Let |debitSum| be 0.
     1. For each [=list/item=] |bitDebit| in |ledger|, do the following steps:
         1. Let |timestamp| be |bitDebit|'s [=bit debit/timestamp=].
@@ -673,7 +682,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. Let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
-                1. Set |bitDebit|'s [=bit debit/timestamp=] to the current time.
+                1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
+                1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
+                1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
+                1. Set |bitDebit|'s [=bit debit/timestamp=] to |fromUnixEpochTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
                 1. Set |node|'s {{FencedFrameConfig}}'s [=pending shared storage budget debit=] to 0.
         1. Set |node| to |node|'s [=navigable/parent=].
