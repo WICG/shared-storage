@@ -313,11 +313,9 @@ register('send-report', ReportingOperation);
 
 ### Keeping a worklet alive for multiple operations
 
-We may wish to run multiple worklet operations from the same context, e.g. we might select a URL and then send one or more aggregatable reports. To do so, we would need to use the `keepAlive: true` option when calling eaching of our worklet operations (except perhaps in the last call, if we have no need to extend the worklet's lifetime beyond that call).
+Callers may wish to run multiple worklet operations from the same context, e.g. they might select a URL and then send one or more aggregatable reports. To do so, they would need to use the `keepAlive: true` option when calling each of the worklet operations (except perhaps in the last call, if there was no need to extend the worklet's lifetime beyond that call).
 
-We could make the calls as follows.
-
-In the embedder page:
+As an example, in the embedder page:
 
 ```js
 // Load the worklet module.
