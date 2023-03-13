@@ -323,7 +323,7 @@ In the embedder page:
 // Load the worklet module.
 await window.sharedStorage.worklet.addModule('worklet.js');
 
-// Select a URL, retaining the worklet.
+// Select a URL, keeping the worklet alive.
 const fencedFrameConfig = await window.selectURL(
   [
     {url: "blob:https://a.example/123…"},
@@ -339,7 +339,7 @@ const fencedFrameConfig = await window.selectURL(
 // Navigate a fenced frame to the resulting config.
 document.getElementById('my-fenced-frame').config = fencedFrameConfig;
 
-// Send some report, retaining the worklet.
+// Send some report, keeping the worklet alive.
 await window.sharedStorage.run('report', {
   data: { ... },
   keepAlive: true,
