@@ -368,7 +368,7 @@ register('select-url', URLOperation);
 register('report', ReportOperation);
 ```
 
-## Worklets can outlive renderers
+## Worklets can outlive the associated document
 
 After a document dies, the corresponding worklet (if running an operation) will continue to be kept alive for a maximum of two seconds to allow the pending operation(s) to execute. This gives more confidence that any end-of-page operations (e.g. reporting) are able to finish.
 
