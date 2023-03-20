@@ -225,10 +225,17 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
                          SharedStorageOperationConstructor operationCtor);
     };
 
-    callback SharedStorageOperationConstructor = SharedStorageOperation(object options);
+    callback SharedStorageOperationConstructor =
+      SharedStorageOperation(optional SharedStorageRunOperationMethodOptions options);
 
     [Exposed=SharedStorageWorklet]
     interface SharedStorageOperation {
+    };
+
+    dictionary SharedStorageRunOperationMethodOptions {
+      object data;
+      boolean resolveToConfig = false;
+      boolean keepAlive = false;
     };
   </xmp>
 
@@ -523,10 +530,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     readonly attribute SharedStorageWorklet worklet;
   };
-
-  dictionary SharedStorageRunOperationMethodOptions {
-    object data;
-  };
 </xmp>
 
   ### Window Setter/Deleter Methods ### {#window-setter}
@@ -712,26 +715,28 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. Otherwise, [=call=] |operation| without any arguments list.
         1. Resolve |promise| as undefined.
     1. Return |promise|.
+    1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |promise| or [=upon rejection=] of |promise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
 
   <div algorithm>
     The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
-    1. Let |configPromise| be a new [=promise=].
-    1. If |urls| is empty or exceeds the maximum allowed length, reject |configPromise|.
+    1. Let |resultPromise| be a new [=promise=].
+    1. If |urls| is empty or exceeds the maximum allowed length, reject |resultPromise|.
     1. Let |urlList| be an empty {{list}}.
     1. For each |urlWithMetadata| in |urls|:
-        1. If |urlWithMetadata| has no field "`url`", reject |configPromise|.
+        1. If |urlWithMetadata| has no field "`url`", reject |resultPromise|.
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. If |url| is not a valid {{URL}}, reject |configPromise|.
+        1. If |url| is not a valid {{URL}}, reject |resultPromise|.
         1. Otherwise, [=list/append=] |urlString| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If |reportingMetadata| is invalid, reject |configPromise|.
-    1. If {{Worklet/addModule()}} has not yet been called, reject |configPromise|.
+            1. If |reportingMetadata| is invalid, reject |resultPromise|.
+    1. If {{Worklet/addModule()}} has not yet been called, reject |resultPromise|.
     1. Let |fencedFrameConfig| be a {{FencedFrameConfig}}.
-    1. Resolve |configPromise| as |fencedFrameConfig|.
+    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| as |fencedFrameConfig|.
+    1. Othewise, resolve |resultPromise| to |fencedFrameConfig|'s [=FencedFrameConfig/url=]. <span class=todo>[=FencedFrameConfig/url=] is probably not quite correct, but urn:uuid is not in the spec and is going away soon?</span> 
     1. Let |indexPromise| be a new [=promise=].
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
     1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
@@ -763,7 +768,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. Set |fencedFrameConfig|'s [=pending shared storage budget debit=] to |pendingBits|.
             1. Set |fencedFrameConfig|'s [=FencedFrameConfig/url=] to |urlList|[|resultIndex|].
         1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfig|'s [=FencedFrameConfig/url=] to |urlList|[[=default index=]].
-    1. Return |configPromise|.
+    1. Return |resultPromise|.
+    1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |resultPromise| or [=upon rejection=] of |resultPromise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
 
   ## The {{WorkletSharedStorage}} interface ## {#worklet-shared-storage}
@@ -940,6 +946,4 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
 Privacy Considerations {#privacy}
 =================================
-<p>
   <span class=todo>Add privacy considerations.</span>
-</p>
