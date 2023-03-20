@@ -113,7 +113,12 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
                 *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding origin’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
-    *   Options can include `data`, an arbitrary serializable object passed to the worklet.
+    *   Options can include:
+        *   `data`, an arbitrary serializable object passed to the worklet. 
+        *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
+            *   If `keepAlive` is false or not specified, the worklet will shutdown as soon as the operation finishes and subsequent calls to it will fail.
+            *   To keep the worklet alive throughout multiple calls to `run()` and/or `selectURL()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
+
 
 
 ### In the worklet, during `addModule()`
@@ -306,9 +311,66 @@ class ReportingOperation {
 register('send-report', ReportingOperation);
 ```
 
-## Keep-alive worklet
+### Keeping a worklet alive for multiple operations
 
-After a document dies, the corresponding worklet will be kept alive for maximum two seconds to allow the pending operations to execute. This gives more confidence that the end-of-page operations (e.g. reporting) are able to finish.
+Callers may wish to run multiple worklet operations from the same context, e.g. they might select a URL and then send one or more aggregatable reports. To do so, they would need to use the `keepAlive: true` option when calling each of the worklet operations (except perhaps in the last call, if there was no need to extend the worklet's lifetime beyond that call).
+
+As an example, in the embedder page:
+
+```js
+// Load the worklet module.
+await window.sharedStorage.worklet.addModule('worklet.js');
+
+// Select a URL, keeping the worklet alive.
+const fencedFrameConfig = await window.selectURL(
+  [
+    {url: "blob:https://a.example/123…"},
+    {url: "blob:https://b.example/abc…"}
+  ],
+  {
+    data: { ... },
+    keepAlive: true,
+    resolveToConfig: true
+  }
+);
+
+// Navigate a fenced frame to the resulting config.
+document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+
+// Send some report, keeping the worklet alive.
+await window.sharedStorage.run('report', {
+  data: { ... },
+  keepAlive: true,
+});
+
+// Send another report, allowing the worklet to close afterwards.
+await window.sharedStorage.run('report', {
+  data: { ... },
+});
+
+// From this point on, if we make any additional worklet calls, they will fail.
+```
+
+In the worklet script (`worklet.js`):
+
+```js
+class URLOperation {
+  // See previous examples for how to write a `selectURL()` operation class.
+  async run(urls, data) { ... }
+}
+
+class ReportOperation {
+  // See previous examples for how to write a `run()` operation class.
+  async run(data) { ... }
+}
+
+register('select-url', URLOperation);
+register('report', ReportOperation);
+```
+
+## Worklets can outlive the associated document
+
+After a document dies, the corresponding worklet (if running an operation) will continue to be kept alive for a maximum of two seconds to allow the pending operation(s) to execute. This gives more confidence that any end-of-page operations (e.g. reporting) are able to finish.
 
 ## Permissions Policy
 
