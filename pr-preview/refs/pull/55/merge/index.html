@@ -4,9 +4,9 @@
   <title>Shared Storage API</title>
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
-  <meta content="Bikeshed version d9f9c3533, updated Fri Mar 10 11:31:29 2023 -0800" name="generator">
+  <meta content="Bikeshed version be9d81bf4, updated Tue Mar 21 14:43:08 2023 -0700" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="06735564b3d6cd11a9eae71b29488827686f1211" name="document-revision">
+  <meta content="f9c35b599091f47cc83bd444fc15c14c86da618f" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -618,7 +618,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Shared Storage API</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-03-20">20 March 2023</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-03-21">21 March 2023</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -731,8 +731,7 @@ window<c- p>.</c->sharedStorage<c- p>.</c->set<c- p>(</c-><c- t>'seed'</c-><c- p
 <c- p>);</c->
 
 <c- c1>// Assumes that the fenced frame 'my-fenced-frame' has already been attached.</c->
-document<c- p>.</c->getElementById<c- p>(</c-><c- t>'my-fenced-frame'</c-><c- p>).</c->config <c- o>=</c-> fencedFrameConfig<c- p>;</c->
-</pre>
+document<c- p>.</c->getElementById<c- p>(</c-><c- t>'my-fenced-frame'</c-><c- p>).</c->config <c- o>=</c-> fencedFrameConfig<c- p>;</c-></pre>
     <p>inside the <code>experiment.js</code> worklet script:</p>
 <pre class="lang-js highlight"><c- a>class</c-> SelectURLOperation <c- p>{</c->
   hash<c- p>(</c->experimentName<c- p>,</c-> seed<c- p>)</c-> <c- p>{</c-> … <c- p>}</c->
@@ -742,15 +741,13 @@ document<c- p>.</c->getElementById<c- p>(</c-><c- t>'my-fenced-frame'</c-><c- p>
     <c- k>return</c-> hash<c- p>(</c->data<c- p>.</c->name<c- p>,</c-> seed<c- p>)</c-> <c- o>%</c-> urls<c- p>.</c->length<c- p>;</c->
   <c- p>}</c->
 <c- p>}</c->
-register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURLOperation<c- p>);</c->
-</pre>
+register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURLOperation<c- p>);</c-></pre>
    </div>
    <h2 class="heading settled" data-level="2" id="worklet"><span class="secno">2. </span><span class="content">The <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet">SharedStorageWorklet</a></code> Interface</span><a class="self-link" href="#worklet"></a></h2>
     The <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet①">SharedStorageWorklet</a></code> object allows developers to supply <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#module-script" id="ref-for-module-script">module scripts</a> to process <a data-link-type="dfn" href="#shared-storage" id="ref-for-shared-storage">Shared Storage</a> data and then output the result through one or more of the output gates. Currently there are two output gates, the <a data-link-type="dfn" href="https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md#private-aggregation" id="ref-for-private-aggregation①">private aggregation</a> output gate and the <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl">URL-selection</a></code> output gate. 
 <pre class="idl highlight def">[<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed" id="ref-for-Exposed"><c- g>Exposed</c-></a>=(<c- n>Window</c->)]
 <c- b>interface</c-> <dfn class="dfn-paneled idl-code" data-dfn-type="interface" data-export id="sharedstorageworklet"><code><c- g>SharedStorageWorklet</c-></code></dfn> : <a data-link-type="idl-name" href="https://html.spec.whatwg.org/multipage/worklets.html#worklet" id="ref-for-worklet"><c- n>Worklet</c-></a> {
-};
-</pre>
+};</pre>
    <h3 class="heading settled" data-level="2.1" id="global-scope"><span class="secno">2.1. </span><span class="content">The <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope">SharedStorageWorkletGlobalScope</a></code></span><a class="self-link" href="#global-scope"></a></h3>
    <p>The <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet②">SharedStorageWorklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/worklets.html#worklet-global-scope-type" id="ref-for-worklet-global-scope-type">worklet global scope type</a> is <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope①">SharedStorageWorkletGlobalScope</a></code>.</p>
 <pre class="idl highlight def">[<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed" id="ref-for-Exposed①"><c- g>Exposed</c-></a>=<c- n>SharedStorageWorklet</c->, <a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Global" id="ref-for-Global"><c- g>Global</c-></a>=<a data-link-type="idl-name" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet③"><c- n>SharedStorageWorklet</c-></a>]
@@ -770,8 +767,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object" id="ref-for-idl-object"><c- b>object</c-></a> <dfn class="idl-code" data-dfn-for="SharedStorageRunOperationMethodOptions" data-dfn-type="dict-member" data-export data-type="object " id="dom-sharedstoragerunoperationmethodoptions-data"><code><c- g>data</c-></code><a class="self-link" href="#dom-sharedstoragerunoperationmethodoptions-data"></a></dfn>;
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean" id="ref-for-idl-boolean"><c- b>boolean</c-></a> <dfn class="idl-code" data-default="false" data-dfn-for="SharedStorageRunOperationMethodOptions" data-dfn-type="dict-member" data-export data-type="boolean " id="dom-sharedstoragerunoperationmethodoptions-resolvetoconfig"><code><c- g>resolveToConfig</c-></code><a class="self-link" href="#dom-sharedstoragerunoperationmethodoptions-resolvetoconfig"></a></dfn> = <c- b>false</c->;
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean" id="ref-for-idl-boolean①"><c- b>boolean</c-></a> <dfn class="idl-code" data-default="false" data-dfn-for="SharedStorageRunOperationMethodOptions" data-dfn-type="dict-member" data-export data-type="boolean " id="dom-sharedstoragerunoperationmethodoptions-keepalive"><code><c- g>keepAlive</c-></code><a class="self-link" href="#dom-sharedstoragerunoperationmethodoptions-keepalive"></a></dfn> = <c- b>false</c->;
-};
-</pre>
+};</pre>
    <p>Each <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope②">SharedStorageWorkletGlobalScope</a></code> has an associated <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object">environment settings object</a> <dfn class="dfn-paneled" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="dfn" data-noexport id="sharedstorageworkletglobalscope-outside-settings">outside settings</dfn>, which is the associated <code class="idl"><a data-link-type="idl" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet④">SharedStorageWorklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object">relevant settings object</a>.</p>
    <p>The <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope③">SharedStorageWorkletGlobalScope</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#module-map" id="ref-for-module-map">module map</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#module-script" id="ref-for-module-script①">module scripts</a> should each define and <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/webrtc-identity/#dom-rtcidentityproviderregistrar-register" id="ref-for-dom-rtcidentityproviderregistrar-register">register</a></code> one or more <code class="idl"><a data-link-type="idl" href="#sharedstorageoperation" id="ref-for-sharedstorageoperation①">SharedStorageOperation</a></code>s.</p>
    <p>Each <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope④">SharedStorageWorkletGlobalScope</a></code> also has an associated <dfn class="dfn-paneled" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="dfn" data-noexport id="sharedstorageworkletglobalscope-operation-map">operation map</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map">map</a>, initially empty, of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string">strings</a> (denoting operation names) to <a data-link-type="dfn" href="https://tc39.es/ecma262/#function-object" id="ref-for-function-object">functions</a>.</p>
@@ -798,8 +794,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 <c- b>dictionary</c-> <dfn class="dfn-paneled idl-code" data-dfn-type="dictionary" data-export id="dictdef-sharedstorageurlwithmetadata"><code><c- g>SharedStorageUrlWithMetadata</c-></code></dfn> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-USVString" id="ref-for-idl-USVString"><c- b>USVString</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageUrlWithMetadata" data-dfn-type="dict-member" data-export data-type="USVString " id="dom-sharedstorageurlwithmetadata-url"><code><c- g>url</c-></code></dfn>;
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object" id="ref-for-idl-object③"><c- b>object</c-></a> <dfn class="idl-code" data-dfn-for="SharedStorageUrlWithMetadata" data-dfn-type="dict-member" data-export data-type="object " id="dom-sharedstorageurlwithmetadata-reportingmetadata"><code><c- g>reportingMetadata</c-></code><a class="self-link" href="#dom-sharedstorageurlwithmetadata-reportingmetadata"></a></dfn>;
-};
-</pre>
+};</pre>
    <h3 class="heading settled" data-level="2.2" id="register-worklet"><span class="secno">2.2. </span><span class="content">Registering a Worklet</span><a class="self-link" href="#register-worklet"></a></h3>
    <div class="algorithm" data-algorithm="register(name, operationCtor)" data-algorithm-for="SharedStorageWorkletGlobalScope">
      The <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="method" data-export id="dom-sharedstorageworkletglobalscope-register"><code>register(<var>name</var>, <var>operationCtor</var>)</code></dfn> method steps are: 
@@ -903,188 +898,136 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    </div>
    <h3 class="heading settled" data-level="3.2" id="database"><span class="secno">3.2. </span><span class="content">The <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database">Shared Storage Database</a></span><a class="self-link" href="#database"></a></h3>
    <p>A <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context">browsing context</a> has an associated <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-database">shared storage database</dfn>, which provides methods to <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database">store</a>, <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database">retrieve</a>, <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database">delete</a>, <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database">clear</a>, and <a data-link-type="dfn" href="#shared-storage-database-purge-expired-entries-from-the-database" id="ref-for-shared-storage-database-purge-expired-entries-from-the-database">purge expired</a> data, and additional methods as below. The data in the <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database①">database</a> take the form of <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry">entries</a>.</p>
-   <p>Each <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database②">shared storage database</a> has a <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-shared-storage-database-queue">shared storage database queue</dfn>, which is a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-enqueue" id="ref-for-parallel-enqueue">parallel queue</a> on which the each of the <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database③">shared storage database</a>'s methods run when calls to them are initiated from that <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context①">browsing context</a>.</p>
+   <p>Each <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database②">shared storage database</a> has a <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-shared-storage-database-queue">shared storage database queue</dfn>, which is the result of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#starting-a-new-parallel-queue" id="ref-for-starting-a-new-parallel-queue">starting a new parallel queue</a>, on which the each of the <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database③">shared storage database</a>'s methods run when calls to them are initiated from that <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context①">browsing context</a>.</p>
    <p>Each <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-entry">entry</dfn> consists of a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key">key</a> and a <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct">value struct</a>.</p>
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry①">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-key">key</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string②">string</a>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent③">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="key" data-dfn-type="dfn" data-noexport id="key-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key①">key</a>.</p>
    <p>Since <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key②">keys</a> are used to organize and efficiently retrieve <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry②">entries</a>, <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key③">keys</a> must appear at most once in any given <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database④">shared storage database</a>.</p>
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry③">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-value-struct">value struct</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct">struct</a> composed of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string③">string</a> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-value">value</dfn> and <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-last-updated">last updated</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch">Unix Epoch</a>).</p>
-   <p class="note" role="note"><span class="marker">Note:</span> Some Shared Storage implementations may use SQLite implementations that store timestamps as 64-bit unsigned integers rather than doubles, thereby making it necessary to use legacy <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-epochtimestamp" id="ref-for-dom-epochtimestamp">EpochTimeStamp</a></code>s instead of <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp①">DOMHighResTimeStamp</a></code>s.</p>
-   <p><span class="todo">In Chrome, for the reason given in the note above, we use <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-epochtimestamp" id="ref-for-dom-epochtimestamp①">EpochTimeStamp</a></code>s, which are discouraged. How can we reconcile this?</span></p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent④">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="value" data-dfn-type="dfn" data-noexport id="value-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value">value</a>.</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration">duration</a> between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires.</p>
    <h3 class="heading settled" data-level="3.3" id="database-algorithms"><span class="secno">3.3. </span><span class="content">The <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database⑤">Database</a> Algorithms</span><a class="self-link" href="#database-algorithms"></a></h3>
    <div class="algorithm" data-algorithm="store an entry in the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-store-an-entry-in-the-database">store an entry in the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context②">browsing context</a> <var>context</var>, a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key④">key</a> <var>key</var>, and a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value①">value</a> <var>value</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-store-an-entry-in-the-database">store an entry in the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue">shared storage database queue</a> <var>queue</var>, an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object③">environment settings object</a> <var>environment</var>, a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key④">key</a> <var>key</var>, and a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value①">value</a> <var>value</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>If <var>key</var> is not a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string④">string</a> or <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length">maximum length</a>, return false.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p>If <var>value</var> is not a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string⑤">string</a> or <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length">maximum length</a>, return false.</p>
+      <p>If <var>databaseMap</var> is failure, then return false.</p>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①">relevant settings object</a>.</p>
+      <p>Let <var>valueStruct</var> be a new <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct①">value struct</a>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return null.</p>
-       <li data-md>
-        <p>Let <var>valueStruct</var> be a new <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct①">value struct</a>.</p>
-       <li data-md>
-        <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value②">value</a> to <var>value</var>.</p>
-       <li data-md>
-        <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0">unsafe current time</a>.</p>
-       <li data-md>
-        <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock①">wall clock</a> as input.</p>
-       <li data-md>
-        <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch①">Unix epoch</a> to <var>moment</var>.</p>
-       <li data-md>
-        <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated">last updated</a> to <var>fromUnixEpochTime</var>.</p>
-       <li data-md>
-        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-set" id="ref-for-map-set①">Set</a> <var>databaseMap</var>[<var>key</var>] to <var>valueStruct</var>.</p>
-       <li data-md>
-        <p>Return true.</p>
-      </ol>
+      <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value②">value</a> to <var>value</var>.</p>
+     <li data-md>
+      <p>Let <var>unsafeMoment</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock">wall clock</a>'s <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unsafe-current-time-0" id="ref-for-dfn-unsafe-current-time-0">unsafe current time</a>.</p>
+     <li data-md>
+      <p>Let <var>moment</var> be the result of running <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-coarsen-time" id="ref-for-dfn-coarsen-time">coarsen time</a> algorithm given <var>unsafeMoment</var> and <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-wall-clock" id="ref-for-dfn-wall-clock①">wall clock</a> as input.</p>
+     <li data-md>
+      <p>Let <var>fromUnixEpochTime</var> be the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration-from" id="ref-for-dfn-duration-from">duration from</a> the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch①">Unix epoch</a> to <var>moment</var>.</p>
+     <li data-md>
+      <p>Set <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated">last updated</a> to <var>fromUnixEpochTime</var>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-set" id="ref-for-map-set①">Set</a> <var>databaseMap</var>[<var>key</var>] to <var>valueStruct</var>.</p>
+     <li data-md>
+      <p>Return true.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="retrieve an entry from the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-retrieve-an-entry-from-the-database">retrieve an entry from the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context③">browsing context</a> <var>context</var> and a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑤">key</a> <var>key</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-retrieve-an-entry-from-the-database">retrieve an entry from the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①">shared storage database queue</a> <var>queue</var>, an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object④">environment settings object</a> <var>environment</var>, and a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑤">key</a> <var>key</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>If <var>key</var> is not a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string⑥">string</a> or <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length②">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length①">maximum length</a>, return null.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map①">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window①">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object②">relevant settings object</a>.</p>
+      <p>If <var>databaseMap</var> is failure, then return null.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map①">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return null.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists①">contain</a> <var>key</var>, return undefined.</p>
-       <li data-md>
-        <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
-       <li data-md>
-        <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
-       <li data-md>
-        <p>If <var>isExpired</var> is true, return undefined.</p>
-       <li data-md>
-        <p>Let <var>value</var> be <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value③">value</a>.</p>
-       <li data-md>
-        <p>Return <var>value</var>.</p>
-      </ol>
+      <p>If <var>databaseMap</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists①">contain</a> <var>key</var>, return undefined.</p>
+     <li data-md>
+      <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
+     <li data-md>
+      <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
+     <li data-md>
+      <p>If <var>isExpired</var> is true, return undefined.</p>
+     <li data-md>
+      <p>Let <var>value</var> be <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value③">value</a>.</p>
+     <li data-md>
+      <p>Return <var>value</var>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="delete an entry from the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-delete-an-entry-from-the-database">delete an entry from the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context④">browsing context</a> <var>context</var> and a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑥">key</a> <var>key</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-delete-an-entry-from-the-database">delete an entry from the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue②">shared storage database queue</a> <var>queue</var>, an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object⑤">environment settings object</a> <var>environment</var>, and a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑥">key</a> <var>key</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>If <var>key</var> is not a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string⑦">string</a> or <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length③">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length②">maximum length</a>, return false.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map②">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window②">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object③">relevant settings object</a>.</p>
+      <p>If <var>databaseMap</var> is failure, then return false.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps②">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue②">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map②">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return false.</p>
-       <li data-md>
-        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
-       <li data-md>
-        <p>Return true.</p>
-      </ol>
+      <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
+     <li data-md>
+      <p>Return true.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="clear all entries in the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-clear-all-entries-in-the-database">clear all entries in the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context⑤">browsing context</a> <var>context</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-clear-all-entries-in-the-database">clear all entries in the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue③">shared storage database queue</a> <var>queue</var> and an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object⑥">environment settings object</a> <var>environment</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window③">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object④">relevant settings object</a>.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map③">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps③">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue③">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map③">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return false.</p>
-       <li data-md>
-        <p>Run <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-clear" id="ref-for-map-clear">Clear</a> on <var>databaseMap</var>.</p>
-       <li data-md>
-        <p>Return true.</p>
-      </ol>
+      <p>If <var>databaseMap</var> is failure, then return false.</p>
+     <li data-md>
+      <p>Run <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-clear" id="ref-for-map-clear">Clear</a> on <var>databaseMap</var>.</p>
+     <li data-md>
+      <p>Return true.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="retrieve all entries from the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context⑥">browsing context</a> <var>context</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue④">shared storage database queue</a> <var>queue</var> and an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object⑦">environment settings object</a> <var>environment</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window④">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑤">relevant settings object</a>.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map④">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps④">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue④">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map④">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return undefined.</p>
-       <li data-md>
-        <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-getting-the-values" id="ref-for-map-getting-the-values">getting the values</a> on <var>databaseMap</var>.</p>
-       <li data-md>
-        <p>Return <var>entries</var>.</p>
-      </ol>
+      <p>If <var>databaseMap</var> is failure, then return undefined.</p>
+     <li data-md>
+      <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-getting-the-values" id="ref-for-map-getting-the-values">getting the values</a> on <var>databaseMap</var>.</p>
+     <li data-md>
+      <p>Return <var>entries</var>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="count entries in the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-count-entries-in-the-database">count entries in the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context⑦">browsing context</a> <var>context</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-count-entries-in-the-database">count entries in the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑤">shared storage database queue</a> <var>queue</var> and an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object⑧">environment settings object</a> <var>environment</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑤">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑥">relevant settings object</a>.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map⑤">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑤">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑤">shared storage database queue</a>:</p>
-      <ol>
-       <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map⑤">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return undefined.</p>
-       <li data-md>
-        <p>Let <var>count</var> be <var>databaseMap</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-size" id="ref-for-map-size①">size</a>.</p>
-       <li data-md>
-        <p>Return <var>count</var>.</p>
-      </ol>
+      <p>If <var>databaseMap</var> is failure, then return undefined.</p>
+     <li data-md>
+      <p>Let <var>count</var> be <var>databaseMap</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-size" id="ref-for-map-size①">size</a>.</p>
+     <li data-md>
+      <p>Return <var>count</var>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="purge expired entries from the database" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-purge-expired-entries-from-the-database">purge expired entries from the database</dfn>, given a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context" id="ref-for-browsing-context⑧">browsing context</a> <var>context</var>, run the following steps: 
+     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-purge-expired-entries-from-the-database">purge expired entries from the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑥">shared storage database queue</a> <var>queue</var> and an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object⑨">environment settings object</a> <var>environment</var>, run the following steps on <var>queue</var>: 
     <ol>
      <li data-md>
-      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑥">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑦">relevant settings object</a>.</p>
+      <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map⑥">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑥">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑥">shared storage database queue</a>:</p>
+      <p>If <var>databaseMap</var> is failure, then return false.</p>
+     <li data-md>
+      <p>For each <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑦">key</a> <var>key</var> in <var>databaseMap</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map⑥">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
+        <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get①">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
        <li data-md>
-        <p>If <var>databaseMap</var> is failure, then return false.</p>
+        <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired①">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
        <li data-md>
-        <p>For each <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key⑦">key</a> <var>key</var> in <var>databaseMap</var>:</p>
-        <ol>
-         <li data-md>
-          <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get①">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
-         <li data-md>
-          <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired①">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
-         <li data-md>
-          <p>If <var>isExpired</var> is true, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove①">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
-        </ol>
-       <li data-md>
-        <p>Return true.</p>
+        <p>If <var>isExpired</var> is true, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove①">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
       </ol>
+     <li data-md>
+      <p>Return true.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="determine whether an entry is expired" data-algorithm-for="shared storage database">
-     To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</dfn>, given a <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct②">value struct</a> <var>valueStruct</var>, run the following steps: 
+    <p>To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</dfn>, given a <a data-link-type="dfn" href="#entry-value-struct" id="ref-for-entry-value-struct②">value struct</a> <var>valueStruct</var>, run the following steps:</p>
     <ol>
      <li data-md>
       <p>Let <var>lastUpdated</var> be <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated①">last updated</a>.</p>
@@ -1122,8 +1065,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 
 <c- b>dictionary</c-> <dfn class="dfn-paneled idl-code" data-dfn-type="dictionary" data-export id="dictdef-sharedstoragesetmethodoptions"><code><c- g>SharedStorageSetMethodOptions</c-></code></dfn> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean" id="ref-for-idl-boolean②"><c- b>boolean</c-></a> <dfn class="idl-code" data-default="false" data-dfn-for="SharedStorageSetMethodOptions" data-dfn-type="dict-member" data-export data-type="boolean " id="dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code><a class="self-link" href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"></a></dfn> = <c- b>false</c->;
-};
-</pre>
+};</pre>
    <h3 class="heading settled" data-level="4.1" id="window"><span class="secno">4.1. </span><span class="content">The <code class="idl"><a data-link-type="idl" href="#windowsharedstorage" id="ref-for-windowsharedstorage②">WindowSharedStorage</a></code> interface</span><a class="self-link" href="#window"></a></h3>
    <p>The <code class="idl"><a data-link-type="idl" href="#windowsharedstorage" id="ref-for-windowsharedstorage③">WindowSharedStorage</a></code> interface is as follows.</p>
 <pre class="idl highlight def">[<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed" id="ref-for-Exposed⑥"><c- g>Exposed</c-></a>=(<c- n>Window</c->)]
@@ -1135,8 +1077,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
                                <c- b>optional</c-> <a data-link-type="idl-name" href="#dictdef-sharedstoragerunoperationmethodoptions" id="ref-for-dictdef-sharedstoragerunoperationmethodoptions②"><c- n>SharedStorageRunOperationMethodOptions</c-></a> <dfn class="idl-code" data-dfn-for="WindowSharedStorage/selectURL(name, urls, options), WindowSharedStorage/selectURL(name, urls)" data-dfn-type="argument" data-export id="dom-windowsharedstorage-selecturl-name-urls-options-options"><code><c- g>options</c-></code><a class="self-link" href="#dom-windowsharedstorage-selecturl-name-urls-options-options"></a></dfn> = {});
 
   <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#sharedstorageworklet" id="ref-for-sharedstorageworklet⑨"><c- n>SharedStorageWorklet</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="attribute" data-export data-readonly data-type="SharedStorageWorklet" id="dom-windowsharedstorage-worklet"><code><c- g>worklet</c-></code></dfn>;
-};
-</pre>
+};</pre>
    <h4 class="heading settled" data-level="4.1.1" id="window-setter"><span class="secno">4.1.1. </span><span class="content">Window Setter/Deleter Methods</span><a class="self-link" href="#window-setter"></a></h4>
    <div class="algorithm" data-algorithm="set(key, value, options)" data-algorithm-for="WindowSharedStorage">
      The <dfn class="idl-code" data-dfn-for="WindowSharedStorage" data-dfn-type="method" data-export id="dom-windowsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-windowsharedstorage-set"></a></dfn> method steps are: 
@@ -1148,15 +1089,19 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length④">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException">DOMException</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑤">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length①">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①">DOMException</a></code>.</p>
      <li data-md>
       <p>If <var>options</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException②">DOMException</a></code>.</p>
      <li data-md>
       <p>If <var>options</var> is empty, create <var>options</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑦">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑦">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑦">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
         <p>Let <var>result</var> be null.</p>
@@ -1164,20 +1109,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
         <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true:</p>
         <ol>
          <li data-md>
-          <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database①">retrieve an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+          <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database①">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
          <li data-md>
-          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> as undefined.</p>
+          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> with undefined.</p>
          <li data-md>
           <p>If <var>currentValue</var> is null, reject <var>promise</var>.</p>
          <li data-md>
-          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database②">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>.</p>
+          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database②">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database③">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>.</p>
+        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database③">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1193,16 +1138,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑥">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length④">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror③">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException③">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length②">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length①">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror③">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException③">DOMException</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑦">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length②">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror④">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException④">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length③">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length①">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror④">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException④">DOMException</a></code>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑧">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑧">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window①">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object②">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑧">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
         <p>Let <var>result</var> be null.</p>
        <li data-md>
-        <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database②">retrieve an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+        <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database②">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
         <p>If <var>currentValue</var> is not failure:</p>
         <ol>
@@ -1215,14 +1164,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p>Let <var>newValue</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate">concatenate</a> on <var>list</var>.</p>
          <li data-md>
-          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database④">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>newValue</var>.</p>
+          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database④">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>newValue</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑤">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>.</p>
+        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑤">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1238,16 +1187,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert②">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑧">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑤">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑤">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑤">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length④">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length②">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑤">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑤">DOMException</a></code>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑨">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑨">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window②">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object③">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue⑨">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps②">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database①">delete an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database①">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1263,14 +1216,18 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert③">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⓪">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⓪">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window③">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object④">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⓪">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps③">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database①">clear all entries in the database</a> with <var>context</var>.</p>
+        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database①">clear all entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1284,7 +1241,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-epoch">budget epoch</dfn> is any interval of time whose <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration②">duration</a> is the <a data-link-type="dfn" href="#budget-lifetime" id="ref-for-budget-lifetime">budget lifetime</a>.</p>
    <p>To keep track of how this <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance②">entropy allowance</a> is used, the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑨">user agent</a> uses a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-budget-table">shared storage budget table</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map③">map</a> of <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin③">calling origins</a> to <a data-link-type="dfn" href="#entropy-ledger" id="ref-for-entropy-ledger">entropy ledgers</a>.</p>
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-ledger">entropy ledger</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list" id="ref-for-list②">list</a> of <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit">bit debits</a>.</p>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="bit-debit">bit debit</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct①">struct</a> containing a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double">double</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-bits">bits</dfn>, indicating a value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits①">entropy bits</a>, along with a <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp②">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-timestamp">timestamp</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch③">Unix Epoch</a>).</p>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="bit-debit">bit debit</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct①">struct</a> containing a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double">double</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-bits">bits</dfn>, indicating a value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits①">entropy bits</a>, along with a <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp①">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-timestamp">timestamp</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch③">Unix Epoch</a>).</p>
    <p>When a leak occurs, its value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits②">entropy bits</a> is calculated and stored for that <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin④">calling origin</a>, along with the current time as a <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp">timestamp</a>, together as a <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit①">bit debit</a> in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table">shared storage budget table</a>.</p>
    <p>A <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin⑤">calling origin</a>'s <dfn class="dfn-paneled" data-dfn-for="calling origin" data-dfn-type="dfn" data-noexport id="calling-origin-remaining-budget">remaining budget</dfn> is the <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance③">entropy allowance</a> minus any <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit②">bit debits</a> whose <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp①">timestamps</a> are within the current <a data-link-type="dfn" href="#budget-epoch" id="ref-for-budget-epoch①">budget epoch</a>.</p>
    <p><code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl⑤">selectURL()</a></code>'s argument "<code>urls</code>" is its <dfn class="dfn-paneled" data-dfn-for="selectURL" data-dfn-type="dfn" data-noexport id="selecturl-input-url-list">input URL list</dfn>.</p>
@@ -1393,7 +1350,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule①">addModule()</a></code> has not yet been called, reject <var>promise</var>.</p>
      <li data-md>
-      <p>Let <var>outsideSettings</var> be <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-worklet" id="ref-for-dom-windowsharedstorage-worklet①">worklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑧">relevant settings object</a>.</p>
+      <p>Let <var>outsideSettings</var> be <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-worklet" id="ref-for-dom-windowsharedstorage-worklet①">worklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑤">relevant settings object</a>.</p>
      <li data-md>
       <p>Let <var>agent</var> be the result of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent" id="ref-for-obtain-a-worklet-agent">obtaining a worklet agent</a> given <var>outsideSettings</var>.</p>
      <li data-md>
@@ -1424,7 +1381,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
           </ol>
         </ol>
        <li data-md>
-        <p>Resolve <var>promise</var> as undefined.</p>
+        <p>Resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1468,13 +1425,13 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>fencedFrameConfig</var> be a <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig⑦">FencedFrameConfig</a></code>.</p>
      <li data-md>
-      <p>If <var>options</var>["<code>resolveToConfig</code>"] is true, resolve <var>resultPromise</var> as <var>fencedFrameConfig</var>.</p>
+      <p>If <var>options</var>["<code>resolveToConfig</code>"] is true, resolve <var>resultPromise</var> with <var>fencedFrameConfig</var>.</p>
      <li data-md>
       <p>Othewise, resolve <var>resultPromise</var> to <var>fencedFrameConfig</var>’s <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url">url</a>. <span class="todo"><a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url①">url</a> is probably not quite correct, but urn:uuid is not in the spec and is going away soon?</span></p>
      <li data-md>
       <p>Let <var>indexPromise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise①④">promise</a>.</p>
      <li data-md>
-      <p>Let <var>outsideSettings</var> be <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-worklet" id="ref-for-dom-windowsharedstorage-worklet③">worklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑨">relevant settings object</a>.</p>
+      <p>Let <var>outsideSettings</var> be <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-worklet" id="ref-for-dom-windowsharedstorage-worklet③">worklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑥">relevant settings object</a>.</p>
      <li data-md>
       <p>Let <var>agent</var> be the result of <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#obtain-a-worklet-agent" id="ref-for-obtain-a-worklet-agent①">obtaining a worklet agent</a> given <var>outsideSettings</var>.</p>
      <li data-md>
@@ -1558,8 +1515,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise" id="ref-for-idl-promise①⑦"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double①"><c- b>double</c-></a>> <a class="idl-code" data-link-type="method" href="#dom-workletsharedstorage-remainingbudget" id="ref-for-dom-workletsharedstorage-remainingbudget"><c- g>remainingBudget</c-></a>();
 
   <c- b>async</c-> <c- b>iterable</c->&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString①⓪"><c- b>DOMString</c-></a>, <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString①①"><c- b>DOMString</c-></a>>;
-};
-</pre>
+};</pre>
    <h4 class="heading settled" data-level="4.2.1" id="worklet-setter"><span class="secno">4.2.1. </span><span class="content">Worklet Setter/Deleter Methods</span><a class="self-link" href="#worklet-setter"></a></h4>
    <div class="algorithm" data-algorithm="set(key, value, options)" data-algorithm-for="WorkletSharedStorage">
      The <dfn class="idl-code" data-dfn-for="WorkletSharedStorage" data-dfn-type="method" data-export id="dom-workletsharedstorage-set"><code>set(<var>key</var>, <var>value</var>, <var>options</var>)</code><a class="self-link" href="#dom-workletsharedstorage-set"></a></dfn> method steps are: 
@@ -1571,15 +1527,19 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑦">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑨">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑥">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑥">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑥">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑤">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑥">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑥">DOMException</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①⓪">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑦">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑦">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑥">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length②">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑦">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑦">DOMException</a></code>.</p>
      <li data-md>
       <p>If <var>options</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑧">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑧">DOMException</a></code>.</p>
      <li data-md>
       <p>If <var>options</var> is empty, create <var>options</var>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①①">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①①">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window④">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑦">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①①">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps④">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
         <p>Let <var>result</var> be null.</p>
@@ -1587,20 +1547,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
         <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true:</p>
         <ol>
          <li data-md>
-          <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database③">retrieve an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+          <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database③">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
          <li data-md>
-          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> as undefined.</p>
+          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> with undefined.</p>
          <li data-md>
           <p>Otherwise, if <var>currentValue</var> is null, reject <var>promise</var>.</p>
          <li data-md>
-          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑥">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>.</p>
+          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑥">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑦">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>.</p>
+        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑦">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1616,16 +1576,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑧">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①①">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑦">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑨">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑨">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑦">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length④">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑨">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑨">DOMException</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①②">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length④">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①⓪">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①⓪">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑧">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①⓪">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①⓪">DOMException</a></code>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①②">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①②">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑤">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑧">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①②">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑤">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
         <p>Let <var>result</var> be null.</p>
        <li data-md>
-        <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database④">retrieve an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+        <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database④">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
         <p>If <var>currentValue</var> is not failure:</p>
         <ol>
@@ -1638,14 +1602,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p>Let <var>newValue</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate①">concatenate</a> on <var>list</var>.</p>
          <li data-md>
-          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑧">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>newValue</var>.</p>
+          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑧">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>newValue</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑨">store an entry in the database</a> with <var>context</var>, <var>key</var>, and <var>value</var>..</p>
+        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑨">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>..</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1661,16 +1625,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑨">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①③">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑧">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①①">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑨">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑤">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①①">DOMException</a></code>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①③">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①③">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑥">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑨">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①③">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑥">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database②">delete an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database②">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1686,14 +1654,18 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①⓪">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①④">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①④">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑦">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①⓪">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①④">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑦">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database②">clear all entries in the database</a> with <var>context</var>.</p>
+        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database②">clear all entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
         <p>If <var>result</var> is false, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as undefined.</p>
+        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1710,18 +1682,22 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①①">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①④">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑨">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①②">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①⓪">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑥">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①②">DOMException</a></code>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⑤">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑤">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑧">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①①">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑤">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑧">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>value</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database⑤">retrieve an entry from the database</a> with <var>context</var> and <var>key</var>.</p>
+        <p>Let <var>value</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database⑤">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
         <p>If <var>value</var> is null, reject <var>promise</var>.</p>
        <li data-md>
-        <p>If <var>value</var> is undefined, resolve <var>promise</var> as undefined.</p>
+        <p>If <var>value</var> is undefined, resolve <var>promise</var> with undefined.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as <var>value</var>.</p>
+        <p>Otherwise, resolve <var>promise</var> with <var>value</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1735,14 +1711,18 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>context</var> be <code class="idl"><a data-link-type="idl" href="#workletsharedstorage" id="ref-for-workletsharedstorage⑨">WorkletSharedStorage</a></code>'s <code class="idl"><a data-link-type="idl" href="#sharedstorageworkletglobalscope" id="ref-for-sharedstorageworkletglobalscope①⑤">SharedStorageWorkletGlobalScope</a></code>'s <a data-link-type="dfn" href="#sharedstorageworkletglobalscope-outside-settings" id="ref-for-sharedstorageworkletglobalscope-outside-settings⑤">outside settings</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-target-browsing-context" id="ref-for-concept-environment-target-browsing-context⑤">target browsing context</a>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⑥">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑥">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑨">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①②">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑥">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑨">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>numEntries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-count-entries-in-the-database" id="ref-for-shared-storage-database-count-entries-in-the-database">count entries in the database</a> with <var>context</var>.</p>
+        <p>Let <var>numEntries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-count-entries-in-the-database" id="ref-for-shared-storage-database-count-entries-in-the-database">count entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
         <p>If <var>numEntries</var> is undefined, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as <var>numEntries</var>.</p>
+        <p>Otherwise, resolve <var>promise</var> with <var>numEntries</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1762,14 +1742,16 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①③">Assert</a> that <var>origin</var> is not <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/browsers.html#concept-opaque-origin" id="ref-for-concept-opaque-origin③">opaque</a>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⑦">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑦">shared storage database queue</a>:</p>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑦">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⓪">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
         <p>Let <var>remainingBudget</var> be the result of running <a data-link-type="dfn" href="#determine-remaining-budget" id="ref-for-determine-remaining-budget①">determine remaining budget</a> with <var>origin</var>.</p>
        <li data-md>
         <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①④">Assert</a> that <var>remainingBudget</var> is not undefined.</p>
        <li data-md>
-        <p>Resolve <var>promise</var> as <var>remainingBudget</var>.</p>
+        <p>Resolve <var>promise</var> with <var>remainingBudget</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1789,14 +1771,18 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise②⑤">promise</a>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⑧">Enqueue the following steps</a> on <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑧">shared storage database queue</a>:</p>
+      <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window①⓪">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①③">relevant settings object</a>.</p>
+     <li data-md>
+      <p>Let <var>queue</var> be <var>context</var>’s associated <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue①⑧">shared storage database queue</a>.</p>
+     <li data-md>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①①">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-all-entries-from-the-database" id="ref-for-shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</a> with <var>context</var>.</p>
+        <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-all-entries-from-the-database" id="ref-for-shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
         <p>If <var>entries</var> is failure, reject <var>promise</var>.</p>
        <li data-md>
-        <p>Otherwise, resolve <var>promise</var> as <var>entries</var>.</p>
+        <p>Otherwise, resolve <var>promise</var> with <var>entries</var>.</p>
       </ol>
      <li data-md>
       <p><a data-link-type="dfn" href="https://webidl.spec.whatwg.org#upon-fulfillment" id="ref-for-upon-fulfillment③">Upon fulfillment</a> of <var>promise</var>, run the following:</p>
@@ -1816,7 +1802,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise②⑥">promise</a>.</p>
      <li data-md>
-      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①⑨">Enqueue the following steps</a>:</p>
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①②">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
         <p>If <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-error" id="ref-for-workletsharedstorageiterator-error①">error</a> is true, reject <var>promise</var>.</p>
@@ -1831,7 +1817,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Let <var>entry</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#queue-dequeue" id="ref-for-queue-dequeue">dequeueing</a> from <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-pending-entries" id="ref-for-workletsharedstorageiterator-pending-entries②">pending entries</a>.</p>
        <li data-md>
-        <p>Resolve <var>promise</var> as <var>entry</var>.</p>
+        <p>Resolve <var>promise</var> with <var>entry</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1839,6 +1825,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    </div>
    <h2 class="heading settled" data-level="5" id="privacy"><span class="secno">5. </span><span class="content">Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
     <span class="todo">Add privacy considerations.</span> 
+   <p>The Shared Storage API enforces the privacy of cross-site data by limiting its output.</p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
@@ -2003,14 +1990,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-0527034ee7070fda15ffa50c34dbbc63" class="dfn-panel" data-for="0527034ee7070fda15ffa50c34dbbc63" id="infopanel-for-0527034ee7070fda15ffa50c34dbbc63">
    <span id="infopaneltitle-for-0527034ee7070fda15ffa50c34dbbc63" style="display:none">Info about the 'DOMHighResTimeStamp' external reference.</span><a href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp">https://w3c.github.io/hr-time/#dom-domhighrestimestamp</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dom-domhighrestimestamp">3.2. The Shared Storage Database</a> <a href="#ref-for-dom-domhighrestimestamp①">(2)</a>
-    <li><a href="#ref-for-dom-domhighrestimestamp②">4.1.2. Entropy Budget</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-0395c6c21ea99634e2e481b3d8a57fc5" class="dfn-panel" data-for="0395c6c21ea99634e2e481b3d8a57fc5" id="infopanel-for-0395c6c21ea99634e2e481b3d8a57fc5">
-   <span id="infopaneltitle-for-0395c6c21ea99634e2e481b3d8a57fc5" style="display:none">Info about the 'EpochTimeStamp' external reference.</span><a href="https://w3c.github.io/hr-time/#dom-epochtimestamp">https://w3c.github.io/hr-time/#dom-epochtimestamp</a><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-dom-epochtimestamp">3.2. The Shared Storage Database</a> <a href="#ref-for-dom-epochtimestamp①">(2)</a>
+    <li><a href="#ref-for-dom-domhighrestimestamp">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-dom-domhighrestimestamp①">4.1.2. Entropy Budget</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-c626b66893b5c29e4adba851077ed0e2" class="dfn-panel" data-for="c626b66893b5c29e4adba851077ed0e2" id="infopanel-for-c626b66893b5c29e4adba851077ed0e2">
@@ -2093,7 +2074,10 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-30868129d3c8f56c49c59077d328b346" class="dfn-panel" data-for="30868129d3c8f56c49c59077d328b346" id="infopanel-for-30868129d3c8f56c49c59077d328b346">
    <span id="infopaneltitle-for-30868129d3c8f56c49c59077d328b346" style="display:none">Info about the 'active window' external reference.</span><a href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window">https://html.spec.whatwg.org/multipage/document-sequences.html#active-window</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-active-window">3.3. The Database Algorithms</a> <a href="#ref-for-active-window①">(2)</a> <a href="#ref-for-active-window②">(3)</a> <a href="#ref-for-active-window③">(4)</a> <a href="#ref-for-active-window④">(5)</a> <a href="#ref-for-active-window⑤">(6)</a> <a href="#ref-for-active-window⑥">(7)</a>
+    <li><a href="#ref-for-active-window">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-active-window①">(2)</a> <a href="#ref-for-active-window②">(3)</a> <a href="#ref-for-active-window③">(4)</a>
+    <li><a href="#ref-for-active-window④">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-active-window⑤">(2)</a> <a href="#ref-for-active-window⑥">(3)</a> <a href="#ref-for-active-window⑦">(4)</a>
+    <li><a href="#ref-for-active-window⑧">4.2.2. Getter Methods</a> <a href="#ref-for-active-window⑨">(2)</a>
+    <li><a href="#ref-for-active-window①⓪">4.2.3. Iteration</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-c15669f81d5b7cbafe13a97b7f6b9fdd" class="dfn-panel" data-for="c15669f81d5b7cbafe13a97b7f6b9fdd" id="infopanel-for-c15669f81d5b7cbafe13a97b7f6b9fdd">
@@ -2168,7 +2152,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-5db590bc82ac7edd15fc4ebd1b0c25f0" style="display:none">Info about the 'browsing context' external reference.</span><a href="https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context">https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-browsing-context">3.2. The Shared Storage Database</a> <a href="#ref-for-browsing-context①">(2)</a>
-    <li><a href="#ref-for-browsing-context②">3.3. The Database Algorithms</a> <a href="#ref-for-browsing-context③">(2)</a> <a href="#ref-for-browsing-context④">(3)</a> <a href="#ref-for-browsing-context⑤">(4)</a> <a href="#ref-for-browsing-context⑥">(5)</a> <a href="#ref-for-browsing-context⑦">(6)</a> <a href="#ref-for-browsing-context⑧">(7)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-3324d83e3eb9483c08cbb2bdcd28541e" class="dfn-panel" data-for="3324d83e3eb9483c08cbb2bdcd28541e" id="infopanel-for-3324d83e3eb9483c08cbb2bdcd28541e">
@@ -2258,11 +2241,10 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-9364fab91c2493fa9c139fb1e585204d" class="dfn-panel" data-for="9364fab91c2493fa9c139fb1e585204d" id="infopanel-for-9364fab91c2493fa9c139fb1e585204d">
    <span id="infopaneltitle-for-9364fab91c2493fa9c139fb1e585204d" style="display:none">Info about the 'enqueue the following steps' external reference.</span><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps">https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-enqueue-the-following-steps">3.3. The Database Algorithms</a> <a href="#ref-for-enqueue-the-following-steps①">(2)</a> <a href="#ref-for-enqueue-the-following-steps②">(3)</a> <a href="#ref-for-enqueue-the-following-steps③">(4)</a> <a href="#ref-for-enqueue-the-following-steps④">(5)</a> <a href="#ref-for-enqueue-the-following-steps⑤">(6)</a> <a href="#ref-for-enqueue-the-following-steps⑥">(7)</a>
-    <li><a href="#ref-for-enqueue-the-following-steps⑦">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-enqueue-the-following-steps⑧">(2)</a> <a href="#ref-for-enqueue-the-following-steps⑨">(3)</a> <a href="#ref-for-enqueue-the-following-steps①⓪">(4)</a>
-    <li><a href="#ref-for-enqueue-the-following-steps①①">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-enqueue-the-following-steps①②">(2)</a> <a href="#ref-for-enqueue-the-following-steps①③">(3)</a> <a href="#ref-for-enqueue-the-following-steps①④">(4)</a>
-    <li><a href="#ref-for-enqueue-the-following-steps①⑤">4.2.2. Getter Methods</a> <a href="#ref-for-enqueue-the-following-steps①⑥">(2)</a> <a href="#ref-for-enqueue-the-following-steps①⑦">(3)</a>
-    <li><a href="#ref-for-enqueue-the-following-steps①⑧">4.2.3. Iteration</a> <a href="#ref-for-enqueue-the-following-steps①⑨">(2)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-enqueue-the-following-steps①">(2)</a> <a href="#ref-for-enqueue-the-following-steps②">(3)</a> <a href="#ref-for-enqueue-the-following-steps③">(4)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps④">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-enqueue-the-following-steps⑤">(2)</a> <a href="#ref-for-enqueue-the-following-steps⑥">(3)</a> <a href="#ref-for-enqueue-the-following-steps⑦">(4)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps⑧">4.2.2. Getter Methods</a> <a href="#ref-for-enqueue-the-following-steps⑨">(2)</a> <a href="#ref-for-enqueue-the-following-steps①⓪">(3)</a>
+    <li><a href="#ref-for-enqueue-the-following-steps①①">4.2.3. Iteration</a> <a href="#ref-for-enqueue-the-following-steps①②">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-de81a3f6e9ad8253438fc391812357c1" class="dfn-panel" data-for="de81a3f6e9ad8253438fc391812357c1" id="infopanel-for-de81a3f6e9ad8253438fc391812357c1">
@@ -2289,6 +2271,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <ul>
     <li><a href="#ref-for-environment-settings-object">2.1. The SharedStorageWorkletGlobalScope</a>
     <li><a href="#ref-for-environment-settings-object①">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-environment-settings-object②">(2)</a>
+    <li><a href="#ref-for-environment-settings-object③">3.3. The Database Algorithms</a> <a href="#ref-for-environment-settings-object④">(2)</a> <a href="#ref-for-environment-settings-object⑤">(3)</a> <a href="#ref-for-environment-settings-object⑥">(4)</a> <a href="#ref-for-environment-settings-object⑦">(5)</a> <a href="#ref-for-environment-settings-object⑧">(6)</a> <a href="#ref-for-environment-settings-object⑨">(7)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-5c64ef658c32f9405b423bd4f9ce157d" class="dfn-panel" data-for="5c64ef658c32f9405b423bd4f9ce157d" id="infopanel-for-5c64ef658c32f9405b423bd4f9ce157d">
@@ -2431,12 +2414,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-concept-url-origin②">4.1.3. Run Operation Methods</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-324478079a7c4a0724d973a0251f39f5" class="dfn-panel" data-for="324478079a7c4a0724d973a0251f39f5" id="infopanel-for-324478079a7c4a0724d973a0251f39f5">
-   <span id="infopaneltitle-for-324478079a7c4a0724d973a0251f39f5" style="display:none">Info about the 'parallel queue' external reference.</span><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-enqueue">https://html.spec.whatwg.org/multipage/infrastructure.html#parallel-enqueue</a><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-parallel-enqueue">3.2. The Shared Storage Database</a>
-   </ul>
-  </aside>
   <aside aria-labelledby="infopaneltitle-for-415a479d0f2716a263c8aeb1eb9eccc2" class="dfn-panel" data-for="415a479d0f2716a263c8aeb1eb9eccc2" id="infopanel-for-415a479d0f2716a263c8aeb1eb9eccc2">
    <span id="infopaneltitle-for-415a479d0f2716a263c8aeb1eb9eccc2" style="display:none">Info about the 'parent' external reference.</span><a href="https://html.spec.whatwg.org/multipage/webappapis.html#nav-parent">https://html.spec.whatwg.org/multipage/webappapis.html#nav-parent</a><b>Referenced in:</b>
    <ul>
@@ -2488,8 +2465,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-bfb9cb6617f81a424ab20212af73bae3" style="display:none">Info about the 'relevant settings object' external reference.</span><a href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object">https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-relevant-settings-object">2.1. The SharedStorageWorkletGlobalScope</a>
-    <li><a href="#ref-for-relevant-settings-object①">3.3. The Database Algorithms</a> <a href="#ref-for-relevant-settings-object②">(2)</a> <a href="#ref-for-relevant-settings-object③">(3)</a> <a href="#ref-for-relevant-settings-object④">(4)</a> <a href="#ref-for-relevant-settings-object⑤">(5)</a> <a href="#ref-for-relevant-settings-object⑥">(6)</a> <a href="#ref-for-relevant-settings-object⑦">(7)</a>
-    <li><a href="#ref-for-relevant-settings-object⑧">4.1.3. Run Operation Methods</a> <a href="#ref-for-relevant-settings-object⑨">(2)</a>
+    <li><a href="#ref-for-relevant-settings-object①">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-relevant-settings-object②">(2)</a> <a href="#ref-for-relevant-settings-object③">(3)</a> <a href="#ref-for-relevant-settings-object④">(4)</a>
+    <li><a href="#ref-for-relevant-settings-object⑤">4.1.3. Run Operation Methods</a> <a href="#ref-for-relevant-settings-object⑥">(2)</a>
+    <li><a href="#ref-for-relevant-settings-object⑦">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-relevant-settings-object⑧">(2)</a> <a href="#ref-for-relevant-settings-object⑨">(3)</a> <a href="#ref-for-relevant-settings-object①⓪">(4)</a>
+    <li><a href="#ref-for-relevant-settings-object①①">4.2.2. Getter Methods</a> <a href="#ref-for-relevant-settings-object①②">(2)</a>
+    <li><a href="#ref-for-relevant-settings-object①③">4.2.3. Iteration</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-cae5d92a36994a4483a8ce0bae1c5451" class="dfn-panel" data-for="cae5d92a36994a4483a8ce0bae1c5451" id="infopanel-for-cae5d92a36994a4483a8ce0bae1c5451">
@@ -2504,6 +2484,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <ul>
     <li><a href="#ref-for-map-size">3.1. Monkey Patch for the Storage Model</a>
     <li><a href="#ref-for-map-size①">3.3. The Database Algorithms</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-60e0259e78998a2c29a6de1c2023b4ae" class="dfn-panel" data-for="60e0259e78998a2c29a6de1c2023b4ae" id="infopanel-for-60e0259e78998a2c29a6de1c2023b4ae">
+   <span id="infopaneltitle-for-60e0259e78998a2c29a6de1c2023b4ae" style="display:none">Info about the 'start a new parallel queue' external reference.</span><a href="https://html.spec.whatwg.org/multipage/infrastructure.html#starting-a-new-parallel-queue">https://html.spec.whatwg.org/multipage/infrastructure.html#starting-a-new-parallel-queue</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-starting-a-new-parallel-queue">3.2. The Shared Storage Database</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-762beba33f3ad0dfbf19a9c82f4ec357" class="dfn-panel" data-for="762beba33f3ad0dfbf19a9c82f4ec357" id="infopanel-for-762beba33f3ad0dfbf19a9c82f4ec357">
@@ -2573,7 +2559,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <ul>
     <li><a href="#ref-for-string">2.1. The SharedStorageWorkletGlobalScope</a> <a href="#ref-for-string①">(2)</a>
     <li><a href="#ref-for-string②">3.2. The Shared Storage Database</a> <a href="#ref-for-string③">(2)</a>
-    <li><a href="#ref-for-string④">3.3. The Database Algorithms</a> <a href="#ref-for-string⑤">(2)</a> <a href="#ref-for-string⑥">(3)</a> <a href="#ref-for-string⑦">(4)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-f4cd6265b36800faa2839af29623c32c" class="dfn-panel" data-for="f4cd6265b36800faa2839af29623c32c" id="infopanel-for-f4cd6265b36800faa2839af29623c32c">
@@ -2667,10 +2652,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-81b03c84949641fc3081227509aab38f" class="dfn-panel" data-for="81b03c84949641fc3081227509aab38f" id="infopanel-for-81b03c84949641fc3081227509aab38f">
    <span id="infopaneltitle-for-81b03c84949641fc3081227509aab38f" style="display:none">Info about the 'length' external reference.</span><a href="https://infra.spec.whatwg.org/#string-length">https://infra.spec.whatwg.org/#string-length</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-string-length">3.3. The Database Algorithms</a> <a href="#ref-for-string-length①">(2)</a> <a href="#ref-for-string-length②">(3)</a> <a href="#ref-for-string-length③">(4)</a>
-    <li><a href="#ref-for-string-length④">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-string-length⑤">(2)</a> <a href="#ref-for-string-length⑥">(3)</a> <a href="#ref-for-string-length⑦">(4)</a> <a href="#ref-for-string-length⑧">(5)</a>
-    <li><a href="#ref-for-string-length⑨">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-string-length①⓪">(2)</a> <a href="#ref-for-string-length①①">(3)</a> <a href="#ref-for-string-length①②">(4)</a> <a href="#ref-for-string-length①③">(5)</a>
-    <li><a href="#ref-for-string-length①④">4.2.2. Getter Methods</a>
+    <li><a href="#ref-for-string-length">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-string-length①">(2)</a> <a href="#ref-for-string-length②">(3)</a> <a href="#ref-for-string-length③">(4)</a> <a href="#ref-for-string-length④">(5)</a>
+    <li><a href="#ref-for-string-length⑤">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-string-length⑥">(2)</a> <a href="#ref-for-string-length⑦">(3)</a> <a href="#ref-for-string-length⑧">(4)</a> <a href="#ref-for-string-length⑨">(5)</a>
+    <li><a href="#ref-for-string-length①⓪">4.2.2. Getter Methods</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-5191a0c00b6ec5f93646e492ae7ec62c" class="dfn-panel" data-for="5191a0c00b6ec5f93646e492ae7ec62c" id="infopanel-for-5191a0c00b6ec5f93646e492ae7ec62c">
@@ -2840,7 +2824,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <a data-link-type="biblio">[HR-TIME-3]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="0527034ee7070fda15ffa50c34dbbc63">DOMHighResTimeStamp</span>
-     <li><span class="dfn-paneled" id="0395c6c21ea99634e2e481b3d8a57fc5">EpochTimeStamp</span>
      <li><span class="dfn-paneled" id="c626b66893b5c29e4adba851077ed0e2">coarsen time</span>
      <li><span class="dfn-paneled" id="9213a3aff5ff1021ab4c2d780aa70cee">duration</span>
      <li><span class="dfn-paneled" id="73fffec128d2fef2b2301baf9dc7fa01">duration from</span>
@@ -2907,7 +2890,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="e66f9f7d45934e77669cb907bd0c7636">origin</span>
      <li><span class="dfn-paneled" id="9c5cdbb5c3dd225a70ea0af45a02c608">origin <small>(for document)</small></span>
      <li><span class="dfn-paneled" id="8941680dbae2de74bf6821b8c18fe6ba">origin <small>(for url)</small></span>
-     <li><span class="dfn-paneled" id="324478079a7c4a0724d973a0251f39f5">parallel queue</span>
      <li><span class="dfn-paneled" id="415a479d0f2716a263c8aeb1eb9eccc2">parent</span>
      <li><span class="dfn-paneled" id="7dda08a341a002533188016c9ab2c2e9">promise</span>
      <li><span class="dfn-paneled" id="ffebca42635d9366dd093a2e716bf0a7">proxy map reference set</span>
@@ -2918,6 +2900,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="bfb9cb6617f81a424ab20212af73bae3">relevant settings object</span>
      <li><span class="dfn-paneled" id="cae5d92a36994a4483a8ce0bae1c5451">set</span>
      <li><span class="dfn-paneled" id="c74fc5b3d0f64d7ccd0e984abb5d55d6">size</span>
+     <li><span class="dfn-paneled" id="60e0259e78998a2c29a6de1c2023b4ae">start a new parallel queue</span>
      <li><span class="dfn-paneled" id="762beba33f3ad0dfbf19a9c82f4ec357">storage bottle</span>
      <li><span class="dfn-paneled" id="dcb2985190de22ddc1fac361fc18de5a">storage bucket</span>
      <li><span class="dfn-paneled" id="eac294a94562316c9055281be6430038">storage endpoint</span>
@@ -3011,7 +2994,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 <pre class="idl highlight def">[<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=(<c- n>Window</c->)]
 <c- b>interface</c-> <a href="#sharedstorageworklet"><code><c- g>SharedStorageWorklet</c-></code></a> : <a data-link-type="idl-name" href="https://html.spec.whatwg.org/multipage/worklets.html#worklet"><c- n>Worklet</c-></a> {
 };
-
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=<c- n>SharedStorageWorklet</c->, <a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Global"><c- g>Global</c-></a>=<a data-link-type="idl-name" href="#sharedstorageworklet"><c- n>SharedStorageWorklet</c-></a>]
 <c- b>interface</c-> <a href="#sharedstorageworkletglobalscope"><code><c- g>SharedStorageWorkletGlobalScope</c-></code></a> : <a data-link-type="idl-name" href="https://html.spec.whatwg.org/multipage/worklets.html#workletglobalscope"><c- n>WorkletGlobalScope</c-></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-undefined"><c- b>undefined</c-></a> <a class="idl-code" data-link-type="method" href="#dom-sharedstorageworkletglobalscope-register"><c- g>register</c-></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a href="#dom-sharedstorageworkletglobalscope-register-name-operationctor-name"><code><c- g>name</c-></code></a>,
@@ -3030,7 +3012,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean"><c- b>boolean</c-></a> <a data-default="false" data-type="boolean " href="#dom-sharedstoragerunoperationmethodoptions-resolvetoconfig"><code><c- g>resolveToConfig</c-></code></a> = <c- b>false</c->;
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean"><c- b>boolean</c-></a> <a data-default="false" data-type="boolean " href="#dom-sharedstoragerunoperationmethodoptions-keepalive"><code><c- g>keepAlive</c-></code></a> = <c- b>false</c->;
 };
-
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=<c- n>SharedStorageWorklet</c->]
 <c- b>interface</c-> <a href="#sharedstoragerunoperation"><code><c- g>SharedStorageRunOperation</c-></code></a> : <a data-link-type="idl-name" href="#sharedstorageoperation"><c- n>SharedStorageOperation</c-></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-undefined"><c- b>undefined</c-></a>> <a href="#dom-sharedstoragerunoperation-run"><code><c- g>run</c-></code></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object"><c- b>object</c-></a> <a href="#dom-sharedstoragerunoperation-run-data-data"><code><c- g>data</c-></code></a>);
@@ -3046,7 +3027,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-USVString"><c- b>USVString</c-></a> <a data-type="USVString " href="#dom-sharedstorageurlwithmetadata-url"><code><c- g>url</c-></code></a>;
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object"><c- b>object</c-></a> <a data-type="object " href="#dom-sharedstorageurlwithmetadata-reportingmetadata"><code><c- g>reportingMetadata</c-></code></a>;
 };
-
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=(<c- n>Window</c->,<c- n>SharedStorageWorklet</c->)]
 <c- b>interface</c-> <a href="#sharedstorage"><code><c- g>SharedStorage</c-></code></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-any"><c- b>any</c-></a>> <a href="#dom-sharedstorage-set"><code><c- g>set</c-></code></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a href="#dom-sharedstorage-set-key-value-options-key"><code><c- g>key</c-></code></a>,
@@ -3061,7 +3041,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 <c- b>dictionary</c-> <a href="#dictdef-sharedstoragesetmethodoptions"><code><c- g>SharedStorageSetMethodOptions</c-></code></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-boolean"><c- b>boolean</c-></a> <a data-default="false" data-type="boolean " href="#dom-sharedstoragesetmethodoptions-ignoreifpresent"><code><c- g>ignoreIfPresent</c-></code></a> = <c- b>false</c->;
 };
-
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=(<c- n>Window</c->)]
 <c- b>interface</c-> <a href="#windowsharedstorage"><code><c- g>WindowSharedStorage</c-></code></a> : <a data-link-type="idl-name" href="#sharedstorage"><c- n>SharedStorage</c-></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-any"><c- b>any</c-></a>> <a class="idl-code" data-link-type="method" href="#dom-windowsharedstorage-run"><c- g>run</c-></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a href="#dom-windowsharedstorage-run-name-options-name"><code><c- g>name</c-></code></a>,
@@ -3072,7 +3051,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 
   <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#sharedstorageworklet"><c- n>SharedStorageWorklet</c-></a> <a data-readonly data-type="SharedStorageWorklet" href="#dom-windowsharedstorage-worklet"><code><c- g>worklet</c-></code></a>;
 };
-
 [<a class="idl-code" data-link-type="extended-attribute" href="https://webidl.spec.whatwg.org/#Exposed"><c- g>Exposed</c-></a>=(<c- n>SharedStorageWorklet</c->)]
 <c- b>interface</c-> <a href="#workletsharedstorage"><code><c- g>WorkletSharedStorage</c-></code></a> : <a data-link-type="idl-name" href="#sharedstorage"><c- n>SharedStorage</c-></a> {
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise"><c- b>Promise</c-></a>&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a>> <a class="idl-code" data-link-type="method" href="#dom-workletsharedstorage-get"><c- g>get</c-></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a href="#dom-workletsharedstorage-get-key-key"><code><c- g>key</c-></code></a>);
@@ -3081,7 +3059,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
 
   <c- b>async</c-> <c- b>iterable</c->&lt;<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a>, <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a>>;
 };
-
 </pre>
   <aside aria-labelledby="infopaneltitle-for-sharedstorageworklet" class="dfn-panel" data-for="sharedstorageworklet" id="infopanel-for-sharedstorageworklet">
    <span id="infopaneltitle-for-sharedstorageworklet" style="display:none">Info about the 'SharedStorageWorklet' definition.</span><b><a href="#sharedstorageworklet">#sharedstorageworklet</a></b><b>Referenced in:</b>
@@ -3249,10 +3226,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-key-maximum-length" class="dfn-panel" data-for="key-maximum-length" id="infopanel-for-key-maximum-length">
    <span id="infopaneltitle-for-key-maximum-length" style="display:none">Info about the 'maximum length' definition.</span><b><a href="#key-maximum-length">#key-maximum-length</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-key-maximum-length">3.3. The Database Algorithms</a> <a href="#ref-for-key-maximum-length①">(2)</a> <a href="#ref-for-key-maximum-length②">(3)</a>
-    <li><a href="#ref-for-key-maximum-length③">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-key-maximum-length④">(2)</a> <a href="#ref-for-key-maximum-length⑤">(3)</a>
-    <li><a href="#ref-for-key-maximum-length⑥">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-key-maximum-length⑦">(2)</a> <a href="#ref-for-key-maximum-length⑧">(3)</a>
-    <li><a href="#ref-for-key-maximum-length⑨">4.2.2. Getter Methods</a>
+    <li><a href="#ref-for-key-maximum-length">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-key-maximum-length①">(2)</a> <a href="#ref-for-key-maximum-length②">(3)</a>
+    <li><a href="#ref-for-key-maximum-length③">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-key-maximum-length④">(2)</a> <a href="#ref-for-key-maximum-length⑤">(3)</a>
+    <li><a href="#ref-for-key-maximum-length⑥">4.2.2. Getter Methods</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-entry-value-struct" class="dfn-panel" data-for="entry-value-struct" id="infopanel-for-entry-value-struct">
@@ -3278,9 +3254,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-value-maximum-length" class="dfn-panel" data-for="value-maximum-length" id="infopanel-for-value-maximum-length">
    <span id="infopaneltitle-for-value-maximum-length" style="display:none">Info about the 'maximum length' definition.</span><b><a href="#value-maximum-length">#value-maximum-length</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-value-maximum-length">3.3. The Database Algorithms</a>
-    <li><a href="#ref-for-value-maximum-length①">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-value-maximum-length②">(2)</a>
-    <li><a href="#ref-for-value-maximum-length③">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-value-maximum-length④">(2)</a>
+    <li><a href="#ref-for-value-maximum-length">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-value-maximum-length①">(2)</a>
+    <li><a href="#ref-for-value-maximum-length②">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-value-maximum-length③">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-default-entry-lifetime" class="dfn-panel" data-for="default-entry-lifetime" id="infopanel-for-default-entry-lifetime">
