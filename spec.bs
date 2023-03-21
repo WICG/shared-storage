@@ -358,7 +358,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   A [=/browsing context=] has an associated <dfn>shared storage database</dfn>, which provides methods to [=shared storage database/store an entry in the database|store=], [=shared storage database/retrieve an entry from the database|retrieve=], [=shared storage database/delete an entry from the database|delete=], [=shared storage database/clear all entries in the database|clear=], and [=shared storage database/purge expired entries from the database|purge expired=] data, and additional methods as below. The data in the [=shared storage database|database=] take the form of [=shared storage database/entry|entries=].
 
-  Each [=shared storage database=] has a <dfn for="shared storage database">shared storage database queue</dfn>, which is a [=parallel queue=] on which the each of the [=shared storage database=]'s methods run when calls to them are initiated from that [=/browsing context=].
+  Each [=shared storage database=] has a <dfn for="shared storage database">shared storage database queue</dfn>, which is the result of [=start a new parallel queue|starting a new parallel queue=], on which the each of the [=shared storage database=]'s methods run when calls to them are initiated from that [=/browsing context=].
 
   Each <dfn for="shared storage database">entry</dfn> consists of a [=entry/key=] and a [=entry/value struct=].
 
@@ -370,10 +370,6 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=string=] <dfn for="value struct">value</dfn> and {{DOMHighResTimeStamp}} <dfn for="value struct">last updated</dfn> (from the [=Unix Epoch=]).
 
-  Note: Some Shared Storage implementations may use SQLite implementations that store timestamps as 64-bit unsigned integers rather than doubles, thereby making it necessary to use legacy {{EpochTimeStamp}}s instead of {{DOMHighResTimeStamp}}s.
-
-  <span class=todo>In Chrome, for the reason given in the note above, we use {{EpochTimeStamp}}s, which are discouraged. How can we reconcile this?</span>
-
   [=User agents=] may specify the <dfn for=value>maximum length</dfn> of a [=value struct/value=].
 
   [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default [=duration=] between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires.
@@ -381,100 +377,83 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
 
   <div algorithm>
-    To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=/browsing context=] |context|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps:
+    To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
 
-    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return false.
-    1. If |value| is not a [=string=] or |value|'s [=string/length=] exceeds the [=value/maximum length=], return false.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return null.
-        1. Let |valueStruct| be a new [=entry/value struct=].
-        1. Set |valueStruct|'s [=value struct/value=] to |value|.
-        1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
-        1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
-        1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
-        1. Set |valueStruct|'s [=value struct/last updated=] to |fromUnixEpochTime|.
-        1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
-        1. Return true.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return false.
+    1. Let |valueStruct| be a new [=entry/value struct=].
+    1. Set |valueStruct|'s [=value struct/value=] to |value|.
+    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
+    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
+    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
+    1. Set |valueStruct|'s [=value struct/last updated=] to |fromUnixEpochTime|.
+    1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
+    1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, run the following steps:
+    To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
-    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return null.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return null.
-        1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return null.
+    1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
+    1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
+    1. Let |isExpired| be the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct|.
+    1. If |isExpired| is true, return undefined.
+    1. Let |value| be |valueStruct|'s [=value struct/value=].
+    1. Return |value|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
+
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return false.
+    1. [=map/Remove=] |databaseMap|[|key|].
+    1. Return true.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return false.
+    1. Run [=map/Clear=] on |databaseMap|.
+    1. Return true.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return undefined.
+    1. Let |entries| be the result of running [=map/getting the values=] on |databaseMap|.
+    1. Return |entries|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">count entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return undefined.
+    1. Let |count| be |databaseMap|'s [=map/size=].
+    1. Return |count|.
+  </div>
+
+  <div algorithm>
+    To <dfn for="shared storage database">purge expired entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return false.
+    1. For each [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
         1. Let |isExpired| be the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct|.
-        1. If |isExpired| is true, return undefined.
-        1. Let |value| be |valueStruct|'s [=value struct/value=].
-        1. Return |value|.
+        1. If |isExpired| is true, [=map/Remove=] |databaseMap|[|key|].
+    1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=/browsing context=] |context| and a [=entry/key=] |key|, run the following steps:
 
-    1. If |key| is not a [=string=] or |key|'s [=string/length=] exceeds the [=key/maximum length=], return false.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return false.
-        1. [=map/Remove=] |databaseMap|[|key|].
-        1. Return true.
-  </div>
-
-  <div algorithm>
-    To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=/browsing context=] |context|, run the following steps:
-
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return false.
-        1. Run [=map/Clear=] on |databaseMap|.
-        1. Return true.
-  </div>
-
-  <div algorithm>
-    To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=/browsing context=] |context|, run the following steps:
-
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return undefined.
-        1. Let |entries| be the result of running [=map/getting the values=] on |databaseMap|.
-        1. Return |entries|.
-  </div>
-
-  <div algorithm>
-    To <dfn for="shared storage database">count entries in the database</dfn>, given a [=/browsing context=] |context|, run the following steps:
-
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return undefined.
-        1. Let |count| be |databaseMap|'s [=map/size=].
-        1. Return |count|.
-  </div>
-
-  <div algorithm>
-    To <dfn for="shared storage database">purge expired entries from the database</dfn>, given a [=/browsing context=] |context|, run the following steps:
-
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-        1. If |databaseMap| is failure, then return false.
-        1. For each [=entry/key=] |key| in |databaseMap|:
-            1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-            1. Let |isExpired| be the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct|.
-            1. If |isExpired| is true, [=map/Remove=] |databaseMap|[|key|].
-        1. Return true.
-  </div>
-
-  <div algorithm>
     To <dfn for="shared storage database">determine whether an entry is expired</dfn>, given a [=entry/value struct=] |valueStruct|, run the following steps:
 
     1. Let |lastUpdated| be |valueStruct|'s [=value struct/last updated=].
@@ -544,16 +523,18 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |options| is empty, create |options|.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
         1. Let |result| be null.
         1. If |options|["`ignoreIfPresent`"] is true:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
-            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| as undefined.
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| with undefined.
             1. If |currentValue| is null, reject |promise|.
-            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -565,18 +546,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
         1. Let |result| be null.
-        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
         1. If |currentValue| is not failure:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |newValue|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |newValue|.
+        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -587,10 +570,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |context| and |key|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -600,10 +585,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |context|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -713,7 +700,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
                     1. [=list/Append=] |data| to |argumentsList|.
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
-        1. Resolve |promise| as undefined.
+        1. Resolve |promise| with undefined.
     1. Return |promise|.
     1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |promise| or [=upon rejection=] of |promise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
@@ -735,7 +722,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. If |reportingMetadata| is invalid, reject |resultPromise|.
     1. If {{Worklet/addModule()}} has not yet been called, reject |resultPromise|.
     1. Let |fencedFrameConfig| be a {{FencedFrameConfig}}.
-    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| as |fencedFrameConfig|.
+    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with |fencedFrameConfig|.
     1. Othewise, resolve |resultPromise| to |fencedFrameConfig|'s [=FencedFrameConfig/url=]. <span class=todo>[=FencedFrameConfig/url=] is probably not quite correct, but urn:uuid is not in the spec and is going away soon?</span> 
     1. Let |indexPromise| be a new [=promise=].
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
@@ -799,16 +786,18 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |options| is empty, create |options|.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
         1. Let |result| be null.
         1. If |options|["`ignoreIfPresent`"] is true:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
-            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| as undefined.
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| with undefined.
             1. Otherwise, if |currentValue| is null, reject |promise|.
-            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|.
+            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -820,18 +809,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
         1. Let |result| be null.
-        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
         1. If |currentValue| is not failure:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |newValue|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |context|, |key|, and |value|..
+            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |newValue|.
+        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|..
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -842,10 +833,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |context| and |key|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -855,10 +848,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |context|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
         1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| as undefined.
+        1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -871,11 +866,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |context| and |key|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
         1. If |value| is null, reject |promise|.
-        1. If |value| is undefined, resolve |promise| as undefined.
-        1. Otherwise, resolve |promise| as |value|.
+        1. If |value| is undefined, resolve |promise| with undefined.
+        1. Otherwise, resolve |promise| with |value|.
     1. Return |promise|.
   </div>
 
@@ -884,10 +881,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |context|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
         1. If |numEntries| is undefined, reject |promise|.
-        1. Otherwise, resolve |promise| as |numEntries|.
+        1. Otherwise, resolve |promise| with |numEntries|.
     1. Return |promise|.
   </div>
 
@@ -899,10 +898,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Assert=] that |context| is not null.
     1. Let |origin| be |context|'s [=active document=]'s [=document/origin=].
     1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
         1. Let |remainingBudget| be the result of running [=determine remaining budget=] with |origin|.
         1. [=Assert=] that |remainingBudget| is not undefined.
-        1. Resolve |promise| as |remainingBudget|.
+        1. Resolve |promise| with |remainingBudget|.
     1. Return |promise|.
   </div>
 
@@ -920,10 +920,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
     1. Let |promise| be a new [=promise=].
-    1. [=Enqueue the following steps=] on |context|'s associated [=shared storage database/shared storage database queue=]:
-        1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |context|.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. [=Enqueue the following steps=] on |queue|:
+        1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |queue| and |environment|.
         1. If |entries| is failure, reject |promise|.
-        1. Otherwise, resolve |promise| as |entries|.
+        1. Otherwise, resolve |promise| with |entries|.
     1. [=Upon fulfillment=] of |promise|, run the following:
         1. Let |promiseEntries| be the value of |promise|.
         1. For each [=shared storage database/entry=] |entry| in |promiseEntries|, [=queue/enqueue=] |entry| in |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
@@ -940,10 +942,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. Create an object |doneObject|.
             1. Resolve |promise| with |doneObject|.
         1. Let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
-        1. Resolve |promise| as |entry|.
+        1. Resolve |promise| with |entry|.
     1. Return |promise|.
   </div>
 
 Privacy Considerations {#privacy}
 =================================
   <span class=todo>Add privacy considerations.</span>
+
+  The Shared Storage API enforces the privacy of cross-site data by limiting its output.
