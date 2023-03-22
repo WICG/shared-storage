@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version be9d81bf4, updated Tue Mar 21 14:43:08 2023 -0700" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="f9c35b599091f47cc83bd444fc15c14c86da618f" name="document-revision">
+  <meta content="ace3c598f50aeb0cdcd6c2f7685b857071d3a670" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -618,7 +618,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Shared Storage API</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-03-21">21 March 2023</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-03-22">22 March 2023</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -808,9 +808,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>operationCtor</var> is missing, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②">TypeError</a></code>.</p>
      <li data-md>
-      <p>Let <var>isConstructor</var> be the result of running <a data-link-type="dfn" href="https://tc39.es/ecma262/#sec-isconstructor" id="ref-for-sec-isconstructor">IsConstructor()</a> with <var>operationCtor</var>.</p>
-     <li data-md>
-      <p>If <var>isConstructor</var> is false, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③">TypeError</a></code>.</p>
+      <p>If the result of running <a data-link-type="dfn" href="https://tc39.es/ecma262/#sec-isconstructor" id="ref-for-sec-isconstructor">IsConstructor()</a> with <var>operationCtor</var> is false, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>prototype</var> be the result of running <var>operationCtor</var>’s <a data-link-type="dfn" href="https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof" id="ref-for-sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof">[[GetPrototypeOf]]()</a> method.</p>
      <li data-md>
@@ -905,7 +903,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <p>Since <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key②">keys</a> are used to organize and efficiently retrieve <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry②">entries</a>, <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key③">keys</a> must appear at most once in any given <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database④">shared storage database</a>.</p>
    <p>An <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry③">entry</a>'s <dfn class="dfn-paneled" data-dfn-for="entry" data-dfn-type="dfn" data-noexport id="entry-value-struct">value struct</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct">struct</a> composed of <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string" id="ref-for-string③">string</a> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-value">value</dfn> and <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="value struct" data-dfn-type="dfn" data-noexport id="value-struct-last-updated">last updated</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch">Unix Epoch</a>).</p>
    <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent④">User agents</a> may specify the <dfn class="dfn-paneled" data-dfn-for="value" data-dfn-type="dfn" data-noexport id="value-maximum-length">maximum length</dfn> of a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value">value</a>.</p>
-   <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration">duration</a> between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires.</p>
+   <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑤">User agents</a> may specify a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="default-entry-lifetime">default entry lifetime</dfn>, the default <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration">duration</a> between when an <a data-link-type="dfn" href="#shared-storage-database-entry" id="ref-for-shared-storage-database-entry④">entry</a> is <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database①">stored</a> and when it expires. If the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑥">user agent</a> specifies a <a data-link-type="dfn" href="#default-entry-lifetime" id="ref-for-default-entry-lifetime">default entry lifetime</a>, then it should have a timer periodically <a data-link-type="dfn" href="#shared-storage-database-purge-expired-entries-from-the-database" id="ref-for-shared-storage-database-purge-expired-entries-from-the-database①">purge expired entries from the database</a>.</p>
    <h3 class="heading settled" data-level="3.3" id="database-algorithms"><span class="secno">3.3. </span><span class="content">The <a data-link-type="dfn" href="#shared-storage-database" id="ref-for-shared-storage-database⑤">Database</a> Algorithms</span><a class="self-link" href="#database-algorithms"></a></h3>
    <div class="algorithm" data-algorithm="store an entry in the database" data-algorithm-for="shared storage database">
      To <dfn class="dfn-paneled" data-dfn-for="shared storage database" data-dfn-type="dfn" data-noexport id="shared-storage-database-store-an-entry-in-the-database">store an entry in the database</dfn>, given a <a data-link-type="dfn" href="#shared-storage-database-shared-storage-database-queue" id="ref-for-shared-storage-database-shared-storage-database-queue">shared storage database queue</a> <var>queue</var>, an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-object" id="ref-for-environment-settings-object③">environment settings object</a> <var>environment</var>, a <a data-link-type="dfn" href="#entry-key" id="ref-for-entry-key④">key</a> <var>key</var>, and a <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value①">value</a> <var>value</var>, run the following steps on <var>queue</var>: 
@@ -938,19 +936,15 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>databaseMap</var> be the result of running <a data-link-type="dfn" href="#obtain-a-shared-storage-bottle-map" id="ref-for-obtain-a-shared-storage-bottle-map①">obtain a shared storage bottle map</a> for <var>environment</var>.</p>
      <li data-md>
-      <p>If <var>databaseMap</var> is failure, then return null.</p>
+      <p>If <var>databaseMap</var> is failure, then return false.</p>
      <li data-md>
       <p>If <var>databaseMap</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists①">contain</a> <var>key</var>, return undefined.</p>
      <li data-md>
       <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
      <li data-md>
-      <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
+      <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired">determine whether an entry is expired</a> with <var>valueStruct</var> is true, return undefined.</p>
      <li data-md>
-      <p>If <var>isExpired</var> is true, return undefined.</p>
-     <li data-md>
-      <p>Let <var>value</var> be <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value③">value</a>.</p>
-     <li data-md>
-      <p>Return <var>value</var>.</p>
+      <p>Return <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-value" id="ref-for-value-struct-value③">value</a>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="delete an entry from the database" data-algorithm-for="shared storage database">
@@ -987,9 +981,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>databaseMap</var> is failure, then return undefined.</p>
      <li data-md>
-      <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-getting-the-values" id="ref-for-map-getting-the-values">getting the values</a> on <var>databaseMap</var>.</p>
-     <li data-md>
-      <p>Return <var>entries</var>.</p>
+      <p>Return the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-getting-the-values" id="ref-for-map-getting-the-values">getting the values</a> on <var>databaseMap</var>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="count entries in the database" data-algorithm-for="shared storage database">
@@ -1000,9 +992,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>databaseMap</var> is failure, then return undefined.</p>
      <li data-md>
-      <p>Let <var>count</var> be <var>databaseMap</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-size" id="ref-for-map-size①">size</a>.</p>
-     <li data-md>
-      <p>Return <var>count</var>.</p>
+      <p>Return <var>databaseMap</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-size" id="ref-for-map-size①">size</a>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="purge expired entries from the database" data-algorithm-for="shared storage database">
@@ -1018,9 +1008,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Let <var>valueStruct</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-get" id="ref-for-map-get①">Get</a> on <var>databaseMap</var> with <var>key</var>.</p>
        <li data-md>
-        <p>Let <var>isExpired</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired①">determine whether an entry is expired</a> with <var>valueStruct</var>.</p>
-       <li data-md>
-        <p>If <var>isExpired</var> is true, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove①">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
+        <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-determine-whether-an-entry-is-expired" id="ref-for-shared-storage-database-determine-whether-an-entry-is-expired①">determine whether an entry is expired</a> with <var>valueStruct</var> is true, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-remove" id="ref-for-map-remove①">Remove</a> <var>databaseMap</var>[<var>key</var>].</p>
       </ol>
      <li data-md>
       <p>Return true.</p>
@@ -1032,7 +1020,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>lastUpdated</var> be <var>valueStruct</var>’s <a data-link-type="dfn" href="#value-struct-last-updated" id="ref-for-value-struct-last-updated①">last updated</a>.</p>
      <li data-md>
-      <p>Let <var>lifetime</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑥">user agent</a>'s <a data-link-type="dfn" href="#default-entry-lifetime" id="ref-for-default-entry-lifetime">default entry lifetime</a>.</p>
+      <p>Let <var>lifetime</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑦">user agent</a>'s <a data-link-type="dfn" href="#default-entry-lifetime" id="ref-for-default-entry-lifetime①">default entry lifetime</a>.</p>
      <li data-md>
       <p>Let <var>expiration</var> be the sum of <var>lastUpdated</var> and <var>lifetime</var>.</p>
      <li data-md>
@@ -1089,13 +1077,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑥">TypeError</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①">DOMException</a></code>.</p>
-     <li data-md>
-      <p>If <var>options</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException②">DOMException</a></code>.</p>
-     <li data-md>
-      <p>If <var>options</var> is empty, create <var>options</var>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑦">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①">relevant settings object</a>.</p>
      <li data-md>
@@ -1104,25 +1088,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be null.</p>
+        <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true and the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database①">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var> is not undefined, return <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-resolved-with" id="ref-for-a-promise-resolved-with">promise resolved</a> with undefined.</p>
        <li data-md>
-        <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true:</p>
-        <ol>
-         <li data-md>
-          <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database①">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
-         <li data-md>
-          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> with undefined.</p>
-         <li data-md>
-          <p>If <var>currentValue</var> is null, reject <var>promise</var>.</p>
-         <li data-md>
-          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database②">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
-        </ol>
+        <p>Run <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database②">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database③">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
-       <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
-       <li data-md>
-        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
+        <p>Resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1138,9 +1108,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length②">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length①">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror③">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException③">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length②">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length①">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with②">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑧">TypeError</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length③">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length①">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror④">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException④">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length③">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length①">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with③">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑨">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window①">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object②">relevant settings object</a>.</p>
      <li data-md>
@@ -1149,11 +1119,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be null.</p>
-       <li data-md>
         <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database②">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
-        <p>If <var>currentValue</var> is not failure:</p>
+        <p>If <var>currentValue</var> is false, return <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-resolved-with" id="ref-for-a-promise-resolved-with①">promise resolved</a> with undefined.</p>
+       <li data-md>
+        <p>If <var>currentValue</var> is not undefined:</p>
         <ol>
          <li data-md>
           <p>Let <var>list</var> be a new <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list" id="ref-for-list①">list</a>.</p>
@@ -1162,16 +1132,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-append" id="ref-for-list-append①">Append</a> <var>value</var> to <var>list</var>.</p>
          <li data-md>
-          <p>Let <var>newValue</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate">concatenate</a> on <var>list</var>.</p>
-         <li data-md>
-          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database④">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>newValue</var>.</p>
+          <p>Set <var>value</var> to the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate">concatenate</a> on <var>list</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑤">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
+        <p>Run <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database③">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
        <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
-       <li data-md>
-        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
+        <p>Resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1187,7 +1153,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert②">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length④">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length②">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑤">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑤">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length④">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length②">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with④">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⓪">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window②">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object③">relevant settings object</a>.</p>
      <li data-md>
@@ -1196,11 +1162,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps②">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database①">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
+        <p>Run <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database①">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
-       <li data-md>
-        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
+        <p>Resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1223,11 +1187,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps③">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database①">clear all entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
+        <p>Run <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database①">clear all entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
-       <li data-md>
-        <p>Otherwise, resolve <var>promise</var> with undefined.</p>
+        <p>Resolve <var>promise</var> with undefined.</p>
       </ol>
      <li data-md>
       <p>Return <var>promise</var>.</p>
@@ -1236,10 +1198,10 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <h4 class="heading settled" data-level="4.1.2" id="budget"><span class="secno">4.1.2. </span><span class="content">Entropy Budget</span><a class="self-link" href="#budget"></a></h4>
    <p>Because <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#bits-of-entropy" id="ref-for-bits-of-entropy">bits of entropy</a> can leak via <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl②">selectURL()</a></code> if a user activates the fenced frame from the resulting <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig①">FencedFrameConfig</a></code>, there is a per-<a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin">calling origin</a> <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance">entropy allowance</a>.</p>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="calling-origin">calling origin</dfn> for <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl③">selectURL()</a></code> is the <a data-link-type="dfn" href="https://url.spec.whatwg.org#concept-url-origin" id="ref-for-concept-url-origin①">origin</a> of an <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#environment" id="ref-for-environment①">environment</a> that makes a <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl④">selectURL()</a></code> call.</p>
-   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-allowance">entropy allowance</dfn> is a maximum allowance of <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits">entropy bits</a> that are permitted to leak during a given <a data-link-type="dfn" href="#budget-epoch" id="ref-for-budget-epoch">budget epoch</a> and for a given calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin①">calling origin</a>. This <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance①">allowance</a> is defined by the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑦">user agent</a> and is <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin②">calling origin</a>-agnostic.</p>
-   <p>A <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑧">user agent</a> will define a fixed predetermined <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration①">duration</a> <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-lifetime">budget lifetime</dfn>.</p>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-allowance">entropy allowance</dfn> is a maximum allowance of <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits">entropy bits</a> that are permitted to leak during a given <a data-link-type="dfn" href="#budget-epoch" id="ref-for-budget-epoch">budget epoch</a> and for a given calling <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin①">calling origin</a>. This <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance①">allowance</a> is defined by the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑧">user agent</a> and is <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin②">calling origin</a>-agnostic.</p>
+   <p>A <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑨">user agent</a> will define a fixed predetermined <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration①">duration</a> <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-lifetime">budget lifetime</dfn>.</p>
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="budget-epoch">budget epoch</dfn> is any interval of time whose <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-duration" id="ref-for-dfn-duration②">duration</a> is the <a data-link-type="dfn" href="#budget-lifetime" id="ref-for-budget-lifetime">budget lifetime</a>.</p>
-   <p>To keep track of how this <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance②">entropy allowance</a> is used, the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent⑨">user agent</a> uses a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-budget-table">shared storage budget table</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map③">map</a> of <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin③">calling origins</a> to <a data-link-type="dfn" href="#entropy-ledger" id="ref-for-entropy-ledger">entropy ledgers</a>.</p>
+   <p>To keep track of how this <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance②">entropy allowance</a> is used, the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⓪">user agent</a> uses a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="shared-storage-budget-table">shared storage budget table</dfn>, which is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#ordered-map" id="ref-for-ordered-map③">map</a> of <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin③">calling origins</a> to <a data-link-type="dfn" href="#entropy-ledger" id="ref-for-entropy-ledger">entropy ledgers</a>.</p>
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="entropy-ledger">entropy ledger</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list" id="ref-for-list②">list</a> of <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit">bit debits</a>.</p>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="bit-debit">bit debit</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#struct" id="ref-for-struct①">struct</a> containing a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-double" id="ref-for-idl-double">double</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-bits">bits</dfn>, indicating a value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits①">entropy bits</a>, along with a <code class="idl"><a data-link-type="idl" href="https://w3c.github.io/hr-time/#dom-domhighrestimestamp" id="ref-for-dom-domhighrestimestamp①">DOMHighResTimeStamp</a></code> <dfn class="dfn-paneled" data-dfn-for="bit debit" data-dfn-type="dfn" data-noexport id="bit-debit-timestamp">timestamp</dfn> (from the <a data-link-type="dfn" href="https://w3c.github.io/hr-time/#dfn-unix-epoch" id="ref-for-dfn-unix-epoch③">Unix Epoch</a>).</p>
    <p>When a leak occurs, its value in <a data-link-type="dfn" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)#entropy-bits" id="ref-for-entropy-bits②">entropy bits</a> is calculated and stored for that <a data-link-type="dfn" href="#calling-origin" id="ref-for-calling-origin④">calling origin</a>, along with the current time as a <a data-link-type="dfn" href="#bit-debit-timestamp" id="ref-for-bit-debit-timestamp">timestamp</a>, together as a <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit①">bit debit</a> in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table">shared storage budget table</a>.</p>
@@ -1261,11 +1223,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>origin</var> is <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/browsers.html#concept-opaque-origin" id="ref-for-concept-opaque-origin①">opaque</a>, return undefined.</p>
      <li data-md>
-      <p>Let <var>maxBits</var> be the value of the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⓪">user agent</a>'s <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance④">entropy allowance</a>.</p>
+      <p>Let <var>maxBits</var> be the value of the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①①">user agent</a>'s <a data-link-type="dfn" href="#entropy-allowance" id="ref-for-entropy-allowance④">entropy allowance</a>.</p>
      <li data-md>
-      <p>If the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①①">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table①">shared storage budget table</a> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists②">contain</a> <var>origin</var>, then return <var>maxBits</var>.</p>
+      <p>If the <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①②">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table①">shared storage budget table</a> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org#map-exists" id="ref-for-map-exists②">contain</a> <var>origin</var>, then return <var>maxBits</var>.</p>
      <li data-md>
-      <p>Otherwise, let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①②">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table②">shared storage budget table</a>[<var>origin</var>].</p>
+      <p>Otherwise, let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①③">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table②">shared storage budget table</a>[<var>origin</var>].</p>
      <li data-md>
       <p>Let <var>epochLength</var> be <a data-link-type="dfn" href="#budget-lifetime" id="ref-for-budget-lifetime①">budget lifetime</a>.</p>
      <li data-md>
@@ -1289,13 +1251,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
         <p>If <var>timestamp</var> is greater than or equal to <var>threshold</var>, then increment <var>debitSum</var> by <var>debit</var>.</p>
       </ol>
      <li data-md>
-      <p>Let <var>remainingBudget</var> be <var>maxBits</var> minus <var>debitSum</var>.</p>
-     <li data-md>
-      <p>Return <var>remainingBudget</var>.</p>
+      <p>Return <var>maxBits</var> minus <var>debitSum</var>.</p>
     </ol>
    </div>
    <p>A <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit③">bit debit</a> will need to be charged to the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table③">shared storage budget table</a> for each top-frame navigation initiated by a fenced frame whose source was generated via <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①⓪">selectURL()</a></code>, as this can leak cross-site data. Since the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits①">bits</a> to charge is calculated during the call to <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-selecturl" id="ref-for-dom-windowsharedstorage-selecturl①①">selectURL()</a></code> but only actually recorded in the <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table④">shared storage budget table</a> if and when the resulting fenced frame initiates a top-frame navigation, the <a data-link-type="dfn" href="#bit-debit-bits" id="ref-for-bit-debit-bits②">bits</a> must be stored as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="pending-shared-storage-budget-debit">pending shared storage budget debit</dfn> in the corresponding <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig③">FencedFrameConfig</a></code> until this time.</p>
-   <p>Between <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation">beginning navigation</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#ending-navigation" id="ref-for-ending-navigation">ending navigation</a>, a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①③">user agent</a> will perform the <a data-link-type="dfn" href="#charge-shared-storage-budget" id="ref-for-charge-shared-storage-budget">charge shared storage budget</a> algorithm.</p>
+   <p>Between <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation">beginning navigation</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#ending-navigation" id="ref-for-ending-navigation">ending navigation</a>, a <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①④">user agent</a> will perform the <a data-link-type="dfn" href="#charge-shared-storage-budget" id="ref-for-charge-shared-storage-budget">charge shared storage budget</a> algorithm.</p>
    <div class="algorithm" data-algorithm="charge shared storage budget">
      To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="charge-shared-storage-budget">charge shared storage budget</dfn> during a <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#beginning-navigation" id="ref-for-beginning-navigation①">navigation</a> with <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#navigable" id="ref-for-navigable">navigable</a> <var>navigable</var> and <code class="idl"><a data-link-type="idl" href="https://dom.spec.whatwg.org/#document" id="ref-for-document">Document</a></code> <var>sourceDocument</var>, run the following steps: 
     <ol>
@@ -1317,7 +1277,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
           <p>If <var>pendingBits</var> is greater than 0, run the following steps:</p>
           <ol>
            <li data-md>
-            <p>Let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①④">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table⑤">shared storage budget table</a>[<var>origin</var>].</p>
+            <p>Let <var>ledger</var> be <a data-link-type="dfn" href="https://infra.spec.whatwg.org#user-agent" id="ref-for-user-agent①⑤">user agent</a>'s <a data-link-type="dfn" href="#shared-storage-budget-table" id="ref-for-shared-storage-budget-table⑤">shared storage budget table</a>[<var>origin</var>].</p>
            <li data-md>
             <p>Let <var>bitDebit</var> be a new <a data-link-type="dfn" href="#bit-debit" id="ref-for-bit-debit④">bit debit</a>.</p>
            <li data-md>
@@ -1348,7 +1308,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>promise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise①②">promise</a>.</p>
      <li data-md>
-      <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule①">addModule()</a></code> has not yet been called, reject <var>promise</var>.</p>
+      <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule①">addModule()</a></code> has not yet been called, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with⑤">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①①">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>outsideSettings</var> be <code class="idl"><a data-link-type="idl" href="#dom-windowsharedstorage-worklet" id="ref-for-dom-windowsharedstorage-worklet①">worklet</a></code>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑤">relevant settings object</a>.</p>
      <li data-md>
@@ -1395,20 +1355,20 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>resultPromise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise①③">promise</a>.</p>
      <li data-md>
-      <p>If <var>urls</var> is empty or exceeds the maximum allowed length, reject <var>resultPromise</var>.</p>
+      <p>If <var>urls</var> is empty or exceeds the maximum allowed length, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with⑥">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①②">TypeError</a></code>..</p>
      <li data-md>
       <p>Let <var>urlList</var> be an empty <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/input.html#dom-input-list" id="ref-for-dom-input-list">list</a></code>.</p>
      <li data-md>
       <p>For each <var>urlWithMetadata</var> in <var>urls</var>:</p>
       <ol>
        <li data-md>
-        <p>If <var>urlWithMetadata</var> has no field "<code>url</code>", reject <var>resultPromise</var>.</p>
+        <p>If <var>urlWithMetadata</var> has no field "<code>url</code>", return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with⑦">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①③">TypeError</a></code>..</p>
        <li data-md>
         <p>Otherwise, let <var>urlString</var> be <var>urlWithMetadata</var>["<code>url</code>"].</p>
        <li data-md>
         <p>Let <var>url</var> be the result of running a <a data-link-type="dfn" href="https://url.spec.whatwg.org#concept-url-parser" id="ref-for-concept-url-parser">URL parser</a> on <var>urlString</var>.</p>
        <li data-md>
-        <p>If <var>url</var> is not a valid <code class="idl"><a data-link-type="idl" href="https://url.spec.whatwg.org/#url" id="ref-for-url②">URL</a></code>, reject <var>resultPromise</var>.</p>
+        <p>If <var>url</var> is not a valid <code class="idl"><a data-link-type="idl" href="https://url.spec.whatwg.org/#url" id="ref-for-url②">URL</a></code>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with⑧">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①④">TypeError</a></code>..</p>
        <li data-md>
         <p>Otherwise, <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-append" id="ref-for-list-append④">append</a> <var>urlString</var> to <var>urlList</var>.</p>
        <li data-md>
@@ -1417,17 +1377,17 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p>Let <var>reportingMetadata</var> be <var>urlWithMetadata</var>["<code>reportingMetadata</code>"].</p>
          <li data-md>
-          <p>If <var>reportingMetadata</var> is invalid, reject <var>resultPromise</var>.</p>
+          <p>If <var>reportingMetadata</var> is invalid, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with⑨">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⑤">TypeError</a></code>..</p>
         </ol>
       </ol>
      <li data-md>
-      <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule②">addModule()</a></code> has not yet been called, reject <var>resultPromise</var>.</p>
+      <p>If <code class="idl"><a data-link-type="idl" href="https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule" id="ref-for-dom-worklet-addmodule②">addModule()</a></code> has not yet been called, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⓪">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⑥">TypeError</a></code>..</p>
      <li data-md>
-      <p>Let <var>fencedFrameConfig</var> be a <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig⑦">FencedFrameConfig</a></code>.</p>
+      <p>Let <var>fencedFrameConfigStruct</var> be a "fenced frame config struct". <span class="todo">Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span></p>
      <li data-md>
-      <p>If <var>options</var>["<code>resolveToConfig</code>"] is true, resolve <var>resultPromise</var> with <var>fencedFrameConfig</var>.</p>
+      <p>If <var>options</var>["<code>resolveToConfig</code>"] is true, resolve <var>resultPromise</var> with the result of running "obtain a <code class="idl"><a data-link-type="idl" href="https://wicg.github.io/fenced-frame/#fencedframeconfig" id="ref-for-fencedframeconfig⑦">FencedFrameConfig</a></code> from a fenced frame config struct" with <var>fencedFrameConfigStruct</var>. <span class="todo">Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span></p>
      <li data-md>
-      <p>Othewise, resolve <var>resultPromise</var> to <var>fencedFrameConfig</var>’s <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url">url</a>. <span class="todo"><a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url①">url</a> is probably not quite correct, but urn:uuid is not in the spec and is going away soon?</span></p>
+      <p>Othewise, resolve <var>resultPromise</var> to <var>fencedFrameConfigStruct</var>’s "urn uuid". <span class="todo">Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span></p>
      <li data-md>
       <p>Let <var>indexPromise</var> be a new <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#idl-promise" id="ref-for-idl-promise①④">promise</a>.</p>
      <li data-md>
@@ -1458,17 +1418,19 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
            <li data-md>
             <p>If <var>options</var> contains <var>data</var>, let <var>operationResult</var> be the result of running <a data-link-type="dfn" href="https://tc39.es/ecma262/#sec-call" id="ref-for-sec-call②">Call</a> on <var>operation</var> with <var>argumentsList</var>.</p>
            <li data-md>
-            <p>If there are no errors:</p>
+            <p>If <var>operationResult</var> has any error(s), then reject <var>indexPromise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⑦">TypeError</a></code>.</p>
+           <li data-md>
+            <p>Otherwise:</p>
             <ol>
              <li data-md>
-              <p>Set <var>index</var> to the result of casting <var>operationResult</var> to an <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-unsigned-long" id="ref-for-idl-unsigned-long">unsigned long</a></code>. If this throws an exception, catch it and set <var>index</var> back to <a data-link-type="dfn" href="#default-index" id="ref-for-default-index④">default index</a>.</p>
+              <p>Set <var>index</var> to the result of casting <var>operationResult</var> to an <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-unsigned-long" id="ref-for-idl-unsigned-long">unsigned long</a></code>. If this throws an exception, catch it and reject <var>indexPromise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⑧">TypeError</a></code>.</p>
              <li data-md>
-              <p>If <var>index</var> is greater than <var>urlList</var>.<a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-size" id="ref-for-list-size①">size</a>, then set <var>index</var> back to <a data-link-type="dfn" href="#default-index" id="ref-for-default-index⑤">default index</a>.</p>
+              <p>Otherwise, if <var>index</var> is greater than <var>urlList</var>.<a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-size" id="ref-for-list-size①">size</a>, then reject <var>indexPromise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror①⑨">TypeError</a></code>.</p>
             </ol>
           </ol>
         </ol>
        <li data-md>
-        <p>Resolve <var>indexPromise</var> with <var>index</var>.</p>
+        <p>If <var>indexPromise</var> has not been rejected, resolve <var>indexPromise</var> with <var>index</var>.</p>
        <li data-md>
         <p><a data-link-type="dfn" href="https://webidl.spec.whatwg.org#upon-fulfillment" id="ref-for-upon-fulfillment①">Upon fulfillment</a> of <var>indexPromise</var>, perform the following steps:</p>
         <ol>
@@ -1491,14 +1453,14 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p>Let <var>pendingBits</var> be the logarithm base 2 of <var>listSize</var>.</p>
          <li data-md>
-          <p>If <var>pendingBits</var> is greather than <var>remainingBudget</var>, set <var>resultIndex</var> to <a data-link-type="dfn" href="#default-index" id="ref-for-default-index⑥">default index</a>.</p>
+          <p>If <var>pendingBits</var> is greather than <var>remainingBudget</var>, set <var>resultIndex</var> to <a data-link-type="dfn" href="#default-index" id="ref-for-default-index④">default index</a>.</p>
          <li data-md>
-          <p>Set <var>fencedFrameConfig</var>’s <a data-link-type="dfn" href="#pending-shared-storage-budget-debit" id="ref-for-pending-shared-storage-budget-debit②">pending shared storage budget debit</a> to <var>pendingBits</var>.</p>
+          <p>Set <var>fencedFrameConfigStruct</var>’s <a data-link-type="dfn" href="#pending-shared-storage-budget-debit" id="ref-for-pending-shared-storage-budget-debit②">pending shared storage budget debit</a> to <var>pendingBits</var>.</p>
          <li data-md>
-          <p>Set <var>fencedFrameConfig</var>’s <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url②">url</a> to <var>urlList</var>[<var>resultIndex</var>].</p>
+          <p>Set <var>fencedFrameConfigStruct</var>’s <a data-link-type="dfn" href="https://url.spec.whatwg.org/#concept-url" id="ref-for-concept-url">url</a> to <var>urlList</var>[<var>resultIndex</var>].</p>
         </ol>
        <li data-md>
-        <p><a data-link-type="dfn" href="https://webidl.spec.whatwg.org#upon-rejection" id="ref-for-upon-rejection①">Upon rejection</a> of <var>indexPromise</var>, set <var>fencedFrameConfig</var>’s <a data-link-type="dfn" href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url" id="ref-for-dom-fencedframeconfig-url③">url</a> to <var>urlList</var>[<a data-link-type="dfn" href="#default-index" id="ref-for-default-index⑦">default index</a>].</p>
+        <p><a data-link-type="dfn" href="https://webidl.spec.whatwg.org#upon-rejection" id="ref-for-upon-rejection①">Upon rejection</a> of <var>indexPromise</var>, set <var>fencedFrameConfigStruct</var>’s <a data-link-type="dfn" href="https://url.spec.whatwg.org/#concept-url" id="ref-for-concept-url①">url</a> to <var>urlList</var>[<a data-link-type="dfn" href="#default-index" id="ref-for-default-index⑤">default index</a>].</p>
       </ol>
      <li data-md>
       <p>Return <var>resultPromise</var>.</p>
@@ -1527,13 +1489,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑦">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑤">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑥">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑥">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑤">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length③">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①①">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⓪">TypeError</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑥">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length②">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑦">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑦">DOMException</a></code>.</p>
-     <li data-md>
-      <p>If <var>options</var> is invalid, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑧">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑧">DOMException</a></code>.</p>
-     <li data-md>
-      <p>If <var>options</var> is empty, create <var>options</var>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑥">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length②">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①②">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②①">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window④">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑦">relevant settings object</a>.</p>
      <li data-md>
@@ -1542,23 +1500,17 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps④">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be null.</p>
-       <li data-md>
         <p>If <var>options</var>["<code>ignoreIfPresent</code>"] is true:</p>
         <ol>
          <li data-md>
           <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database③">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
          <li data-md>
-          <p>If <var>currentValue</var> is not null and <var>currentValue</var> is not undefined, resolve <var>promise</var> with undefined.</p>
+          <p>If <var>currentValue</var> is false, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①③">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②②">TypeError</a></code>.</p>
          <li data-md>
-          <p>Otherwise, if <var>currentValue</var> is null, reject <var>promise</var>.</p>
-         <li data-md>
-          <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑥">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
+          <p>If <var>currentValue</var> is not undefined, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-resolved-with" id="ref-for-a-promise-resolved-with②">promise resolved</a> with undefined.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑦">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>.</p>
-       <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
+        <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database④">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var> is false, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②③">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
@@ -1576,9 +1528,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑧">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑦">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length④">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror⑨">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException⑨">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑦">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length④">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①④">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②④">TypeError</a></code>.</p>
      <li data-md>
-      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑧">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length③">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①⓪">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①⓪">DOMException</a></code>.</p>
+      <p>If <var>value</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑧">length</a> exceeds the <a data-link-type="dfn" href="#value-maximum-length" id="ref-for-value-maximum-length③">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⑤">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑤">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑤">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑧">relevant settings object</a>.</p>
      <li data-md>
@@ -1587,11 +1539,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑤">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be null.</p>
-       <li data-md>
         <p>Let <var>currentValue</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database④">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
-        <p>If <var>currentValue</var> is not failure:</p>
+        <p>If <var>currentValue</var> is false, return <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⑥">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑥">TypeError</a></code>.</p>
+       <li data-md>
+        <p>If <var>currentValue</var> is not undefined:</p>
         <ol>
          <li data-md>
           <p>Let <var>list</var> be a new <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list" id="ref-for-list⑤">list</a>.</p>
@@ -1600,14 +1552,10 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
          <li data-md>
           <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-append" id="ref-for-list-append⑧">Append</a> <var>value</var> to <var>list</var>.</p>
          <li data-md>
-          <p>Let <var>newValue</var> be the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate①">concatenate</a> on <var>list</var>.</p>
-         <li data-md>
-          <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑧">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>newValue</var>.</p>
+          <p>Set <var>value</var> to the result of running <a data-link-type="dfn" href="https://infra.spec.whatwg.org#string-concatenate" id="ref-for-string-concatenate①">concatenate</a> on <var>list</var>.</p>
         </ol>
        <li data-md>
-        <p>Otherwise, let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑨">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var>..</p>
-       <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
+        <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-store-an-entry-in-the-database" id="ref-for-shared-storage-database-store-an-entry-in-the-database⑤">store an entry in the database</a> with <var>queue</var>, <var>environment</var>, <var>key</var>, and <var>value</var> is false, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑦">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
@@ -1625,7 +1573,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert⑨">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑨">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑤">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①①">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①①">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length⑨">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑤">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⑦">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑧">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑥">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object⑨">relevant settings object</a>.</p>
      <li data-md>
@@ -1634,9 +1582,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑥">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database②">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
-       <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
+        <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-delete-an-entry-from-the-database" id="ref-for-shared-storage-database-delete-an-entry-from-the-database②">delete an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var> is false, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑨">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
@@ -1661,9 +1607,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps⑦">Enqueue the following steps</a> on <var>queue</var>:</p>
       <ol>
        <li data-md>
-        <p>Let <var>result</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database②">clear all entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
-       <li data-md>
-        <p>If <var>result</var> is false, reject <var>promise</var>.</p>
+        <p>If the result of running <a data-link-type="dfn" href="#shared-storage-database-clear-all-entries-in-the-database" id="ref-for-shared-storage-database-clear-all-entries-in-the-database②">clear all entries in the database</a> with <var>queue</var> and <var>environment</var> is false, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③⓪">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with undefined.</p>
       </ol>
@@ -1682,7 +1626,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p><a data-link-type="dfn" href="https://tc39.es/ecma262/#assert" id="ref-for-assert①①">Assert</a> that <var>context</var> is not null.</p>
      <li data-md>
-      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①⓪">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑥">maximum length</a>, reject <var>promise</var> with a "<code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#dataerror" id="ref-for-dataerror①②">DataError</a></code>" <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#idl-DOMException" id="ref-for-idl-DOMException①②">DOMException</a></code>.</p>
+      <p>If <var>key</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-length" id="ref-for-string-length①⓪">length</a> exceeds the <a data-link-type="dfn" href="#key-maximum-length" id="ref-for-key-maximum-length⑥">maximum length</a>, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⑧">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③①">TypeError</a></code>.</p>
      <li data-md>
       <p>Let <var>environment</var> be <var>context</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/document-sequences.html#active-window" id="ref-for-active-window⑧">active window</a>'s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object" id="ref-for-relevant-settings-object①①">relevant settings object</a>.</p>
      <li data-md>
@@ -1693,9 +1637,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Let <var>value</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-an-entry-from-the-database" id="ref-for-shared-storage-database-retrieve-an-entry-from-the-database⑤">retrieve an entry from the database</a> with <var>queue</var>, <var>environment</var>, and <var>key</var>.</p>
        <li data-md>
-        <p>If <var>value</var> is null, reject <var>promise</var>.</p>
+        <p>If <var>value</var> is null, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③②">TypeError</a></code>.</p>
        <li data-md>
-        <p>If <var>value</var> is undefined, resolve <var>promise</var> with undefined.</p>
+        <p>Otherwise, if <var>value</var> is undefined, resolve <var>promise</var> with undefined.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with <var>value</var>.</p>
       </ol>
@@ -1720,7 +1664,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Let <var>numEntries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-count-entries-in-the-database" id="ref-for-shared-storage-database-count-entries-in-the-database">count entries in the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
-        <p>If <var>numEntries</var> is undefined, reject <var>promise</var>.</p>
+        <p>If <var>numEntries</var> is undefined, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③③">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with <var>numEntries</var>.</p>
       </ol>
@@ -1780,7 +1724,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
        <li data-md>
         <p>Let <var>entries</var> be the result of running <a data-link-type="dfn" href="#shared-storage-database-retrieve-all-entries-from-the-database" id="ref-for-shared-storage-database-retrieve-all-entries-from-the-database">retrieve all entries from the database</a> with <var>queue</var> and <var>environment</var>.</p>
        <li data-md>
-        <p>If <var>entries</var> is failure, reject <var>promise</var>.</p>
+        <p>If <var>entries</var> is failure, reject <var>promise</var> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③④">TypeError</a></code>.</p>
        <li data-md>
         <p>Otherwise, resolve <var>promise</var> with <var>entries</var>.</p>
       </ol>
@@ -1805,7 +1749,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/infrastructure.html#enqueue-the-following-steps" id="ref-for-enqueue-the-following-steps①②">Enqueue the following steps</a>:</p>
       <ol>
        <li data-md>
-        <p>If <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-error" id="ref-for-workletsharedstorageiterator-error①">error</a> is true, reject <var>promise</var>.</p>
+        <p>If <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-error" id="ref-for-workletsharedstorageiterator-error①">error</a> is true, return a <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#a-promise-rejected-with" id="ref-for-a-promise-rejected-with①⑨">promise rejected</a> with a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror③⑤">TypeError</a></code>.</p>
        <li data-md>
         <p>If <var>iterator</var>’s <a data-link-type="dfn" href="#workletsharedstorageiterator-pending-entries" id="ref-for-workletsharedstorageiterator-pending-entries①">pending entries</a> is <a data-link-type="dfn" href="https://infra.spec.whatwg.org#list-is-empty" id="ref-for-list-is-empty①">empty</a>:</p>
         <ol>
@@ -2430,6 +2374,23 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-idl-promise②⑤">4.2.3. Iteration</a> <a href="#ref-for-idl-promise②⑥">(2)</a>
    </ul>
   </aside>
+  <aside aria-labelledby="infopaneltitle-for-8d16650a184a26d81e148cb157cca1a9" class="dfn-panel" data-for="8d16650a184a26d81e148cb157cca1a9" id="infopanel-for-8d16650a184a26d81e148cb157cca1a9">
+   <span id="infopaneltitle-for-8d16650a184a26d81e148cb157cca1a9" style="display:none">Info about the 'promise rejected' external reference.</span><a href="https://webidl.spec.whatwg.org#a-promise-rejected-with">https://webidl.spec.whatwg.org#a-promise-rejected-with</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-a-promise-rejected-with">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-a-promise-rejected-with①">(2)</a> <a href="#ref-for-a-promise-rejected-with②">(3)</a> <a href="#ref-for-a-promise-rejected-with③">(4)</a> <a href="#ref-for-a-promise-rejected-with④">(5)</a>
+    <li><a href="#ref-for-a-promise-rejected-with⑤">4.1.3. Run Operation Methods</a> <a href="#ref-for-a-promise-rejected-with⑥">(2)</a> <a href="#ref-for-a-promise-rejected-with⑦">(3)</a> <a href="#ref-for-a-promise-rejected-with⑧">(4)</a> <a href="#ref-for-a-promise-rejected-with⑨">(5)</a> <a href="#ref-for-a-promise-rejected-with①⓪">(6)</a>
+    <li><a href="#ref-for-a-promise-rejected-with①①">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-a-promise-rejected-with①②">(2)</a> <a href="#ref-for-a-promise-rejected-with①③">(3)</a> <a href="#ref-for-a-promise-rejected-with①④">(4)</a> <a href="#ref-for-a-promise-rejected-with①⑤">(5)</a> <a href="#ref-for-a-promise-rejected-with①⑥">(6)</a> <a href="#ref-for-a-promise-rejected-with①⑦">(7)</a>
+    <li><a href="#ref-for-a-promise-rejected-with①⑧">4.2.2. Getter Methods</a>
+    <li><a href="#ref-for-a-promise-rejected-with①⑨">4.2.3. Iteration</a>
+   </ul>
+  </aside>
+  <aside aria-labelledby="infopaneltitle-for-caab08a991b65588cb3aa567e150914c" class="dfn-panel" data-for="caab08a991b65588cb3aa567e150914c" id="infopanel-for-caab08a991b65588cb3aa567e150914c">
+   <span id="infopaneltitle-for-caab08a991b65588cb3aa567e150914c" style="display:none">Info about the 'promise resolved' external reference.</span><a href="https://webidl.spec.whatwg.org#a-promise-resolved-with">https://webidl.spec.whatwg.org#a-promise-resolved-with</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-a-promise-resolved-with">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-a-promise-resolved-with①">(2)</a>
+    <li><a href="#ref-for-a-promise-resolved-with②">4.2.1. Worklet Setter/Deleter Methods</a>
+   </ul>
+  </aside>
   <aside aria-labelledby="infopaneltitle-for-ffebca42635d9366dd093a2e716bf0a7" class="dfn-panel" data-for="ffebca42635d9366dd093a2e716bf0a7" id="infopanel-for-ffebca42635d9366dd093a2e716bf0a7">
    <span id="infopaneltitle-for-ffebca42635d9366dd093a2e716bf0a7" style="display:none">Info about the 'proxy map reference set' external reference.</span><a href="https://storage.spec.whatwg.org/#storage-bottle-proxy-map-reference-set">https://storage.spec.whatwg.org/#storage-bottle-proxy-map-reference-set</a><b>Referenced in:</b>
    <ul>
@@ -2610,12 +2571,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-upon-rejection③">4.2.3. Iteration</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-16a92f623ebe9cfba0dc012666fa3fe3" class="dfn-panel" data-for="16a92f623ebe9cfba0dc012666fa3fe3" id="infopanel-for-16a92f623ebe9cfba0dc012666fa3fe3">
-   <span id="infopaneltitle-for-16a92f623ebe9cfba0dc012666fa3fe3" style="display:none">Info about the 'url' external reference.</span><a href="https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url">https://wicg.github.io/fenced-frame/#dom-fencedframeconfig-url</a><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-dom-fencedframeconfig-url">4.1.3. Run Operation Methods</a> <a href="#ref-for-dom-fencedframeconfig-url①">(2)</a> <a href="#ref-for-dom-fencedframeconfig-url②">(3)</a> <a href="#ref-for-dom-fencedframeconfig-url③">(4)</a>
-   </ul>
-  </aside>
   <aside aria-labelledby="infopaneltitle-for-9f1060e036985eef125ae551d5923654" class="dfn-panel" data-for="9f1060e036985eef125ae551d5923654" id="infopanel-for-9f1060e036985eef125ae551d5923654">
    <span id="infopaneltitle-for-9f1060e036985eef125ae551d5923654" style="display:none">Info about the 'url parser' external reference.</span><a href="https://url.spec.whatwg.org#concept-url-parser">https://url.spec.whatwg.org#concept-url-parser</a><b>Referenced in:</b>
    <ul>
@@ -2626,9 +2581,9 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-98a8c263bf696e702c5230677356610b" style="display:none">Info about the 'user agent' external reference.</span><a href="https://infra.spec.whatwg.org#user-agent">https://infra.spec.whatwg.org#user-agent</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-user-agent">3.1. Monkey Patch for the Storage Model</a> <a href="#ref-for-user-agent①">(2)</a> <a href="#ref-for-user-agent②">(3)</a>
-    <li><a href="#ref-for-user-agent③">3.2. The Shared Storage Database</a> <a href="#ref-for-user-agent④">(2)</a> <a href="#ref-for-user-agent⑤">(3)</a>
-    <li><a href="#ref-for-user-agent⑥">3.3. The Database Algorithms</a>
-    <li><a href="#ref-for-user-agent⑦">4.1.2. Entropy Budget</a> <a href="#ref-for-user-agent⑧">(2)</a> <a href="#ref-for-user-agent⑨">(3)</a> <a href="#ref-for-user-agent①⓪">(4)</a> <a href="#ref-for-user-agent①①">(5)</a> <a href="#ref-for-user-agent①②">(6)</a> <a href="#ref-for-user-agent①③">(7)</a> <a href="#ref-for-user-agent①④">(8)</a>
+    <li><a href="#ref-for-user-agent③">3.2. The Shared Storage Database</a> <a href="#ref-for-user-agent④">(2)</a> <a href="#ref-for-user-agent⑤">(3)</a> <a href="#ref-for-user-agent⑥">(4)</a>
+    <li><a href="#ref-for-user-agent⑦">3.3. The Database Algorithms</a>
+    <li><a href="#ref-for-user-agent⑧">4.1.2. Entropy Budget</a> <a href="#ref-for-user-agent⑨">(2)</a> <a href="#ref-for-user-agent①⓪">(3)</a> <a href="#ref-for-user-agent①①">(4)</a> <a href="#ref-for-user-agent①②">(5)</a> <a href="#ref-for-user-agent①③">(6)</a> <a href="#ref-for-user-agent①④">(7)</a> <a href="#ref-for-user-agent①⑤">(8)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-81a3f446d4ec5b7ccd239f33895a87fc" class="dfn-panel" data-for="81a3f446d4ec5b7ccd239f33895a87fc" id="infopanel-for-81a3f446d4ec5b7ccd239f33895a87fc">
@@ -2691,12 +2646,10 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-url②">4.1.3. Run Operation Methods</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-0ab204fb9cc9a746edaff83c0db0740a" class="dfn-panel" data-for="0ab204fb9cc9a746edaff83c0db0740a" id="infopanel-for-0ab204fb9cc9a746edaff83c0db0740a">
-   <span id="infopaneltitle-for-0ab204fb9cc9a746edaff83c0db0740a" style="display:none">Info about the 'DOMException' external reference.</span><a href="https://webidl.spec.whatwg.org/#idl-DOMException">https://webidl.spec.whatwg.org/#idl-DOMException</a><b>Referenced in:</b>
+  <aside aria-labelledby="infopaneltitle-for-fc05c76e016d3aec6a25a91c066500c8" class="dfn-panel" data-for="fc05c76e016d3aec6a25a91c066500c8" id="infopanel-for-fc05c76e016d3aec6a25a91c066500c8">
+   <span id="infopaneltitle-for-fc05c76e016d3aec6a25a91c066500c8" style="display:none">Info about the 'url' external reference.</span><a href="https://url.spec.whatwg.org/#concept-url">https://url.spec.whatwg.org/#concept-url</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-idl-DOMException">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-idl-DOMException①">(2)</a> <a href="#ref-for-idl-DOMException②">(3)</a> <a href="#ref-for-idl-DOMException③">(4)</a> <a href="#ref-for-idl-DOMException④">(5)</a> <a href="#ref-for-idl-DOMException⑤">(6)</a>
-    <li><a href="#ref-for-idl-DOMException⑥">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-idl-DOMException⑦">(2)</a> <a href="#ref-for-idl-DOMException⑧">(3)</a> <a href="#ref-for-idl-DOMException⑨">(4)</a> <a href="#ref-for-idl-DOMException①⓪">(5)</a> <a href="#ref-for-idl-DOMException①①">(6)</a>
-    <li><a href="#ref-for-idl-DOMException①②">4.2.2. Getter Methods</a>
+    <li><a href="#ref-for-concept-url">4.1.3. Run Operation Methods</a> <a href="#ref-for-concept-url①">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-d0f238a61de9310f1738a214749fab18" class="dfn-panel" data-for="d0f238a61de9310f1738a214749fab18" id="infopanel-for-d0f238a61de9310f1738a214749fab18">
@@ -2706,14 +2659,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <li><a href="#ref-for-idl-DOMString①">4. The SharedStorage Interface</a> <a href="#ref-for-idl-DOMString②">(2)</a> <a href="#ref-for-idl-DOMString③">(3)</a> <a href="#ref-for-idl-DOMString④">(4)</a> <a href="#ref-for-idl-DOMString⑤">(5)</a>
     <li><a href="#ref-for-idl-DOMString⑥">4.1. The WindowSharedStorage interface</a> <a href="#ref-for-idl-DOMString⑦">(2)</a>
     <li><a href="#ref-for-idl-DOMString⑧">4.2. The WorkletSharedStorage interface</a> <a href="#ref-for-idl-DOMString⑨">(2)</a> <a href="#ref-for-idl-DOMString①⓪">(3)</a> <a href="#ref-for-idl-DOMString①①">(4)</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-932ea4ef25c6e7fae06ef561c6e9532f" class="dfn-panel" data-for="932ea4ef25c6e7fae06ef561c6e9532f" id="infopanel-for-932ea4ef25c6e7fae06ef561c6e9532f">
-   <span id="infopaneltitle-for-932ea4ef25c6e7fae06ef561c6e9532f" style="display:none">Info about the 'DataError' external reference.</span><a href="https://webidl.spec.whatwg.org/#dataerror">https://webidl.spec.whatwg.org/#dataerror</a><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-dataerror">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-dataerror①">(2)</a> <a href="#ref-for-dataerror②">(3)</a> <a href="#ref-for-dataerror③">(4)</a> <a href="#ref-for-dataerror④">(5)</a> <a href="#ref-for-dataerror⑤">(6)</a>
-    <li><a href="#ref-for-dataerror⑥">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-dataerror⑦">(2)</a> <a href="#ref-for-dataerror⑧">(3)</a> <a href="#ref-for-dataerror⑨">(4)</a> <a href="#ref-for-dataerror①⓪">(5)</a> <a href="#ref-for-dataerror①①">(6)</a>
-    <li><a href="#ref-for-dataerror①②">4.2.2. Getter Methods</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-dde049eb112f043fc45407ec0d4cb457" class="dfn-panel" data-for="dde049eb112f043fc45407ec0d4cb457" id="infopanel-for-dde049eb112f043fc45407ec0d4cb457">
@@ -2752,6 +2697,11 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-3f9c3eac015894a734faa8068fd8c2a1" style="display:none">Info about the 'TypeError' external reference.</span><a href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror">https://webidl.spec.whatwg.org/#exceptiondef-typeerror</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-exceptiondef-typeerror">2.2. Registering a Worklet</a> <a href="#ref-for-exceptiondef-typeerror①">(2)</a> <a href="#ref-for-exceptiondef-typeerror②">(3)</a> <a href="#ref-for-exceptiondef-typeerror③">(4)</a> <a href="#ref-for-exceptiondef-typeerror④">(5)</a> <a href="#ref-for-exceptiondef-typeerror⑤">(6)</a>
+    <li><a href="#ref-for-exceptiondef-typeerror⑥">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-exceptiondef-typeerror⑦">(2)</a> <a href="#ref-for-exceptiondef-typeerror⑧">(3)</a> <a href="#ref-for-exceptiondef-typeerror⑨">(4)</a> <a href="#ref-for-exceptiondef-typeerror①⓪">(5)</a>
+    <li><a href="#ref-for-exceptiondef-typeerror①①">4.1.3. Run Operation Methods</a> <a href="#ref-for-exceptiondef-typeerror①②">(2)</a> <a href="#ref-for-exceptiondef-typeerror①③">(3)</a> <a href="#ref-for-exceptiondef-typeerror①④">(4)</a> <a href="#ref-for-exceptiondef-typeerror①⑤">(5)</a> <a href="#ref-for-exceptiondef-typeerror①⑥">(6)</a> <a href="#ref-for-exceptiondef-typeerror①⑦">(7)</a> <a href="#ref-for-exceptiondef-typeerror①⑧">(8)</a> <a href="#ref-for-exceptiondef-typeerror①⑨">(9)</a>
+    <li><a href="#ref-for-exceptiondef-typeerror②⓪">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-exceptiondef-typeerror②①">(2)</a> <a href="#ref-for-exceptiondef-typeerror②②">(3)</a> <a href="#ref-for-exceptiondef-typeerror②③">(4)</a> <a href="#ref-for-exceptiondef-typeerror②④">(5)</a> <a href="#ref-for-exceptiondef-typeerror②⑤">(6)</a> <a href="#ref-for-exceptiondef-typeerror②⑥">(7)</a> <a href="#ref-for-exceptiondef-typeerror②⑦">(8)</a> <a href="#ref-for-exceptiondef-typeerror②⑧">(9)</a> <a href="#ref-for-exceptiondef-typeerror②⑨">(10)</a> <a href="#ref-for-exceptiondef-typeerror③⓪">(11)</a>
+    <li><a href="#ref-for-exceptiondef-typeerror③①">4.2.2. Getter Methods</a> <a href="#ref-for-exceptiondef-typeerror③②">(2)</a> <a href="#ref-for-exceptiondef-typeerror③③">(3)</a>
+    <li><a href="#ref-for-exceptiondef-typeerror③④">4.2.3. Iteration</a> <a href="#ref-for-exceptiondef-typeerror③⑤">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-e270bcd7cdb4abe27bc3bb16a1975937" class="dfn-panel" data-for="e270bcd7cdb4abe27bc3bb16a1975937" id="infopanel-for-e270bcd7cdb4abe27bc3bb16a1975937">
@@ -2892,6 +2842,8 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="8941680dbae2de74bf6821b8c18fe6ba">origin <small>(for url)</small></span>
      <li><span class="dfn-paneled" id="415a479d0f2716a263c8aeb1eb9eccc2">parent</span>
      <li><span class="dfn-paneled" id="7dda08a341a002533188016c9ab2c2e9">promise</span>
+     <li><span class="dfn-paneled" id="8d16650a184a26d81e148cb157cca1a9">promise rejected</span>
+     <li><span class="dfn-paneled" id="caab08a991b65588cb3aa567e150914c">promise resolved</span>
      <li><span class="dfn-paneled" id="ffebca42635d9366dd093a2e716bf0a7">proxy map reference set</span>
      <li><span class="dfn-paneled" id="7e56922f5cbe4d3973ccc5e2dac6bc39">queue</span>
      <li><span class="dfn-paneled" id="2e5089d3e927d8ac2d7ecd6eb1d79329">quota <small>(for storage bottle)</small></span>
@@ -2919,7 +2871,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="c6a6e18a0bfb0f6727343f416cd90c01">unix epoch</span>
      <li><span class="dfn-paneled" id="dcf29be761156b598247854e294e3705">upon fulfillment</span>
      <li><span class="dfn-paneled" id="f4113d72a91aadf0789f9e5cf76669be">upon rejection</span>
-     <li><span class="dfn-paneled" id="16a92f623ebe9cfba0dc012666fa3fe3">url</span>
      <li><span class="dfn-paneled" id="9f1060e036985eef125ae551d5923654">url parser</span>
      <li><span class="dfn-paneled" id="98a8c263bf696e702c5230677356610b">user agent</span>
      <li><span class="dfn-paneled" id="81a3f446d4ec5b7ccd239f33895a87fc">web idl standard</span>
@@ -2943,13 +2894,12 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
     <a data-link-type="biblio">[URL]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="40b6c52ddb2a775a0eb7ff546dd9e8b6">URL</span>
+     <li><span class="dfn-paneled" id="fc05c76e016d3aec6a25a91c066500c8">url</span>
     </ul>
    <li>
     <a data-link-type="biblio">[WEBIDL]</a> defines the following terms:
     <ul>
-     <li><span class="dfn-paneled" id="0ab204fb9cc9a746edaff83c0db0740a">DOMException</span>
      <li><span class="dfn-paneled" id="d0f238a61de9310f1738a214749fab18">DOMString</span>
-     <li><span class="dfn-paneled" id="932ea4ef25c6e7fae06ef561c6e9532f">DataError</span>
      <li><span class="dfn-paneled" id="dde049eb112f043fc45407ec0d4cb457">Exposed</span>
      <li><span class="dfn-paneled" id="30e8367dc9a547b9096d98ba691987d9">FrozenArray</span>
      <li><span class="dfn-paneled" id="87854fa3332c5bf035dec1c1725d8450">Global</span>
@@ -3261,15 +3211,16 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-default-entry-lifetime" class="dfn-panel" data-for="default-entry-lifetime" id="infopanel-for-default-entry-lifetime">
    <span id="infopaneltitle-for-default-entry-lifetime" style="display:none">Info about the 'default entry lifetime' definition.</span><b><a href="#default-entry-lifetime">#default-entry-lifetime</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-default-entry-lifetime">3.3. The Database Algorithms</a>
+    <li><a href="#ref-for-default-entry-lifetime">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-default-entry-lifetime①">3.3. The Database Algorithms</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-shared-storage-database-store-an-entry-in-the-database" class="dfn-panel" data-for="shared-storage-database-store-an-entry-in-the-database" id="infopanel-for-shared-storage-database-store-an-entry-in-the-database">
    <span id="infopaneltitle-for-shared-storage-database-store-an-entry-in-the-database" style="display:none">Info about the 'store an entry in the database' definition.</span><b><a href="#shared-storage-database-store-an-entry-in-the-database">#shared-storage-database-store-an-entry-in-the-database</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-shared-storage-database-store-an-entry-in-the-database">3.2. The Shared Storage Database</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database①">(2)</a>
-    <li><a href="#ref-for-shared-storage-database-store-an-entry-in-the-database②">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database③">(2)</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database④">(3)</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑤">(4)</a>
-    <li><a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑥">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑦">(2)</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑧">(3)</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑨">(4)</a>
+    <li><a href="#ref-for-shared-storage-database-store-an-entry-in-the-database②">4.1.1. Window Setter/Deleter Methods</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database③">(2)</a>
+    <li><a href="#ref-for-shared-storage-database-store-an-entry-in-the-database④">4.2.1. Worklet Setter/Deleter Methods</a> <a href="#ref-for-shared-storage-database-store-an-entry-in-the-database⑤">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-shared-storage-database-retrieve-an-entry-from-the-database" class="dfn-panel" data-for="shared-storage-database-retrieve-an-entry-from-the-database" id="infopanel-for-shared-storage-database-retrieve-an-entry-from-the-database">
@@ -3312,7 +3263,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <aside aria-labelledby="infopaneltitle-for-shared-storage-database-purge-expired-entries-from-the-database" class="dfn-panel" data-for="shared-storage-database-purge-expired-entries-from-the-database" id="infopanel-for-shared-storage-database-purge-expired-entries-from-the-database">
    <span id="infopaneltitle-for-shared-storage-database-purge-expired-entries-from-the-database" style="display:none">Info about the 'purge expired entries from the database' definition.</span><b><a href="#shared-storage-database-purge-expired-entries-from-the-database">#shared-storage-database-purge-expired-entries-from-the-database</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-shared-storage-database-purge-expired-entries-from-the-database">3.2. The Shared Storage Database</a>
+    <li><a href="#ref-for-shared-storage-database-purge-expired-entries-from-the-database">3.2. The Shared Storage Database</a> <a href="#ref-for-shared-storage-database-purge-expired-entries-from-the-database①">(2)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-shared-storage-database-determine-whether-an-entry-is-expired" class="dfn-panel" data-for="shared-storage-database-determine-whether-an-entry-is-expired" id="infopanel-for-shared-storage-database-determine-whether-an-entry-is-expired">
@@ -3421,7 +3372,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
    <span id="infopaneltitle-for-default-index" style="display:none">Info about the 'default index' definition.</span><b><a href="#default-index">#default-index</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-default-index">4.1.2. Entropy Budget</a> <a href="#ref-for-default-index①">(2)</a> <a href="#ref-for-default-index②">(3)</a>
-    <li><a href="#ref-for-default-index③">4.1.3. Run Operation Methods</a> <a href="#ref-for-default-index④">(2)</a> <a href="#ref-for-default-index⑤">(3)</a> <a href="#ref-for-default-index⑥">(4)</a> <a href="#ref-for-default-index⑦">(5)</a>
+    <li><a href="#ref-for-default-index③">4.1.3. Run Operation Methods</a> <a href="#ref-for-default-index④">(2)</a> <a href="#ref-for-default-index⑤">(3)</a>
    </ul>
   </aside>
   <aside aria-labelledby="infopaneltitle-for-determine-remaining-budget" class="dfn-panel" data-for="determine-remaining-budget" id="infopanel-for-determine-remaining-budget">
