@@ -78,6 +78,8 @@ spec: html; urlPrefix: https://webidl.spec.whatwg.org
         text: upon fulfillment; url: upon-fulfillment
         text: upon rejection; url: upon-rejection
         text: promise; url: idl-promise
+        text: promise resolved; url: a-promise-resolved-with
+        text: promise rejected; url: a-promise-rejected-with
         text: dictionary; url: dfn-dictionary
         text: async iterator; url: idl-async-iterable
         text: asynchronous iterator initialization steps; url: asynchronous-iterator-initialization-steps
@@ -279,8 +281,7 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
     1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
     1. If |operationMap| [=map/contains=] an [=map/entry=] with [=map/key=] |name|, throw a {{TypeError}}.
     1. If |operationCtor| is missing, throw a {{TypeError}}.
-    1. Let |isConstructor| be the result of running [=IsConstructor()=] with |operationCtor|.
-    1. If |isConstructor| is false, throw a {{TypeError}}.
+    1. If the result of running [=IsConstructor()=] with |operationCtor| is false, throw a {{TypeError}}.
     1. Let |prototype| be the result of running |operationCtor|'s [=object/[[GetPrototypeOf]]()=] method.
     1. If |prototype| is not an [=object=], throw a {{TypeError}}.
     1. Let |run| be the result of running [=GetMethod()=] with |prototype| and "`run`".
@@ -372,7 +373,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   [=User agents=] may specify the <dfn for=value>maximum length</dfn> of a [=value struct/value=].
 
-  [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default [=duration=] between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires.
+  [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default [=duration=] between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires. If the [=user agent=] specifies a [=default entry lifetime=], then it should have a timer periodically [=shared storage database/purge expired entries from the database=].
 
   ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
 
@@ -395,13 +396,11 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return null.
+    1. If |databaseMap| is failure, then return false.
     1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
     1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-    1. Let |isExpired| be the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct|.
-    1. If |isExpired| is true, return undefined.
-    1. Let |value| be |valueStruct|'s [=value struct/value=].
-    1. Return |value|.
+    1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, return undefined.
+    1. Return |valueStruct|'s [=value struct/value=].
   </div>
 
   <div algorithm>
@@ -427,8 +426,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return undefined.
-    1. Let |entries| be the result of running [=map/getting the values=] on |databaseMap|.
-    1. Return |entries|.
+    1. Return the result of running [=map/getting the values=] on |databaseMap|.
   </div>
 
   <div algorithm>
@@ -436,8 +434,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return undefined.
-    1. Let |count| be |databaseMap|'s [=map/size=].
-    1. Return |count|.
+    1. Return |databaseMap|'s [=map/size=].
   </div>
 
   <div algorithm>
@@ -447,8 +444,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. If |databaseMap| is failure, then return false.
     1. For each [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-        1. Let |isExpired| be the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct|.
-        1. If |isExpired| is true, [=map/Remove=] |databaseMap|[|key|].
+        1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
     1. Return true.
   </div>
 
@@ -519,22 +515,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |options| is empty, create |options|.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be null.
-        1. If |options|["`ignoreIfPresent`"] is true:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| with undefined.
-            1. If |currentValue| is null, reject |promise|.
-            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| with undefined.
+        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined, return [=promise resolved=] with undefined.
+        1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -544,22 +532,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be null.
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is not failure:
+        1. If |currentValue| is false, return [=promise resolved=] with undefined.
+        1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
-            1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |newValue|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| with undefined.
+            1. Set |value| to the result of running [=string/concatenate=] on |list|.
+        1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -569,13 +555,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| with undefined.
+        1. Run [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
+        1. Resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -588,9 +573,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
-        1. If |result| is false, reject |promise|.
-        1. Otherwise, resolve |promise| with undefined.
+        1. Run [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
+        1. Resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -651,8 +635,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Let |timestamp| be |bitDebit|'s [=bit debit/timestamp=].
         1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
         1. If |timestamp| is greater than or equal to |threshold|, then increment |debitSum| by |debit|.
-    1. Let |remainingBudget| be |maxBits| minus |debitSum|.
-    1. Return |remainingBudget|.
+    1. Return |maxBits| minus |debitSum|.
   </div>
 
   A [=bit debit=] will need to be charged to the [=shared storage budget table=] for each top-frame navigation initiated by a fenced frame whose source was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage budget table=] if and when the resulting fenced frame initiates a top-frame navigation, the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
@@ -687,7 +670,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. If {{Worklet/addModule()}} has not yet been called, reject |promise|.
+    1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
     1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
     1. Run the following steps in |agent|:
@@ -709,21 +692,21 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
     1. Let |resultPromise| be a new [=promise=].
-    1. If |urls| is empty or exceeds the maximum allowed length, reject |resultPromise|.
+    1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}..
     1. Let |urlList| be an empty {{list}}.
     1. For each |urlWithMetadata| in |urls|:
-        1. If |urlWithMetadata| has no field "`url`", reject |resultPromise|.
+        1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}..
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. If |url| is not a valid {{URL}}, reject |resultPromise|.
+        1. If |url| is not a valid {{URL}}, return a [=promise rejected=] with a {{TypeError}}..
         1. Otherwise, [=list/append=] |urlString| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If |reportingMetadata| is invalid, reject |resultPromise|.
-    1. If {{Worklet/addModule()}} has not yet been called, reject |resultPromise|.
-    1. Let |fencedFrameConfig| be a {{FencedFrameConfig}}.
-    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with |fencedFrameConfig|.
-    1. Othewise, resolve |resultPromise| to |fencedFrameConfig|'s [=FencedFrameConfig/url=]. <span class=todo>[=FencedFrameConfig/url=] is probably not quite correct, but urn:uuid is not in the spec and is going away soon?</span> 
+            1. If |reportingMetadata| is invalid, return a [=promise rejected=] with a {{TypeError}}..
+    1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}..
+    1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Let |indexPromise| be a new [=promise=].
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
     1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
@@ -737,10 +720,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. [=list/Append=] |urlList| to |argumentsList|.
                 1. If |options| [=map/contains=] |data|, [=list/Append=] |data| to |argumentsList|.
                 1. If |options| contains |data|, let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
-                1. If there are no errors:
-                    1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}. If this throws an exception, catch it and set |index| back to [=default index=].
-                    1. If |index| is greater than |urlList|.[=list/size=], then set |index| back to [=default index=].
-        1. Resolve |indexPromise| with |index|.
+                1. If |operationResult| has any error(s), then reject |indexPromise| with a {{TypeError}}.
+                1. Otherwise:
+                    1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}. If this throws an exception, catch it and reject |indexPromise| with a {{TypeError}}.
+                    1. Otherwise, if |index| is greater than |urlList|.[=list/size=], then reject |indexPromise| with a {{TypeError}}.
+        1. If |indexPromise| has not been rejected, resolve |indexPromise| with |index|.
         1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
             1. Let |resultIndex| be the numerical value of |indexPromise|.
             1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -752,9 +736,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. Let |listSize| be |urlList|'s [=list/size=].
             1. Let |pendingBits| be the logarithm base 2 of |listSize|.
             1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
-            1. Set |fencedFrameConfig|'s [=pending shared storage budget debit=] to |pendingBits|.
-            1. Set |fencedFrameConfig|'s [=FencedFrameConfig/url=] to |urlList|[|resultIndex|].
-        1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfig|'s [=FencedFrameConfig/url=] to |urlList|[[=default index=]].
+            1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
+            1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
+        1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
     1. Return |resultPromise|.
     1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |resultPromise| or [=upon rejection=] of |resultPromise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
@@ -782,21 +766,16 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |options| is invalid, reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |options| is empty, create |options|.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be null.
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-            1. If |currentValue| is not null and |currentValue| is not undefined, resolve |promise| with undefined.
-            1. Otherwise, if |currentValue| is null, reject |promise|.
-            1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. If |result| is false, reject |promise|.
+            1. If |currentValue| is false, return a [=promise rejected=] with a {{TypeError}}.
+            1. If |currentValue| is not undefined, return a [=promise resolved=] with undefined.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -807,21 +786,19 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
-    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be null.
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is not failure:
+        1. If |currentValue| is false, return [=promise rejected=] with a {{TypeError}}.
+        1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
-            1. Let |newValue| be the result of running [=string/concatenate=] on |list|.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |newValue|.
-        1. Otherwise, let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|..
-        1. If |result| is false, reject |promise|.
+            1. Set |value| to the result of running [=string/concatenate=] on |list|.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -832,12 +809,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |result| is false, reject |promise|.
+        1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -851,8 +827,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
-        1. If |result| is false, reject |promise|.
+        1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -865,13 +840,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. [=Assert=] that |context| is not null.
-    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], reject |promise| with a "{{DataError}}" {{DOMException}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |value| is null, reject |promise|.
-        1. If |value| is undefined, resolve |promise| with undefined.
+        1. If |value| is null, reject |promise| with a {{TypeError}}.
+        1. Otherwise, if |value| is undefined, resolve |promise| with undefined.
         1. Otherwise, resolve |promise| with |value|.
     1. Return |promise|.
   </div>
@@ -885,7 +860,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
-        1. If |numEntries| is undefined, reject |promise|.
+        1. If |numEntries| is undefined, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with |numEntries|.
     1. Return |promise|.
   </div>
@@ -924,7 +899,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |queue| and |environment|.
-        1. If |entries| is failure, reject |promise|.
+        1. If |entries| is failure, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with |entries|.
     1. [=Upon fulfillment=] of |promise|, run the following:
         1. Let |promiseEntries| be the value of |promise|.
@@ -937,7 +912,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. [=Enqueue the following steps=]:
-        1. If |iterator|'s [=WorkletSharedStorageIterator/error=] is true, reject |promise|.
+        1. If |iterator|'s [=WorkletSharedStorageIterator/error=] is true, return a [=promise rejected=] with a {{TypeError}}.
         1. If |iterator|'s [=WorkletSharedStorageIterator/pending entries=] is [=list/empty=]:
             1. Create an object |doneObject|.
             1. Resolve |promise| with |doneObject|.
