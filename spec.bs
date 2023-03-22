@@ -629,7 +629,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Return |maxBits| minus |debitSum|.
   </div>
 
-  <div algoritm>
+  <div algorithm>
     To <dfn>check whether a bit debit is expired</dfn>, given a [=bit debit=] |bitDebit|, run the following steps:
 
     1. Let |epochLength| be [=budget lifetime=].
