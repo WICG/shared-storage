@@ -384,10 +384,8 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. If |databaseMap| is failure, then return false.
     1. Let |valueStruct| be a new [=entry/value struct=].
     1. Set |valueStruct|'s [=value struct/value=] to |value|.
-    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
-    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
-    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
-    1. Set |valueStruct|'s [=value struct/last updated=] to |fromUnixEpochTime|.
+    1. Let |currentTime| be the [=current wall time=].
+    1. Set |valueStruct|'s [=value struct/last updated=] to |currentTime|.
     1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
     1. Return true.
   </div>
@@ -455,13 +453,10 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Let |lastUpdated| be |valueStruct|'s [=value struct/last updated=].
     1. Let |lifetime| be [=user agent=]'s [=default entry lifetime=].
     1. Let |expiration| be the sum of |lastUpdated| and |lifetime|.
-    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
-    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
-    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
-    1. If |expiration| is less than or equal to |fromUnixEpochTime|, return true.
+    1. Let |currentTime| be the [=current wall time=].
+    1. If |expiration| is less than or equal to |currentTime|, return true.
     1. Otherwise, return false.
   </div>
-
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
 ==========================================================
@@ -596,6 +591,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
 
+  [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
+
   When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage budget table=].
 
   A [=calling origin=]'s <dfn for="calling origin">remaining budget</dfn> is the [=entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=budget epoch=].
@@ -625,18 +622,23 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |maxBits| be the value of the [=user agent=]'s [=entropy allowance=].
     1. If the [=user agent=]'s [=shared storage budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
     1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
-    1. Let |epochLength| be [=budget lifetime=].
-    1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
-    1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
-    1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
-    1. Let |threshold| be |fromUnixEpochTime| minus |epochLength|.
     1. Let |debitSum| be 0.
     1. For each [=list/item=] |bitDebit| in |ledger|, do the following steps:
-        1. Let |timestamp| be |bitDebit|'s [=bit debit/timestamp=].
         1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
-        1. If |timestamp| is greater than or equal to |threshold|, then increment |debitSum| by |debit|.
+        1. If the result of running [=check whether a bit debit is expired=] with |bitDebit| is false, then increment |debitSum| by |debit|.
     1. Return |maxBits| minus |debitSum|.
   </div>
+
+  <div algoritm>
+    To <dfn>check whether a bit debit is expired</dfn>, given a [=bit debit=] |bitDebit|, run the following steps:
+
+    1. Let |epochLength| be [=budget lifetime=].
+    1. Let |currentTime| be the [=current wall time=].
+    1. Let |threshold| be |currentTime| minus |epochLength|.
+    1. If |bitDebit|'s [=bit debit/timestamp=] is less than |threshold|, return true.
+    1. Otherwise, return false.
+  </div>
+
 
   A [=bit debit=] will need to be charged to the [=shared storage budget table=] for each top-frame navigation initiated by a fenced frame whose source was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage budget table=] if and when the resulting fenced frame initiates a top-frame navigation, the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
 
@@ -655,13 +657,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. Let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
-                1. Let |unsafeMoment| be the [=wall clock=]'s [=wall clock/unsafe current time=].
-                1. Let |moment| be the result of running [=coarsen time=] algorithm given |unsafeMoment| and [=wall clock=] as input.
-                1. Let |fromUnixEpochTime| be the [=duration from=] the [=Unix epoch=] to |moment|.
-                1. Set |bitDebit|'s [=bit debit/timestamp=] to |fromUnixEpochTime|.
+                1. Let |currentTime| be the [=current wall time=].
+                1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
                 1. Set |node|'s {{FencedFrameConfig}}'s [=pending shared storage budget debit=] to 0.
         1. Set |node| to |node|'s [=navigable/parent=].
+  </div>
+
+  A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
+  <div algorithm>
+    To <dfn>purge expired bit debits from all entropy ledgers</dfn>, run the following steps:
+
+    1. For each <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage budget table=]:
+        1. For each |bitDebit| in |ledger|:
+            1. If the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
   </div>
 
   ### Run Operation Methods ### {#run-op}
@@ -698,13 +707,17 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}..
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. If |url| is not a valid {{URL}}, return a [=promise rejected=] with a {{TypeError}}..
-        1. Otherwise, [=list/append=] |urlString| to |urlList|.
+        1. If |url| is not a valid {{URL}}, return a [=promise rejected=] with a {{TypeError}}.
+        1. Let |serializedUrl| be the result of running a [=URL serializer=] on |url|.
+        1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
             1. If |reportingMetadata| is invalid, return a [=promise rejected=] with a {{TypeError}}..
     1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}..
     1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+
+    Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
+
     1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Let |indexPromise| be a new [=promise=].
@@ -718,8 +731,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1.  Let |operation| be |operationMap|[|name|].
                 1. Let |argumentsList| be a new [=list=].
                 1. [=list/Append=] |urlList| to |argumentsList|.
-                1. If |options| [=map/contains=] |data|, [=list/Append=] |data| to |argumentsList|.
-                1. If |options| contains |data|, let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
+                1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
+                1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
                 1. If |operationResult| has any error(s), then reject |indexPromise| with a {{TypeError}}.
                 1. Otherwise:
                     1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}. If this throws an exception, catch it and reject |indexPromise| with a {{TypeError}}.
