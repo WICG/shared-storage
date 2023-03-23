@@ -232,10 +232,10 @@ Each {{SharedStorageWorklet}} has an associated boolean <dfn>module added</dfn>,
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=module added=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} for a {{SharedStorageWorklet}}, it will run [=check and update module added status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} for a {{SharedStorageWorklet}}, it will run [=check if module added and update status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
 
   <div algorithm>
-    To <dfn>check and update module added status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
+    To <dfn>check if module added and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
 
     1. If |worklet|'s [=module added=] is true, return true.
     1. Otherwise, set {{Worklet}}'s [=module added=] to true.
@@ -248,7 +248,7 @@ When {{Worklet/addModule()}} for a {{SharedStorageWorklet}}, it will run [=check
 
   In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
 
-    0. If {{Worklet}} has an associated boolean [=module added=], and the result of running [=check and update module added status=] on {{Worklet}} is true, return a [=promise rejected=] with a {{TypeError}}.
+    0. If {{Worklet}} has an associated boolean [=module added=], and the result of running [=check if module added and update status=] on {{Worklet}} is true, return a [=promise rejected=] with a {{TypeError}}.
 
   <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
 
@@ -390,7 +390,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   A [=/browsing context=] has an associated <dfn>shared storage database</dfn>, which provides methods to [=shared storage database/store an entry in the database|store=], [=shared storage database/retrieve an entry from the database|retrieve=], [=shared storage database/delete an entry from the database|delete=], [=shared storage database/clear all entries in the database|clear=], and [=shared storage database/purge expired entries from the database|purge expired=] data, and additional methods as below. The data in the [=shared storage database|database=] take the form of [=shared storage database/entry|entries=].
 
-  Each [=shared storage database=] has a <dfn for="shared storage database">shared storage database queue</dfn>, which is the result of [=start a new parallel queue|starting a new parallel queue=], on which the each of the [=shared storage database=]'s methods run when calls to them are initiated from that [=/browsing context=].
+  Each [=shared storage database=] has a <dfn for="shared storage database">shared storage database queue</dfn>, which is the result of [=start a new parallel queue|starting a new parallel queue=]. This [=shared storage database queue|queue=] is used to run each of the [=shared storage database=]'s methods when calls to them are initiated from that [=/browsing context=].
 
   Each <dfn for="shared storage database">entry</dfn> consists of a [=entry/key=] and a [=entry/value struct=].
 
@@ -425,7 +425,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return false.
+    1. If |databaseMap| is failure, then return failure.
     1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
     1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
     1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, return undefined.
@@ -454,7 +454,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return undefined.
+    1. If |databaseMap| is failure, then return failure.
     1. Return the result of running [=map/getting the values=] on |databaseMap|.
   </div>
 
@@ -462,7 +462,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">count entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return undefined.
+    1. If |databaseMap| is failure, then return failure.
     1. Return |databaseMap|'s [=map/size=].
   </div>
 
@@ -471,7 +471,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return false.
-    1. For each [=entry/key=] |key| in |databaseMap|:
+    1. [=map/iterate|For each=] [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
         1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
     1. Return true.
@@ -548,7 +548,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined, return [=promise resolved=] with undefined.
+        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined, resolve |promise| with undefined and abort these steps.
         1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
         1. Resolve |promise| with undefined.
     1. Return |promise|.
@@ -566,7 +566,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is false, return [=promise resolved=] with undefined.
+        1. If |currentValue| is failure, resolve |promise| with undefined and abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
@@ -626,7 +626,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. If |reportingMetadata| is [=map/empty=], return true.
     1. If |reportingMetadata| is not a [=dictionary=], return false.
-    1. For each <var ignore="">eventType</var> -> |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
+    1. [=map/iterate|For each=] <var ignore="">eventType</var> -> |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
     1. Return true.
   </div>
 
@@ -644,7 +644,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |reportingMetadata| is [=map/empty=], return.
     1. [=Assert=] that |reportingMetadata| is a [=dictionary=].
     1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
-    1. For each |eventType| -> |urlString| of |reportingMetadata|:
+    1. [=map/iterate|For each=] |eventType| -> |urlString| of |reportingMetadata|:
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
         1. [=Assert=] that |url| is a valid {{URL}}.
         1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
@@ -705,7 +705,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If the [=user agent=]'s [=shared storage navigation budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
     1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|origin|].
     1. Let |debitSum| be 0.
-    1. For each [=list/item=] |bitDebit| in |ledger|, do the following steps:
+    1. [=map/iterate|For each=] [=list/item=] |bitDebit| in |ledger|, do the following steps:
         1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
         1. If the result of running [=check whether a bit debit is expired=] with |bitDebit| is false, then increment |debitSum| by |debit|.
     1. Return |maxBits| minus |debitSum|.
@@ -794,8 +794,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     To <dfn>purge expired bit debits from all navigation entropy ledgers</dfn>, run the following steps:
 
-    1. For each <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
-        1. For each |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
+    1. [=map/iterate|For each=] <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
+        1. [=map/iterate|For each=] |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
   </div>
 
   ### Run Operation Methods ### {#run-op}
@@ -828,7 +828,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |resultPromise| be a new [=promise=].
     1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |urlList| be an empty {{list}}.
-    1. For each |urlWithMetadata| in |urls|:
+    1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
         1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}.
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
         1. Let |serializedUrl| be the result of running [=get the canonical URL string if valid=] with |urlString|.
@@ -836,8 +836,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}.
+            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |promise| with a {{TypeError}} and abort these steps.
+    1. If {{Worklet/addModule()}} has not yet been called, reject |promise| with a {{TypeError}} and abort these steps.
     1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
 
     Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
@@ -912,8 +912,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-            1. If |currentValue| is false, return a [=promise rejected=] with a {{TypeError}}.
-            1. If |currentValue| is not undefined, return a [=promise resolved=] with undefined.
+            1. If |currentValue| is failure, reject |promise| with a {{TypeError}} and abort these steps.
+            1. If |currentValue| is not undefined, resolve |promise| with undefined and abort these steps.
         1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with undefined.
     1. Return |promise|.
@@ -931,7 +931,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is false, return [=promise rejected=] with a {{TypeError}}.
+        1. If |currentValue| is failure, reject |promise| with a {{TypeError}} and abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
@@ -984,7 +984,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |value| is null, reject |promise| with a {{TypeError}}.
+        1. If |value| is failure, reject |promise| with a {{TypeError}}.
         1. Otherwise, if |value| is undefined, resolve |promise| with undefined.
         1. Otherwise, resolve |promise| with |value|.
     1. Return |promise|.
@@ -999,7 +999,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
-        1. If |numEntries| is undefined, reject |promise| with a {{TypeError}}.
+        1. If |numEntries| is failure, reject |promise| with a {{TypeError}}.
         1. Otherwise, resolve |promise| with |numEntries|.
     1. Return |promise|.
   </div>
@@ -1042,7 +1042,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Otherwise, resolve |promise| with |entries|.
     1. [=Upon fulfillment=] of |promise|, run the following:
         1. Let |promiseEntries| be the value of |promise|.
-        1. For each [=shared storage database/entry=] |entry| in |promiseEntries|, [=queue/enqueue=] |entry| in |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
+        1. [=map/iterate|For each=] [=shared storage database/entry=] |entry| in |promiseEntries|, [=queue/enqueue=] |entry| in |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
     1. [=Upon rejection=] of |promise|, set |iterator|'s [=WorkletSharedStorageIterator/error=] to true.
   </div>
 
@@ -1054,8 +1054,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |iterator|'s [=WorkletSharedStorageIterator/error=] is true, return a [=promise rejected=] with a {{TypeError}}.
         1. If |iterator|'s [=WorkletSharedStorageIterator/pending entries=] is [=list/empty=]:
             1. Create an object |doneObject|.
-            1. Resolve |promise| with |doneObject|.
-        1. Let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
+            1. Resolve |promise| with |doneObject| and abort these steps.
+        1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
         1. Resolve |promise| with |entry|.
     1. Return |promise|.
   </div>
