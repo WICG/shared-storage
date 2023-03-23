@@ -17,6 +17,7 @@ spec:url; type:interface; text:URL
 <pre class="anchors">
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
+        text: worklets; url: worklets.html#worklets
         text: relevant settings object; url: webappapis.html#relevant-settings-object
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
         text: environment; url: webappapis.html#environment
@@ -31,6 +32,9 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: browsing context; for: Window; url: webappapis.html#window-bc
         text: node navigable; url: webappapis.html#node-navigable
         text: parent; for: navigable; url: webappapis.html#nav-parent
+        text: get the top-level traversable; url: webappapis.html#nav-top
+        text: top-frame; url: webappapis.html#top-level-traversable
+        text: top-level traversable; url: webappapis.html#top-level-traversable
         text: opaque origin; url: browsers.html#concept-opaque-origin
         text: worklet global scope type; url: worklets.html#worklet-global-scope-type
         text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
@@ -104,6 +108,9 @@ spec: html; urlPrefix: https://storage.spec.whatwg.org/
         text: storage proxy map; url: storage-proxy-map
         text: backing map; url: storage-proxy-map-backing-map
         text: proxy map reference set; url: storage-bottle-proxy-map-reference-set
+spec: html; urlPrefix: https://w3c.github.io/beacon/
+    type: dfn
+        text: beacon; url: beacon
 spec: html; urlPrefix: https://tc39.es/ecma262/
     type: dfn
         text: object; url: sec-object-type
@@ -121,6 +128,11 @@ spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
+        text: fence.reportEvent(); url: dom-fence-reportevent
+        text: FenceEvent; url: dictdef-fenceevent
+        text: destination; for: FenceEvent; url: dom-fenceevent-destination
+        text: eventData; for: FenceEvent; url: dom-fenceevent-eventdata
+        text: eventType; for: FenceEvent; url: dom-fenceevent-eventtype
     type: interface
         text: FencedFrameConfig; url: fencedframeconfig
 spec: md; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
@@ -163,9 +175,9 @@ Introduction {#intro}
 =====================
 <em>This section is not normative.</em>
 
-In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by top-frame site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
+In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-frame=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, such as in a [=fenced frame=] or via the [=private aggregation|private aggregation service=]. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-frame=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, such as in a [=fenced frame=] or via the [=private aggregation|private aggregation service=]. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -216,6 +228,30 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
   };
 </xmp>
 
+Each {{SharedStorageWorklet}} has an associated boolean <dfn>module added</dfn>, initialized to false.
+
+Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=module added=] boolean makes it possible to enforce this restriction.
+
+When {{Worklet/addModule()}} for a {{SharedStorageWorklet}}, it will run [=check and update module added status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+
+  <div algorithm>
+    To <dfn>check and update module added status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
+
+    1. If |worklet|'s [=module added=] is true, return true.
+    1. Otherwise, set {{Worklet}}'s [=module added=] to true.
+    1. Return false.
+  </div>
+
+  ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
+
+  This specification will make some modifications to the [=Worklet=] standard to accommodate the needs of Shared Storage.
+
+  In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
+
+    0. If {{Worklet}} has an associated boolean [=module added=], and the result of running [=check and update module added status=] on {{Worklet}} is true, return a [=promise rejected=] with a {{TypeError}}.
+
+  <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
+
   ## The {{SharedStorageWorkletGlobalScope}} ## {#global-scope}
 
   The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}. 
@@ -253,7 +289,7 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
   The {{SharedStorageRunOperation}} is designed to work with output gates that do not need a return value, like the [=private aggregation=] service. A {{SharedStorageRunOperation}} performs an async operation and returns a promise that resolves to undefined.
 
-  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these {{URL}}s should be selected.
+  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these {{URL}}s should be selected.
 
   <xmp class='idl'>
     [Exposed=SharedStorageWorklet]
@@ -265,11 +301,6 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
     interface SharedStorageSelectURLOperation : SharedStorageOperation {
       Promise<long> run(object data,
                         FrozenArray<SharedStorageUrlWithMetadata> urls);
-    };
-
-    dictionary SharedStorageUrlWithMetadata {
-      USVString url;
-      object reportingMetadata;
     };
   </xmp>
 
@@ -293,7 +324,7 @@ Shared Storage's Backend {#backend}
 ===================================
 The Shared Storage API will integrate into the [=Storage Model|Storage API=] as below, via [=storage endpoint/registering=] a new [=storage endpoint=].
 
-  ## Monkey Patch for the [=Storage Model=] ## {#monkey-patch}
+  ## Monkey Patch for the [=Storage Model=] ## {#storage-monkey-patch}
 
   This standard will add a new [=storage type=] "`shared`" to the [=Storage Model=].
 
@@ -490,11 +521,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
   The {{WindowSharedStorage}} interface is as follows.
 
 <xmp class='idl'>
+  typedef (USVString or FencedFrameConfig) SharedStorageResponse;
+
   [Exposed=(Window)]
   interface WindowSharedStorage : SharedStorage {
     Promise<any> run(DOMString name,
                      optional SharedStorageRunOperationMethodOptions options = {});
-    Promise<FencedFrameConfig> selectURL(DOMString name,
+    Promise<SharedStorageResponse> selectURL(DOMString name,
                                  FrozenArray<SharedStorageUrlWithMetadata> urls,
                                  optional SharedStorageRunOperationMethodOptions options = {});
 
@@ -573,55 +606,104 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Return |promise|.
   </div>
 
-  ### Entropy Budget ### {#budget}
+  ### {{SharedStorageUrlWithMetadata}} and Reporting ### {#reporting}
 
-  Because [=bits of entropy=] can leak via {{WindowSharedStorage/selectURL()}} if a user activates the fenced frame from the resulting {{FencedFrameConfig}}, there is a per-[=calling origin=] [=entropy allowance=].
+  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a {{URL}} and, optionally, a {{reportingMetadata}} {{/object}}.
+
+  <xmp class='idl'>
+    dictionary SharedStorageUrlWithMetadata {
+      required USVString url;
+      object reportingMetadata;
+    };
+  </xmp>
+
+  If a {{SharedStorageUrlWithMetadata}} {{/object}} contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are [=FenceEvent/eventTypes=] and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these [=FenceEvent/eventType=]-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{WindowSharedStorage/selectURL()}} call.
+
+  Inside a [=fenced frame=] with [=FenceEvent/eventType=]-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{WindowSharedStorage/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if [=fence.reportEvent()=] is called on a [=FenceEvent=] with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`" and that [=FenceEvent=]'s corresponding [=FenceEvent/eventType=] is triggered, then the [=FenceEvent=]'s [=FenceEvent/eventData=] will be sent as a [=beacon=] to the registered [=/URL=] for that [=FenceEvent/eventType=].
+
+  <div algorithm>
+    To <dfn>validate reporting metadata</dfn>, given an {{/object}} |reportingMetadata|, run the following steps:
+
+    1. If |reportingMetadata| is [=map/empty=], return true.
+    1. If |reportingMetadata| is not a [=dictionary=], return false.
+    1. For each <var ignore="">eventType</var> -> |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
+    1. Return true.
+  </div>
+
+  <div algorithm>
+    To <dfn>get the canonical URL string if valid</dfn>, given a [=string=] |urlString|, run the following steps:
+
+    1. Let |url| be the result of running a [=URL parser=] on |urlString|.
+    1. If |url| is not a valid {{URL}}, return undefined.
+    1. Otherwise, return the result of running a [=URL serializer=] on |url|.
+  </div>
+
+  <div algorithm>
+    To <dfn>register reporting metadata</dfn>, given an {{/object}} |reportingMetadata| and a "fenced frame config struct" |fencedFrameConfigStruct|, run the following steps:
+
+    1. If |reportingMetadata| is [=map/empty=], return.
+    1. [=Assert=] that |reportingMetadata| is a [=dictionary=].
+    1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
+    1. For each |eventType| -> |urlString| of |reportingMetadata|:
+        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
+        1. [=Assert=] that |url| is a valid {{URL}}.
+        1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
+    1. <span class=todo>Store |reportingUrlMap| inside a "fenced frame reporter" class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [=fenced frame|Fenced Frame specification=].</span>
+  </div>
+
+  ### Entropy Budgets ### {#budgets}
+
+  Because [=bits of entropy=] can leak via {{WindowSharedStorage/selectURL()}}, the [=user agent=] will need to maintain budgets to limit these leaks.
+
+  #### Navigation Entropy Budget #### {#nav-budget}
+
+  If a user activates a [=fenced frame=] whose {{FencedFrameConfig}} was generated by {{WindowSharedStorage/selectURL()}} and thereby initiates a [=top-frame=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{WindowSharedStorage/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling origin=] [=navigation entropy allowance=].
 
   A <dfn>calling origin</dfn> for {{WindowSharedStorage/selectURL()}} is the [=url/origin=] of an [=environment=] that makes a {{WindowSharedStorage/selectURL()}} call.
 
-  A <dfn>entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak during a given [=budget epoch=] and for a given calling [=calling origin=]. This [=entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling origin=]-agnostic.
+  A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-frame=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=calling origin=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling origin=]-agnostic.
 
-  A [=user agent=] will define a fixed predetermined [=duration=] <dfn>budget lifetime</dfn>.
+  A [=user agent=] will define a fixed predetermined [=duration=] <dfn>navigation budget lifetime</dfn>.
 
-  An <dfn>budget epoch</dfn> is any interval of time whose [=duration=] is the [=budget lifetime=].
+  An <dfn>navigation budget epoch</dfn> is any interval of time whose [=duration=] is the [=navigation budget lifetime=].
 
-  To keep track of how this [=entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage budget table</dfn>, which is a [=map=] of [=calling origins=] to [=entropy ledgers=].
+  To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling origins=] to [=navigation entropy ledgers=].
 
-  An <dfn>entropy ledger</dfn> is a [=list=] of [=bit debits=].
+  An <dfn>navigation entropy ledger</dfn> is a [=list=] of [=bit debits=].
 
   A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
 
-  [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
+  [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=navigation budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
 
-  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage budget table=].
+  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling origin=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage navigation budget table=].
 
-  A [=calling origin=]'s <dfn for="calling origin">remaining budget</dfn> is the [=entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=budget epoch=].
+  A [=calling origin=]'s <dfn for="calling origin">remaining navigation budget</dfn> is the [=navigation entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=navigation budget epoch=].
 
   {{WindowSharedStorage/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
 
-  When an [=calling origin=] has insufficient [=calling origin/remaining budget=], {{WindowSharedStorage/selectURL()}} will return a {{FencedFrameConfig}} for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
+  When an [=calling origin=] has insufficient [=calling origin/remaining navigation budget=], {{WindowSharedStorage/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or an opaque [=/URL=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
 
   The <dfn>default index</dfn> for a call to {{WindowSharedStorage/selectURL()}} is implementation-defined in such a way that it is independent from the result of the associated {{SharedStorageSelectURLOperation}}'s "`run`" method.
 
   <div class="example">
     The [=default index=] could be defined to be 0.
 
-    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling origin/remaining budget=], the "`run`" method would return 0, and hence {{WindowSharedStorage/selectURL()}} would return the first {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
+    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling origin/remaining navigation budget=], the "`run`" method would return 0, and hence {{WindowSharedStorage/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
   </div>
 
   <div class="example">
     The [=default index=] could be defined to be [=selectURL/input URL list=]'s [=list/size=] minus 1.
 
-    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling origin/remaining budget=], {{WindowSharedStorage/selectURL()}} would return the last {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
+    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling origin/remaining navigation budget=], {{WindowSharedStorage/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
   </div>
 
   <div algorithm>
-    To <dfn>determine remaining budget</dfn>, given a calling [=calling origin=] |origin|, run the following steps:
+    To <dfn>determine remaining navigation budget</dfn>, given a calling [=calling origin=] |origin|, run the following steps:
 
     1. If |origin| is [=opaque origin|opaque=], return undefined.
-    1. Let |maxBits| be the value of the [=user agent=]'s [=entropy allowance=].
-    1. If the [=user agent=]'s [=shared storage budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
-    1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
+    1. Let |maxBits| be the [=user agent=]'s [=navigation entropy allowance=].
+    1. If the [=user agent=]'s [=shared storage navigation budget table=] does not [=map/contain=] |origin|, then return |maxBits|.
+    1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|origin|].
     1. Let |debitSum| be 0.
     1. For each [=list/item=] |bitDebit| in |ledger|, do the following steps:
         1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
@@ -632,7 +714,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     To <dfn>check whether a bit debit is expired</dfn>, given a [=bit debit=] |bitDebit|, run the following steps:
 
-    1. Let |epochLength| be [=budget lifetime=].
+    1. Let |epochLength| be the [=user agent=]'s [=navigation budget lifetime=].
     1. Let |currentTime| be the [=current wall time=].
     1. Let |threshold| be |currentTime| minus |epochLength|.
     1. If |bitDebit|'s [=bit debit/timestamp=] is less than |threshold|, return true.
@@ -640,37 +722,80 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
 
-  A [=bit debit=] will need to be charged to the [=shared storage budget table=] for each top-frame navigation initiated by a fenced frame whose source was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage budget table=] if and when the resulting fenced frame initiates a top-frame navigation, the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
+  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-frame=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
 
-  Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage budget=] algorithm.
+  Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
+
+  Issue: The "fenced frame config struct" and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
-    To <dfn>charge shared storage budget</dfn> during a [=beginning navigation|navigation=] with [=navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
+    To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
 
     1. If |navigable| is not a [=navigable/traversable navigable=], return.
     1. Let |node| be |sourceDocument|'s [=node navigable=].
     1. While |node| is not null:
-        1. If |node| has a {{FencedFrameConfig}}:
+        1. If |node| has a "fenced frame config struct":
             1. Let |origin| be |node|'s [=active document=]'s [=document/origin=].
-            1. Let |pendingBits| be |node|'s {{FencedFrameConfig}}'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0, run the following steps:
-                1. Let |ledger| be [=user agent=]'s [=shared storage budget table=][|origin|].
+            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has navigated=] is false, run the following steps:
+                1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|origin|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
                 1. Let |currentTime| be the [=current wall time=].
                 1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
-                1. Set |node|'s {{FencedFrameConfig}}'s [=pending shared storage budget debit=] to 0.
+                1. Set |node|'s "fenced frame config struct"'s [=has navigated=] to true.
         1. Set |node| to |node|'s [=navigable/parent=].
   </div>
 
-  A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
-  <div algorithm>
-    To <dfn>purge expired bit debits from all entropy ledgers</dfn>, run the following steps:
+  #### Reporting Entropy Budget #### {#report-budget}
 
-    1. For each <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage budget table=]:
-        1. For each |bitDebit| in |ledger|:
-            1. If the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
+  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{WindowSharedStorage/selectURL()}} whose [=FenceEvent/destination=] [=list/contains=] "`shared-storage-select-url`" and whose [=FenceEvent/eventType=] is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s lifecycle.
+
+  A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fence.reportEvent()=] during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
+
+  Each [=top-level traversable=] will have a new {{double}} <dfn>shared storage reporting budget</dfn> associated to it which will be initialized with the value of [=user agent=]'s [=reporting entropy allowance=] upon [=top-level traversable=]'s creation. 
+
+  When [=fence.reportEvent()=] is called with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
+
+  <div algorithm>
+    To <dfn>determine reporting budget to charge</dfn>, given a {{Document}} |sourceDocument|, run the following steps:
+
+    1. Let |debitSum| be 0.
+    1. Let |node| be |sourceDocument|'s [=node navigable=].
+    1. While |node| is not null:
+        1. If |node| has a "fenced frame config struct":
+            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has reported=] is false, increment |debitSum| by |pendingBits|
+        1. Set |node| to |node|'s [=navigable/parent=].
+    1. Return |debitSum|.
+  </div>
+
+
+  Issue: The "fenced frame config struct" and its boolean <dfn>has reported</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+
+  <div algorithm>
+    To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
+
+    1. Let |toCharge| be the result of running [=determine reporting budget to charge=] with |sourceDocument|.
+    1. Let |node| be |sourceDocument|'s [=node navigable=].
+    1. Let |topNode| be the result of running [=get the top-level traversable=] for |node|.
+    1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
+    1. While |node| is not null:
+        1. If |node| has a "fenced frame config struct" and if |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=] is greater than 0, set |node|'s "fenced frame config struct"'s [=has reported=] to true.
+        1. Set |node| to |node|'s [=navigable/parent=].
+    1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
+    1. Return true.
+  </div>
+
+
+  A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
+
+  <div algorithm>
+    To <dfn>purge expired bit debits from all navigation entropy ledgers</dfn>, run the following steps:
+
+    1. For each <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
+        1. For each |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
   </div>
 
   ### Run Operation Methods ### {#run-op}
@@ -701,19 +826,18 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
     1. Let |resultPromise| be a new [=promise=].
-    1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}..
+    1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |urlList| be an empty {{list}}.
     1. For each |urlWithMetadata| in |urls|:
-        1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}..
+        1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}.
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
-        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. If |url| is not a valid {{URL}}, return a [=promise rejected=] with a {{TypeError}}.
-        1. Let |serializedUrl| be the result of running a [=URL serializer=] on |url|.
+        1. Let |serializedUrl| be the result of running [=get the canonical URL string if valid=] with |urlString|.
+        1. If |serializedUrl| is undefined, return a [=promise rejected=] with a {{TypeError}}.
         1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If |reportingMetadata| is invalid, return a [=promise rejected=] with a {{TypeError}}..
-    1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}..
+            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
 
     Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
@@ -744,13 +868,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=Assert=] that |context| is not null.
             1. Let |origin| be |context|'s [=active document=]'s [=url/origin=].
             1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
-            1. Let |remainingBudget| be the result of running [=determine remaining budget=] with |origin|.
+            1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
             1. [=Assert=] that |remainingBudget| is not undefined.
             1. Let |listSize| be |urlList|'s [=list/size=].
             1. Let |pendingBits| be the logarithm base 2 of |listSize|.
             1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
             1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
             1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
+            1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
+            1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
         1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
     1. Return |resultPromise|.
     1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |resultPromise| or [=upon rejection=] of |resultPromise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
@@ -888,7 +1014,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
     1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |remainingBudget| be the result of running [=determine remaining budget=] with |origin|.
+        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
         1. [=Assert=] that |remainingBudget| is not undefined.
         1. Resolve |promise| with |remainingBudget|.
     1. Return |promise|.
@@ -936,6 +1062,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
 Privacy Considerations {#privacy}
 =================================
-  <span class=todo>Add privacy considerations.</span>
 
-  The Shared Storage API enforces the privacy of cross-site data by limiting its output.
+  The Shared Storage API attempts to provide the ability to use cross-site data for a range of use cases in a way that better protects user privacy than the use of third-party cookies. Shared Storage's main privacy safeguard is that read access of the data stored in its storage may only occur within an embedder's {{SharedStorageWorklet}}. Well-defined limits restrict output of data from the {{SharedStorageWorklet}} to a minimum.
+
+  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-frame=] [=navigate|navigation=] and/or the [=fenced frame=] calls the [=fence.reportEvent()=] API.
+
+  An embedder is also able to send aggregatable reports through the [=Private Aggregation|Private Aggregation Service=], which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
