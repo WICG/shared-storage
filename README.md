@@ -9,6 +9,8 @@ In order to prevent cross-site user tracking, browsers are [partitioning](https:
 
 The idea is to provide a storage API (named Shared Storage) that is intentionally not partitioned by top-frame site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates. Over time, we hope to design and add additional gates.
 
+### Specification
+
 See the [draft specification](https://wicg.github.io/shared-storage/).
 
 ### Demonstration 
