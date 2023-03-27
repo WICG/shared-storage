@@ -113,8 +113,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `run()` returns a promise that resolves into `undefined`.
         *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
             *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a dictionary, with the key being the event type and the value being the reporting URL; identical to FLEDGE's [registerAdBeacon()](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md#registeradbeacon) parameter), with a max length of 8.
-                *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining, or if the selected URL is not yet k-anonymous.
-                *    The selected URL will be checked to see if it is k-anonymous. If it is not, its k-anonymity will be incremented, but the `default URL` will be returned.
+                *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding origin’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
     *   Options can include:
@@ -410,7 +409,7 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of (up to 8) URLs, each in its own dictionary with optional reporting metadata. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. The URL must also be k-anonymous, in order to prevent much 1p data from also entering the Fenced Frame. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
+The worklet selects from a small list of (up to 8) URLs, each in its own dictionary with optional reporting metadata. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
 
 selectURL() can be called in a top-level fenced frame, but not from within a nested fenced frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Use cases that will benefit from selectURL() being allowed from inside the top level fenced frame: [issue](https://github.com/WICG/fenced-frame/issues/44).
 
@@ -422,10 +421,24 @@ The rate of leakage of cross-site data need to be constrained. Therefore, we pro
 Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the origin calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, they could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
 
 ##### Budget Details
-* There is a 12 bit budget for selectURL to start with. This is subject to change.
-* The cost of a selectURL call is log2(number of urls to selectURL call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to selectURL.
+The budgets for bits of entropy for Shared Storage are as follows.
+
+###### Long Term Budget
+
+In the long term, `selectURL()` will leak bits of entropy on navigation. Therefore it is necessary to impose a budget for this leakage.
+
+* There is a 12 bit daily per-origin budget for `selectURL()`, to be queried on each `selectURL()` call for sufficient budget and charged on navigation. This is subject to change.
+* The cost of a `selectURL()` call is log2(number of urls to `selectURL()` call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to`selectURL()`.
 * The remaining budget at any given time for an origin is 12 - (the sum of the log of budget deductions from the past 24 hours).
-* If the remaining budget is less than log2(number of urls in selectURL call), the default URL is returned and 1 bit is logged if the fenced frame is navigated.
+* If the remaining budget is less than log2(number of urls in `selectURL()` call), the default URL is returned and 1 bit is logged if the fenced frame is navigated.
+
+###### Short Term Budgets
+
+In the short term, we have event-level reporting and less-restrictive [fenced frames](https://github.com/WICG/fenced-frame), which allow further leakage; thus it is necessary to impose additional limits. On top of the navigation bit budget described above, there will be two more budgets, each maintained on a per top-level navigation basis. The bit values for each call to `selectURL()` are calculated in the same way as detailed for the navigation bit budget.
+
+* Each page load will have a per-origin bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
+* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all origins on the page. As with the per-origin per-page load bit budget, this budget will refresh when the top frame navigates.
+
 
 #### Event Level Reporting
 In the long term we'd like all reporting via Shared Storage to happen via the Private Aggregation output gate. We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to aggregate reporting. 
@@ -449,10 +462,7 @@ window.fence.reportEvent({eventType: 'visible',
 and it will send a POST message with the eventData. See the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
 
 ##### Event Level Reporting Limits
-This event-level reporting will allow for the embedding page's 1p data to be combined with the log2(num urls in selectURL) bits of third-party shared-storage data as soon as the report is sent. Since this can be used to build up a lot of information quite quickly, we're imposing some limits on event-level reporting while it's available. That is, event-level reporting via `reportEvent` can only be called up to three times per top-level page navigation.
-
-#### K-anonymity Details
-Like [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md), there will be a k-anonymity service to ensure that the selected URL has met its k-anonymity threshold. If it has not, its count will be increased by 1 on the k-anonymity server, but the default URL will be returned. This makes it possible to bootstrap new URLs.
+This event-level reporting will allow for the embedding page's 1p data to be combined with the log2(num urls in selectURL) bits of third-party shared-storage data as soon as the report is sent. Since this can be used to build up a lot of information quite quickly, we're imposing some limits on event-level reporting while it's available. That is, event-level reporting via `reportEvent` can only consume up to 9 bits per top-level page navigation.
 
 
 ### Private aggregation
