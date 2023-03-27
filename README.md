@@ -461,10 +461,6 @@ window.fence.reportEvent({eventType: 'visible',
 ```
 and it will send a POST message with the eventData. See the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
 
-##### Event Level Reporting Limits
-This event-level reporting will allow for the embedding page's 1p data to be combined with the log2(num urls in selectURL) bits of third-party shared-storage data as soon as the report is sent. Since this can be used to build up a lot of information quite quickly, we're imposing some limits on event-level reporting while it's available. That is, event-level reporting via `reportEvent` can only consume up to 9 bits per top-level page navigation.
-
-
 ### Private aggregation
 
 Arbitrary cross-site data can be embedded into any aggregatable report, but that data is only readable via the aggregation service. Private aggregation protects the data with differential privacy. In order to adhere to the chosen differential privacy parameters, there are limits on the total amount of value the origin's reports can provide per time-period. The details of these limits are explored in the API's [explainer](https://github.com/alexmturner/private-aggregation-api#privacy-and-security).
