@@ -22,7 +22,7 @@ The usefulness of this page depends on testers sharing information and updates; 
 - Table fields:
     - Company/Party: The organization directly conducting tests or analysis.
     - Role in Testing: Organization’s role with respect to testing shared storage. For example, SSP, DSP, publisher, type of embedded service etc.
-    - Est. Testing Timeframe: Expected start and duration of tests, if known.
+    - Est. Testing Timeframe: Expected start and duration of tests, if known. If still scoping, indicate 'TBD - Scoping' in column.
     - [Optional] Link to Testing Plan and/or Learnings: Link to GitHub issues, blog posts or other public information.  This could include plans for upcoming tests, or insights and summaries from completed tests.
     - [Optional] How to Contact You: For example, a website form or reply on a GitHub issue.
 
