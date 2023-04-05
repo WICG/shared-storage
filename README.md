@@ -158,6 +158,43 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *   Unrestricted access to identifying operations that would normally use up part of a page’s [privacy budget](http://github.com/bslassey/privacy-budget), e.g. `navigator.userAgentData.getHighEntropyValues()`
 
 
+### From response headers
+
+*  `set()`, `append()`, `delete()`, and `clear()` operations can be triggered via the HTTP response header `Shared-Storage-Write`.
+*   `Shared-Storage-Write` is a [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists).
+    *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) denoting the operation to be performed, with any arguments for the operation as associated  [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters).
+    *   The order of [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is the order in which the operations will be performed.
+    *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
+        *   `set(<key>, <value>, {ignoreifPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignoreifPresent`
+        *   `set(<key>, <value>, {ignoreifPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignoreifPresent=?0`
+        *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
+        *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
+        *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
+        *   `clear()` &larr;&rarr; `clear`
+    *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). 
+        *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
+        *   To pass a key and/or value that contains non-ASCII and/or non-printable characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
+            *   A [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) is delimited with colons and encoded using [base64](https://www.rfc-editor.org/rfc/rfc4648.html).
+            *   For example:
+                *    `:aGVsbG9cbg==:` encodes "hello\n" in [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html).
+                *    `:2D3eAA==:` encodes "😀" in [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html).
+            *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
+*  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Shared-Storage-Writable: ?1`.
+*  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
+*  The request header can alternatively be sent on document or image requests either 
+    *   via specifying an content attribute, e.g.: 
+        *   `iframe src=[url] sharedstoragewritable></iframe>`
+        *    `img src=[url] sharedstoragewritable>`
+    *   or via an equivalent IDL attribute, e.g.:
+        *   `iframe.sharedStorageWritable = true`
+        *   `img.sharedStorageWritable = true`.
+*  Redirects will be followed, and the request header will be sent to the host server for the redirect URL.
+*  The registrable domain used for Shared Storage is that of the request URL.
+*  The response header will only be honored if the corresponding request included the request header: `Shared-Storage-Writable: ?1`.
+*  See example usage below.
+
+
+
 ## Example scenarios
 
 The following describe example use cases for Shared Storage and we welcome feedback on additional use cases that Shared Storage may help address.
@@ -369,6 +406,43 @@ class ReportOperation {
 
 register('select-url', URLOperation);
 register('report', ReportOperation);
+```
+
+### Writing to Shared Storage via response headers
+
+For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below. 
+
+In order to perform operations via response header, the origin must first opt-in through the HTTP request header `Shared-Storage-Writable`. An origin `a.example` could initiate such a request in multiple ways
+
+On the client side, to initiate the request:
+1. `fetch()` option:
+    ```js
+    fetch("https://a.example/path/for/updates", {sharedStorageWritable: true});
+    ```
+2. Content attribute option with an iframe (also possible with an img):
+   ```
+    <iframe src="https://a.example/path/for/updates" sharedstoragewritable></iframe>
+
+    ```
+3. IDL attribute option with an iframe (also possible with an img):
+    ```js
+    let iframe = document.getElementById("my-iframe");
+    iframe.sharedStorageWritable = true;
+    iframe.src = "https://a.example/path/for/updates";
+    ```
+
+On the server side, here is an example response header:
+```text
+Shared-Storage-Write: clear, set;key="hello";value="world";ignoreIfPresent, append;key="good";value="bye", delete;key="hello", set;key="all";value="done"
+```
+
+Sending the above response header would be equivalent to making the following calls in the following order on the client side, from either the document or a worklet:
+```js
+sharedStorage.clear();
+sharedStorage.set("hello", "world", {ignoreIfPresent: true});
+sharedStorage.append("good", "bye");
+sharedStorage.delete("hello");
+sharedStorage.set("all", "done");
 ```
 
 ## Worklets can outlive the associated document
