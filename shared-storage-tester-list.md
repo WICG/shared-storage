@@ -42,3 +42,4 @@ The usefulness of this page depends on testers sharing information and updates; 
 | --------------- | -------------------- | ---------------------- | ------------------------------------- | ------------------ |
 | Google Ad Manager + AdSense | SSP | Testing ongoing | | Publishers with questions should reach out via their account manager directly, or via our [support channels](https://support.google.com/admanager/gethelp).|
 | Criteo | DSP | Testing ongoing | | privacy-sandbox-testing@criteo.com |
+| NextRoll | DSP | Testing ongoing | | privacysandbox@nextroll.com |
