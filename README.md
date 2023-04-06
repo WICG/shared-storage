@@ -176,7 +176,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   To pass a key and/or value that contains non-ASCII and/or non-printable characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   A [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) is delimited with colons and encoded using [base64](https://www.rfc-editor.org/rfc/rfc4648.html).
             *   For example:
-                *    `:aGVsbG9cbg==:` encodes "hello\n" in [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html).
+                *    `:aGVsbG8K:` encodes "hello\n" in [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html).
                 *    `:2D3eAA==:` encodes "😀" in [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html).
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
 *  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Shared-Storage-Writable: ?1`.
