@@ -177,7 +177,7 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-frame=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-frame=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, such as in a [=fenced frame=] or via the [=private aggregation|private aggregation service=]. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-frame=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=private aggregation|private aggregation report=]. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -232,7 +232,7 @@ Each {{SharedStorageWorklet}} has an associated boolean <dfn>module added</dfn>,
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=module added=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} for a {{SharedStorageWorklet}}, it will run [=check if module added and update status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} is called for a worklet, it will run [=check if module added and update status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
 
   <div algorithm>
     To <dfn>check if module added and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
