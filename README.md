@@ -161,6 +161,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 ### From response headers
 
 *  `set()`, `append()`, `delete()`, and `clear()` operations can be triggered via the HTTP response header `Shared-Storage-Write`.
+*  This may provide a large performance improvement over creating a cross-origin iframe and writing from there, if a network request is otherwise required.
 *   `Shared-Storage-Write` is a [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists).
     *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) denoting the operation to be performed, with any arguments for the operation as associated  [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters).
     *   The order of [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is the order in which the operations will be performed.
