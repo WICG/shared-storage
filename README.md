@@ -205,9 +205,9 @@ class SendReachReportOperation {
 register('send-reach-report', SendReachReportOperation);
 ```
 
-### Frequency Capping
+### Creative selection by frequency
 
-If an ad creative has been shown to the user too many times, fall back to a default option.
+If an ad creative has been shown to the user too many times, a different ad should be selected.
 
 In the advertiser's iframe:
 
@@ -216,18 +216,28 @@ In the advertiser's iframe:
 // is the fallback in case the second has been shown to this user too many times.
 const ads = await advertiser.getAds();
 
-await window.sharedStorage.worklet.addModule('frequency-cap.js');
-const opaqueURL = await window.sharedStorage.selectURL(
-  'frequency-cap', 
+// Register the worklet module
+await window.sharedStorage.worklet.addModule('creative-selection-by-frequency.js');
+
+// Run the URL selection operation
+const frameConfig = await window.sharedStorage.selectURL(
+  'creative-selection-by-frequency', 
   ads.urls, 
-  { data: { campaignId: ads.campaignId }});
-document.getElementById('my-fenced-frame').src = opaqueURL;
+  { 
+    data: { 
+      campaignId: ads.campaignId 
+    },
+    resolveToConfig: true,
+  });
+
+// Render the frame
+document.getElementById('my-fenced-frame').config = frameConfig;
 ```
 
-In the worklet script (`frequency-cap.js`):
+In the worklet script (`creative-selection-by-frequency.js`):
 
 ```js
-class FrequencyCapOperation {
+class CreativeSelectionByFrequencyOperation {
   async run(data, urls) {
     // By default, return the default url (0th index).
     let index = 0;
@@ -244,7 +254,8 @@ class FrequencyCapOperation {
     return index;
   }
 }
-register('frequency-cap', FrequencyCapOperation);
+
+register('creative-selection-by-frequency', CreativeSelectionByFrequencyOperation);
 ```
 
 
