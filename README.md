@@ -174,11 +174,12 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `clear()` &larr;&rarr; `clear`
     *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). 
         *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
-        *   To pass a key and/or value that contains non-ASCII and/or non-printable characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
+        *   To pass a key and/or value that contains non-ASCII and/or non-printable [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   A [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) is delimited with colons and encoded using [base64](https://www.rfc-editor.org/rfc/rfc4648.html).
+            *   The sequence of bytes obtained by decoding the [base64](https://www.rfc-editor.org/rfc/rfc4648.html) from the [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) must be valid [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html).
             *   For example:
-                *    `:aGVsbG8K:` encodes "hello\n" in [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) (where "\n" is the newline character).
-                *    `:2D3eAA==:` encodes "😀" in [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html).
+                *    `:aGVsbG8K:` encodes "hello\n" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) (where "\n" is the newline character).
+                *    `:8J+YgA==:` encodes "😀" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
 *  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
