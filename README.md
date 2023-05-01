@@ -166,8 +166,8 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) denoting the operation to be performed, with any arguments for the operation as associated  [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters).
     *   The order of [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is the order in which the operations will be performed.
     *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
-        *   `set(<key>, <value>, {ignoreifPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignoreifPresent`
-        *   `set(<key>, <value>, {ignoreifPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignoreifPresent=?0`
+        *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
+        *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
         *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
@@ -446,7 +446,7 @@ On the client side, to initiate the request:
 
 On the server side, here is an example response header:
 ```text
-Shared-Storage-Write: clear, set;key="hello";value="world";ignoreIfPresent, append;key="good";value="bye", delete;key="hello", set;key="all";value="done"
+Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present, append;key="good";value="bye", delete;key="hello", set;key="all";value="done"
 ```
 
 Sending the above response header would be equivalent to making the following calls in the following order on the client side, from either the document or a worklet:
