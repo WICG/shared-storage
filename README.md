@@ -34,20 +34,23 @@ await window.sharedStorage.worklet.addModule('experiment.js');
 // Only write a cross-site seed to a.example's storage if there isn't one yet.
 window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
-// opaqueURL will be of the form urn:uuid and will be created by privileged code to
-// avoid leaking the chosen input URL back to the document.
+// Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
+// privileged code to avoid leaking the chosen input URL back to the document.
 
-const opaqueURL = await window.sharedStorage.selectURL(
+const fencedFrameConfig = await window.sharedStorage.selectURL(
   'select-url-for-experiment',
   [
     {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
     {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
     {url: "blob:https://c.example/789…"}
   ],
-  { data: { name: 'experimentA' } }
+  { 
+    data: { name: 'experimentA' }, 
+    resolveToConfig: true
+  }
 );
 
-document.getElementById('my-fenced-frame').src = opaqueURL;
+document.getElementById('my-fenced-frame').config = fencedFrameConfig;
 ```
 
 
@@ -67,7 +70,7 @@ register('select-url-for-experiment', SelectURLOperation);
 ```
 
 
-While the worklet script outputs the chosen index for `urls`, note that the browser process converts the index into a non-deterministic [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md), which can only be read or rendered in a [fenced frame](https://github.com/shivanigithub/fenced-frame). Because of this, the `a.example` iframe cannot itself work out which ad was chosen. Yet, it is still able to customize the ad it rendered based on this protected information.
+While the worklet script outputs the chosen index for `urls`, note that the browser process converts the index into a non-deterministic [opaque URL](https://github.com/WICG/fenced-frame/blob/master/explainer/use_cases.md#opaque-ads), and is returned via [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md), which can only be read or rendered in a [fenced frame](https://github.com/WICG/fenced-frame). Because of this, the `a.example` iframe cannot itself work out which ad was chosen. Yet, it is still able to customize the ad it rendered based on this protected information.
 
 
 ## Goals
@@ -81,6 +84,22 @@ However, this API also seeks to avoid the privacy loss and abuses that third-par
 
 There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll/privacy/blob/main/SPURFOWL.md), [SWAN](https://github.com/1plusX/swan), [Aggregated Reporting](https://github.com/csharrison/aggregate-reporting-api)) that have a notion of write-only storage with limited output. This API is similar to those, but tries to be more general to support a greater number of output gates and use cases. We’d also like to acknowledge the [KV Storage](https://github.com/WICG/kv-storage) explainer, to which we turned for API-shape inspiration.
 
+## Fenced frame enforcement
+
+The usage of fenced frames with the URL Selection operation will not be required until at least 2026. We will provide significant advanced notice before the fenced frame usage is required. Until 2026, you are free to use an iframe with URL Selection instead of a fenced frame. 
+
+To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe. 
+
+```js
+const opaqueURN = await window.sharedStorage.selectURL(
+  'select-url-for-experiment',
+  { 
+    data: { ... } 
+  }
+);
+
+document.getElementById('my-iframe').src = opaqueURN;
+```
 
 ## Proposed API surface
 
@@ -111,11 +130,12 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Runs the operation previously registered by `register()` with matching `name`. Does nothing if there’s no matching operation.
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
-        *   `selectURL()` returns a promise that resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/explainer/opaque_src.md) for the URL selected from `urls`. 
+        *   `selectURL()` returns a promise that resolves into a [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) for fenced frames, and an opaque URN for iframes for the URL selected from `urls`.
             *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a dictionary, with the key being the event type and the value being the reporting URL; identical to FLEDGE's [registerAdBeacon()](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md#registeradbeacon) parameter), with a max length of 8.
                 *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
             *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding origin’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
+            *    The promise resolves to a fenced frame config only when `resolveToConfig` property is set to `true`. If the property is set to `false` or not set, the promise resolves to an opaque URN that can be rendered by an iframe.
     *   Options can include:
         *   `data`, an arbitrary serializable object passed to the worklet. 
         *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
@@ -485,7 +505,7 @@ This API is dependent on the following other proposals:
 
 
 
-*   [Fenced frames](https://github.com/shivanigithub/fenced-frame/) (and the associated concept of [opaque URLs](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md)) to render the chosenURL without leaking the choice to the top-level document.
+*   [Fenced frames](https://github.com/WICG/fenced-frame) (and the associated concept of [fenced frame configs](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md)) to render the chosen URL without leaking the choice to the top-level document.
 *   [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api) to send aggregatable reports for processing in the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md). Details and limitations are explored in the linked explainer.
 
 
@@ -496,11 +516,13 @@ The privacy properties of shared storage are enforced through limited output. So
 
 ### URL selection
 
-The worklet selects from a small list of (up to 8) URLs, each in its own dictionary with optional reporting metadata. The chosen URL is stored in an opaque URL that can only be read within a [fenced frame](https://github.com/shivanigithub/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
+The worklet selects from a small list of (up to 8) URLs, each in its own dictionary with optional reporting metadata. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. The chosen URL represents up to log2(num urls) bits of cross-site information. Once the Fenced Frame receives a user gesture and navigates to its destination page, the information within the fenced frame leaks to the destination page. To limit the rate of leakage of this data, there is a bit budget applied to the output gate. If the budget is exceeded, the selectURL() will return the default (0th index) URL.
 
 selectURL() can be called in a top-level fenced frame, but not from within a nested fenced frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Use cases that will benefit from selectURL() being allowed from inside the top level fenced frame: [issue](https://github.com/WICG/fenced-frame/issues/44).
 
 selectURL() is only available in fenced frames that originate from shared storage (i.e. not available in [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md) generated fenced frames).
+
+> Fenced 
 
 #### Budgeting
 The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per origin. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) bits of information can potentially be leaked for each selectURL() involved in the creation of the Fenced Frame. Therefore, Shared Storage will deduct that log2(|urls|) bits from each of the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
@@ -565,7 +587,7 @@ When `sharedStorage.selectURL()` doesn’t return a valid output (including thro
 
 ### Preventing timing attacks
 
-Revealing the time an operation takes to run could also leak information. We avoid this by having `sharedStorage.run()` queue the operation and then immediately resolve the returned promise. For `sharedStorage.selectURL()`, the promise resolves into an [opaque URL](https://github.com/shivanigithub/fenced-frame/blob/master/OpaqueSrc.md) that is mapped to the selected URL once the operation completes. A Fenced Frame can be created with the returned opaque URL even before the selectURL operation has completed. The frame will wait for it to complete first.  Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
+Revealing the time an operation takes to run could also leak information. We avoid this by having `sharedStorage.run()` queue the operation and then immediately resolve the returned promise. For `sharedStorage.selectURL()`, the promise resolves into an [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) that contains the opaque URL that is mapped to the selected URL once the operation completes. A Fenced Frame can be created with the returned fenced frame config even before the selectURL operation has completed. The frame will wait for it to complete first.  Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
 
 
 ## Possibilities for extension
