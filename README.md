@@ -520,8 +520,6 @@ The worklet selects from a small list of (up to 8) URLs, each in its own diction
 
 selectURL() can be called in a top-level fenced frame, but not from within a nested fenced frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Use cases that will benefit from selectURL() being allowed from inside the top level fenced frame: [issue](https://github.com/WICG/fenced-frame/issues/44).
 
-selectURL() is only available in fenced frames that originate from shared storage (i.e. not available in [FLEDGE](https://github.com/WICG/turtledove/blob/main/FLEDGE.md) generated fenced frames).
-
 > Fenced 
 
 #### Budgeting
