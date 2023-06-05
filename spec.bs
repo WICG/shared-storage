@@ -26,6 +26,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: target browsing context; url: webappapis.html#concept-environment-target-browsing-context
         text: active document; url: webappapis.html#active-document
         text: module script; url: webappapis.html#module-script
+        text: global object; url: webappapis.html#concept-realm-global
         text: module map; url: webappapis.html#module-map
         text: beginning navigation; url: webappapis.html#beginning-navigation
         text: ending navigation; url: webappapis.html#ending-navigation
@@ -35,13 +36,14 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: get the top-level traversable; url: webappapis.html#nav-top
         text: top-frame; url: webappapis.html#top-level-traversable
         text: top-level traversable; url: webappapis.html#top-level-traversable
-        text: opaque origin; url: browsers.html#concept-opaque-origin
         text: worklet global scope type; url: worklets.html#worklet-global-scope-type
         text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
         text: parallel queue; url: infrastructure.html#parallel-enqueue
         text: enqueue the following steps; url: infrastructure.html#enqueue-the-following-steps
         text: browsing context; url: document-sequences.html#browsing-context
         text: active window; url: document-sequences.html#active-window
+        text: navigable; url: document-sequences.html#navigable
+        text: opaque origin; url: browsers.html#concept-origin-opaque
 spec: html; urlPrefix: https://url.spec.whatwg.org
     type: dfn
         text: URL parser; url: concept-url-parser
@@ -121,9 +123,11 @@ spec: html; urlPrefix: https://tc39.es/ecma262/
         text: GetMethod(); url: sec-getmethod
         text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
         text: assert; url: assert
+        text: current realm; url: current-realm
 spec: html; urlPrefix: https://w3c.github.io/hr-time/
     type: dfn
         text: unix epoch; url: dfn-unix-epoch
+        text: current wall time; url: dfn-current-wall-time
 spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
@@ -541,16 +545,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined, resolve |promise| with undefined and abort these steps.
+        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+            1. Abort these steps.
         1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. Resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -558,22 +566,26 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is failure, resolve |promise| with undefined and abort these steps.
+        1. If |currentValue| is failure:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+            1. Abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
         1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
-        1. Resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -581,14 +593,16 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Run [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
-        1. Resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -597,12 +611,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. [=Assert=] that |context| is not null.
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Run [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
-        1. Resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -750,7 +766,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   #### Reporting Entropy Budget #### {#report-budget}
 
-  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{WindowSharedStorage/selectURL()}} whose [=FenceEvent/destination=] [=list/contains=] "`shared-storage-select-url`" and whose [=FenceEvent/eventType=] is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s lifecycle.
+  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{WindowSharedStorage/selectURL()}} whose [=FenceEvent/destination=] [=list/contains=] "`shared-storage-select-url`" and whose [=FenceEvent/eventType=] is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
 
   A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fence.reportEvent()=] during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
 
@@ -805,6 +821,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. If {{Worklet/addModule()}} has not yet been called, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |realm| be the [=current realm=].
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
     1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
     1. Run the following steps in |agent|:
@@ -817,9 +834,39 @@ On the other hand, methods for getting data from the [=shared storage database=]
                     1. [=list/Append=] |data| to |argumentsList|.
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
-        1. Resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
     1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |promise| or [=upon rejection=] of |promise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
+  </div>
+
+  <div algorithm>
+    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|,  {{DOMString}} |operationName|, [=list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+
+    1. Let |promise| be a new [=promise=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |outsideSettings| be |worklet|'s [=relevant settings object=].
+    1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
+    1. Run the following steps in |agent|:
+        1. Let |index| be [=default index=].
+        1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
+            1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
+            1. If |operationMap| [=map/contains=] |operationName|:
+                1.  Let |operation| be |operationMap|[|operationName|].
+                1. Let |argumentsList| be a new [=list=].
+                1. [=list/Append=] |urlList| to |argumentsList|.
+                1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
+                1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
+                1. If |operationResult| has any error(s), then [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+                1. Otherwise:
+                    1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}.
+                    1. If this throws an exception:
+                        1. Catch it and [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+                        1. Abort these steps.
+                    1. Otherwise, if |index| is greater than |urlList|.[=list/size=]:
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+                        1. Abort these steps.
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |index|.
+    1. Return |promise|.
   </div>
 
   <div algorithm>
@@ -840,46 +887,48 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If {{Worklet/addModule()}} has not yet been called, reject |promise| with a {{TypeError}} and abort these steps.
     1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
 
-    Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
+        Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
 
     1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. Let |indexPromise| be a new [=promise=].
-    1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
-    1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
-    1. Run the following steps in |agent|:
-        1. Let |index| be [=default index=].
-        1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
-            1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
-            1. If |operationMap| [=map/contains=] |name|:
-                1.  Let |operation| be |operationMap|[|name|].
-                1. Let |argumentsList| be a new [=list=].
-                1. [=list/Append=] |urlList| to |argumentsList|.
-                1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
-                1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
-                1. If |operationResult| has any error(s), then reject |indexPromise| with a {{TypeError}}.
-                1. Otherwise:
-                    1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}. If this throws an exception, catch it and reject |indexPromise| with a {{TypeError}}.
-                    1. Otherwise, if |index| is greater than |urlList|.[=list/size=], then reject |indexPromise| with a {{TypeError}}.
-        1. If |indexPromise| has not been rejected, resolve |indexPromise| with |index|.
-        1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
-            1. Let |resultIndex| be the numerical value of |indexPromise|.
-            1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-            1. [=Assert=] that |context| is not null.
-            1. Let |origin| be |context|'s [=active document=]'s [=url/origin=].
-            1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
-            1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
-            1. [=Assert=] that |remainingBudget| is not undefined.
-            1. Let |listSize| be |urlList|'s [=list/size=].
-            1. Let |pendingBits| be the logarithm base 2 of |listSize|.
-            1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
-            1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
-            1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
-            1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
-            1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-        1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
+    1. Let |indexPromise| be the result of running [=get the select-url result index=], given {{WindowSharedStorage/worklet}}, |name|, |urlList|, and |options|.
+    1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
+        1. Let |resultIndex| be the numerical value of |indexPromise|.
+        1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+        1. If |context| is null, let |resultURLWithMetadata| be |urls|[[=default index=]] and abort these steps.
+        1. Let |document| be |context|'s [=active document=].
+        1. If |document| is not [=fully active=], let |resultURLWithMetadata| be |urls|[[=default index=]] and abort these steps.
+        1. Let |origin| be |document|'s [=url/origin=].
+        1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
+        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
+        1. [=Assert=] that |remainingBudget| is not undefined.
+        1. Let |listSize| be |urlList|'s [=list/size=].
+        1. Let |pendingBits| be the logarithm base 2 of |listSize|.
+        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
+        1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
+        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
+        1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
+        1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
+    1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
     1. Return |resultPromise|.
     1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |resultPromise| or [=upon rejection=] of |resultPromise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
+  </div>
+
+  ## Extension to the {{Window}} interface ## {#extension}
+
+  Each {{Window}} object has an associated {{WindowSharedStorage}} instance {{Window/sharedStorage}}, which is created alongside the .{{Window}} if [=Shared Storage=] is enabled, with the [=sharedStorage getter|getter=] below.
+
+<xmp class='idl'>
+  partial interface Window {
+    readonly attribute WindowSharedStorage? sharedStorage;
+  };
+</xmp>
+
+  <div algorithm>
+    The <dfn for="Window">sharedStorage getter</dfn> steps are:
+
+    1. If |this| is [=fully active=], return |this|'s {{Window/sharedStorage}}.
+    1. Otherwise, return null.
   </div>
 
   ## The {{WorkletSharedStorage}} interface ## {#worklet-shared-storage}
@@ -903,19 +952,25 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WorkletSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-            1. If |currentValue| is failure, reject |promise| with a {{TypeError}} and abort these steps.
-            1. If |currentValue| is not undefined, resolve |promise| with undefined and abort these steps.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with undefined.
+            1. If |currentValue| is failure:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+                1. Abort these steps.
+            1. If |currentValue| is not undefined:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+                1. Abort these steps.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -923,22 +978,26 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WorkletSharedStorage">append(|key|, |value|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |currentValue| is failure, reject |promise| with a {{TypeError}} and abort these steps.
+        1. If |currentValue| is failure:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+            1. Abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -946,14 +1005,16 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WorkletSharedStorage">delete(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -962,12 +1023,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -977,16 +1040,18 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WorkletSharedStorage">get(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
-        1. If |value| is failure, reject |promise| with a {{TypeError}}.
-        1. Otherwise, if |value| is undefined, resolve |promise| with undefined.
-        1. Otherwise, resolve |promise| with |value|.
+        1. If |value| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, if |value| is undefined, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |value|.
     1. Return |promise|.
   </div>
 
@@ -996,11 +1061,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
-        1. If |numEntries| is failure, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with |numEntries|.
+        1. If |numEntries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |numEntries|.
     1. Return |promise|.
   </div>
 
@@ -1009,14 +1076,17 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
-    1. Let |origin| be |context|'s [=active document=]'s [=document/origin=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |document| be |context|'s [=active document=].
+    1. If |document| is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |origin| be |document|'s [=document/origin=].
     1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
         1. [=Assert=] that |remainingBudget| is not undefined.
-        1. Resolve |promise| with |remainingBudget|.
+        1. Resolve [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |remainingBudget|.
     1. Return |promise|.
   </div>
 
@@ -1031,15 +1101,17 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     The <dfn for="WorkletSharedStorageIterator">asynchronous iterator initialization steps</dfn> for a {{WorkletSharedStorage}} [=async iterator=] |iterator| are:
 
-    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. [=Assert=] that |context| is not null.
     1. Let |promise| be a new [=promise=].
+    1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |queue| be |context|'s associated [=shared storage database/shared storage database queue=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
+    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |queue| and |environment|.
-        1. If |entries| is failure, reject |promise| with a {{TypeError}}.
-        1. Otherwise, resolve |promise| with |entries|.
+        1. If |entries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entries|.
     1. [=Upon fulfillment=] of |promise|, run the following:
         1. Let |promiseEntries| be the value of |promise|.
         1. [=map/iterate|For each=] [=shared storage database/entry=] |entry| in |promiseEntries|, [=queue/enqueue=] |entry| in |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
@@ -1054,9 +1126,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |iterator|'s [=WorkletSharedStorageIterator/error=] is true, return a [=promise rejected=] with a {{TypeError}}.
         1. If |iterator|'s [=WorkletSharedStorageIterator/pending entries=] is [=list/empty=]:
             1. Create an object |doneObject|.
-            1. Resolve |promise| with |doneObject| and abort these steps.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |doneObject|.
+            1. Abort these steps.
         1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
-        1. Resolve |promise| with |entry|.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entry|.
     1. Return |promise|.
   </div>
 
