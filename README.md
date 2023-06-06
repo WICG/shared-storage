@@ -549,7 +549,7 @@ In the short term, we have event-level reporting and less-restrictive [fenced fr
 
 
 #### Event Level Reporting
-In the long term we'd like all reporting via Shared Storage to happen via the Private Aggregation output gate. We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to aggregate reporting. 
+In the long term we'd like all reporting via Shared Storage to happen via the Private Aggregation output gate (or some additional noised reporting gate). We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to more private reporting. Event-level reporting for content selection (`selectURL()`) will be available until at least 2026, and we will provide substantial notice for developers before the transition takes place.
 
 Event level reports work in a way similar to how they work in FLEDGE. First, when calling selectURL, the caller adds a `reportingMetadata` optional dict to the URLs that they wish to send reports for, such as:
 ```javascript
