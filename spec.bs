@@ -831,8 +831,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. If |options|["`keepAlive`"] is false:
+            1. Wait for |operation| to finish running, if applicable.
+            1. Run [=terminate a worklet global scope=] with {{SharedStorageWorkletGlobalScope}}.
     1. Return |promise|.
-    1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |promise| or [=upon rejection=] of |promise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
 
   <div algorithm>
@@ -907,9 +909,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
         1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
         1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-    1. [=Upon rejection=] of |indexPromise|, set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
+    1. [=Upon rejection=] of |indexPromise|, perform the following steps:
+        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
     1. Return |resultPromise|.
-    1. If |options|["`keepAlive`"] is false, [=upon fulfillment=] of |resultPromise| or [=upon rejection=] of |resultPromise|, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
   </div>
 
   ## Extension to the {{Window}} interface ## {#extension}
