@@ -42,8 +42,6 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: enqueue the following steps; url: infrastructure.html#enqueue-the-following-steps
         text: browsing context; url: document-sequences.html#browsing-context
         text: active window; url: document-sequences.html#active-window
-        text: navigable; url: document-sequences.html#navigable
-        text: opaque origin; url: browsers.html#concept-origin-opaque
 spec: html; urlPrefix: https://url.spec.whatwg.org
     type: dfn
         text: URL parser; url: concept-url-parser
@@ -124,10 +122,10 @@ spec: html; urlPrefix: https://tc39.es/ecma262/
         text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
         text: assert; url: assert
         text: current realm; url: current-realm
+        text: casting; url: sec-touint32
 spec: html; urlPrefix: https://w3c.github.io/hr-time/
     type: dfn
         text: unix epoch; url: dfn-unix-epoch
-        text: current wall time; url: dfn-current-wall-time
 spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
@@ -419,7 +417,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. If |databaseMap| is failure, then return false.
     1. Let |valueStruct| be a new [=entry/value struct=].
     1. Set |valueStruct|'s [=value struct/value=] to |value|.
-    1. Let |currentTime| be the [=current wall time=].
+    1. Let |currentTime| be the |environment|'s [=environment settings object/current wall time=].
     1. Set |valueStruct|'s [=value struct/last updated=] to |currentTime|.
     1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
     1. Return true.
@@ -432,7 +430,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. If |databaseMap| is failure, then return failure.
     1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
     1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-    1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, return undefined.
+    1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, return undefined.
     1. Return |valueStruct|'s [=value struct/value=].
   </div>
 
@@ -477,18 +475,18 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. If |databaseMap| is failure, then return false.
     1. [=map/iterate|For each=] [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-        1. If the result of running [=shared storage database/determine whether an entry is expired=] with |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
+        1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
     1. Return true.
   </div>
 
   <div algorithm>
 
-    To <dfn for="shared storage database">determine whether an entry is expired</dfn>, given a [=entry/value struct=] |valueStruct|, run the following steps:
+    To <dfn for="shared storage database">determine whether an entry is expired</dfn>, given an [=environment settings object=] |environment| and a [=entry/value struct=] |valueStruct|, run the following steps:
 
     1. Let |lastUpdated| be |valueStruct|'s [=value struct/last updated=].
     1. Let |lifetime| be [=user agent=]'s [=default entry lifetime=].
     1. Let |expiration| be the sum of |lastUpdated| and |lifetime|.
-    1. Let |currentTime| be the [=current wall time=].
+    1. Let |currentTime| be the |environment|'s [=environment settings object/current wall time=].
     1. If |expiration| is less than or equal to |currentTime|, return true.
     1. Otherwise, return false.
   </div>
@@ -714,7 +712,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    To <dfn>determine remaining navigation budget</dfn>, given a calling [=calling origin=] |origin|, run the following steps:
+    To <dfn>determine remaining navigation budget</dfn>, given an [=environment settings object=] |environment| and a calling [=calling origin=] |origin|, run the following steps:
 
     1. If |origin| is [=opaque origin|opaque=], return undefined.
     1. Let |maxBits| be the [=user agent=]'s [=navigation entropy allowance=].
@@ -723,20 +721,19 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |debitSum| be 0.
     1. [=map/iterate|For each=] [=list/item=] |bitDebit| in |ledger|, do the following steps:
         1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
-        1. If the result of running [=check whether a bit debit is expired=] with |bitDebit| is false, then increment |debitSum| by |debit|.
+        1. If the result of running [=check whether a bit debit is expired=] with |environment| and |bitDebit| is false, then increment |debitSum| by |debit|.
     1. Return |maxBits| minus |debitSum|.
   </div>
 
   <div algorithm>
-    To <dfn>check whether a bit debit is expired</dfn>, given a [=bit debit=] |bitDebit|, run the following steps:
+    To <dfn>check whether a bit debit is expired</dfn>, given an [=environment settings object=] |environment| and a [=bit debit=] |bitDebit|, run the following steps:
 
     1. Let |epochLength| be the [=user agent=]'s [=navigation budget lifetime=].
-    1. Let |currentTime| be the [=current wall time=].
+    1. Let |currentTime| be |environment|'s [=environment settings object/current wall time=].
     1. Let |threshold| be |currentTime| minus |epochLength|.
     1. If |bitDebit|'s [=bit debit/timestamp=] is less than |threshold|, return true.
     1. Otherwise, return false.
   </div>
-
 
   A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-frame=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
 
@@ -745,7 +742,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   Issue: The "fenced frame config struct" and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
-    To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
+    To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
 
     1. If |navigable| is not a [=navigable/traversable navigable=], return.
     1. Let |node| be |sourceDocument|'s [=node navigable=].
@@ -757,7 +754,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|origin|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
-                1. Let |currentTime| be the [=current wall time=].
+                1. Let |currentTime| be the [=/current wall time=].
                 1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
                 1. Set |node|'s "fenced frame config struct"'s [=has navigated=] to true.
@@ -804,7 +801,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Return true.
   </div>
 
-
   A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
 
   <div algorithm>
@@ -840,7 +836,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|,  {{DOMString}} |operationName|, [=list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |realm| be the [=current realm=].
@@ -851,18 +847,17 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |operationName|:
-                1.  Let |operation| be |operationMap|[|operationName|].
-                1. Let |argumentsList| be a new [=list=].
-                1. [=list/Append=] |urlList| to |argumentsList|.
+                1. Let |operation| be |operationMap|[|operationName|].
+                1. Let |argumentsList| be a new [=list=] with a single entry [=list/contain|containing=] |urlList|.
                 1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
                 1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
                 1. If |operationResult| has any error(s), then [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
                 1. Otherwise:
-                    1. Set |index| to the result of casting |operationResult| to an {{unsigned long}}.
+                    1. Set |index| to the result of [=casting=] |operationResult| to an {{unsigned long}}.
                     1. If this throws an exception:
                         1. Catch it and [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
                         1. Abort these steps.
-                    1. Otherwise, if |index| is greater than |urlList|.[=list/size=]:
+                    1. Otherwise, if |index| is greater than |urlList|'s [=list/size=]:
                         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
                         1. Abort these steps.
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |index|.
@@ -873,6 +868,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
     1. Let |resultPromise| be a new [=promise=].
+    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |urlList| be an empty {{list}}.
     1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
@@ -883,8 +882,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |promise| with a {{TypeError}} and abort these steps.
-    1. If {{Worklet/addModule()}} has not yet been called, reject |promise| with a {{TypeError}} and abort these steps.
+            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |resultPromise| with a {{TypeError}} and abort these steps.
+    1. If {{Worklet/addModule()}} has not yet been called, reject |resultPromise| with a {{TypeError}} and abort these steps.
     1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
 
         Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
@@ -900,10 +899,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |document| is not [=fully active=], let |resultURLWithMetadata| be |urls|[[=default index=]] and abort these steps.
         1. Let |origin| be |document|'s [=url/origin=].
         1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
-        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |origin|.
+        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |origin|.
         1. [=Assert=] that |remainingBudget| is not undefined.
-        1. Let |listSize| be |urlList|'s [=list/size=].
-        1. Let |pendingBits| be the logarithm base 2 of |listSize|.
+        1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
         1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
         1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
         1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
