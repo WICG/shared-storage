@@ -44,3 +44,4 @@ The usefulness of this page depends on testers sharing information and updates; 
 | Google Ads Unique Reach | Metrics | Testing ongoing | | https://support.google.com/google-ads/gethelp |
 | Criteo | DSP | Testing ongoing | | privacy-sandbox-testing@criteo.com |
 | NextRoll | DSP | Testing ongoing | | privacysandbox@nextroll.com |
+| CyberAgent(Dynalyst) | DSP | Testing ongoing | | privacysandbox@cyberagent.co.jp |
