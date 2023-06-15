@@ -337,10 +337,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   <div algorithm>
-    The <dfn for="SharedStorageWorkletGlobalScope">sharedStorage getter</dfn> steps are:
+    The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
 
     1. If |this|'s [=addModule success=] is true, return |this|'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
-    1. Otherwise, return null.
+    1. Otherwise, throw a {{TypeError}} and return null.
   </div>
 
   <div algorithm>
@@ -846,11 +846,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |worklet| be {{WindowSharedStorage}}'s {{WindowSharedStorage/worklet}}.
     1. If |worklet|'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. [=Assert=] that |worklet|'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |worklet|'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=]  with a {{TypeError}}.
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |worklet|'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |realm| be the [=current realm=].
     1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
     1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
     1. Run the following steps in |agent|:
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
         1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |name|:
@@ -860,7 +861,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
                     1. [=list/Append=] |data| to |argumentsList|.
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
         1. If |options|["`keepAlive`"] is false:
             1. Wait for |operation| to finish running, if applicable.
             1. Run [=terminate a worklet global scope=] with {{SharedStorageWorkletGlobalScope}}.
@@ -964,7 +964,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 </xmp>
 
   <div algorithm>
-    The <dfn for="Window">sharedStorage getter</dfn> steps are:
+    The <dfn for="Window">{{Window/sharedStorage}} getter</dfn> steps are:
 
     1. If |this| is [=fully active=], return |this|'s {{Window/sharedStorage}}.
     1. Otherwise, return null.
