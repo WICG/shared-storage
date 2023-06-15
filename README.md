@@ -211,7 +211,9 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `iframe.sharedStorageWritable = true`
         *   `img.sharedStorageWritable = true`.
 *  Redirects will be followed, and the request header will be sent to the host server for the redirect URL.
-*  The registrable domain used for Shared Storage is that of the request URL.
+*  The origin used for Shared Storage is that of the server that sends the `Shared-Storage-Write` response header(s).
+    *   If there are no redirects, this will be the origin of the request URL.
+    *   If there are redirects, the origin of the redirect URL that is accompanied by the `Shared-Storage-Write` response header(s) will be used.
 *  The response header will only be honored if the corresponding request included the request header: `Shared-Storage-Writable: ?1`.
 *  See example usage below.
 
