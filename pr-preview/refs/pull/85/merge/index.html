@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 5fcd28d6d, updated Tue May 30 13:12:11 2023 -0700" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="987673c8d0e67290047bb2f67595f3c889ddd775" name="document-revision">
+  <meta content="f6df48b746f46830ba5b9067d4ef1f177eb0bcb1" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -688,7 +688,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Shared Storage API</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-06-15">15 June 2023</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-06-20">20 June 2023</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -871,7 +871,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-undefined" id="ref-for-idl-undefined"><c- b>undefined</c-></a> <a class="idl-code" data-link-type="method" href="#dom-sharedstorageworkletglobalscope-register" id="ref-for-dom-sharedstorageworkletglobalscope-register"><c- g>register</c-></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString"><c- b>DOMString</c-></a> <dfn class="idl-code" data-dfn-for="SharedStorageWorkletGlobalScope/register(name, operationCtor)" data-dfn-type="argument" data-export id="dom-sharedstorageworkletglobalscope-register-name-operationctor-name"><code><c- g>name</c-></code><a class="self-link" href="#dom-sharedstorageworkletglobalscope-register-name-operationctor-name"></a></dfn>,
                      <a data-link-type="idl-name" href="#callbackdef-sharedstorageoperationconstructor" id="ref-for-callbackdef-sharedstorageoperationconstructor"><c- n>SharedStorageOperationConstructor</c-></a> <dfn class="idl-code" data-dfn-for="SharedStorageWorkletGlobalScope/register(name, operationCtor)" data-dfn-type="argument" data-export id="dom-sharedstorageworkletglobalscope-register-name-operationctor-operationctor"><code><c- g>operationCtor</c-></code><a class="self-link" href="#dom-sharedstorageworkletglobalscope-register-name-operationctor-operationctor"></a></dfn>);
 
-  <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#workletsharedstorage" id="ref-for-workletsharedstorage"><c- n>WorkletSharedStorage</c-></a>? <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="attribute" data-export data-readonly data-type="WorkletSharedStorage?" id="dom-sharedstorageworkletglobalscope-sharedstorage"><code><c- g>sharedStorage</c-></code></dfn>;
+  <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#workletsharedstorage" id="ref-for-workletsharedstorage"><c- n>WorkletSharedStorage</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="SharedStorageWorkletGlobalScope" data-dfn-type="attribute" data-export data-readonly data-type="WorkletSharedStorage" id="dom-sharedstorageworkletglobalscope-sharedstorage"><code><c- g>sharedStorage</c-></code></dfn>;
 };
 
 <c- b>callback</c-> <dfn class="dfn-paneled idl-code" data-dfn-type="callback" data-export id="callbackdef-sharedstorageoperationconstructor"><code><c- g>SharedStorageOperationConstructor</c-></code></dfn> =
@@ -944,7 +944,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>If <var>this</var>’s <a data-link-type="dfn" href="#sharedstorageworkletglobalscope-addmodule-success" id="ref-for-sharedstorageworkletglobalscope-addmodule-success②">addModule success</a> is true, return <var>this</var>’s <code class="idl"><a data-link-type="idl" href="#dom-sharedstorageworkletglobalscope-sharedstorage" id="ref-for-dom-sharedstorageworkletglobalscope-sharedstorage①">sharedStorage</a></code>.</p>
      <li data-md>
-      <p>Otherwise, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑦">TypeError</a></code> and return null.</p>
+      <p>Otherwise, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror⑦">TypeError</a></code>.</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="check whether addModule is finished" data-algorithm-for="SharedStorageWorkletGlobalScope">
@@ -2594,7 +2594,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
   <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-undefined"><c- b>undefined</c-></a> <a class="idl-code" data-link-type="method" href="#dom-sharedstorageworkletglobalscope-register"><c- g>register</c-></a>(<a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a href="#dom-sharedstorageworkletglobalscope-register-name-operationctor-name"><code><c- g>name</c-></code></a>,
                      <a data-link-type="idl-name" href="#callbackdef-sharedstorageoperationconstructor"><c- n>SharedStorageOperationConstructor</c-></a> <a href="#dom-sharedstorageworkletglobalscope-register-name-operationctor-operationctor"><code><c- g>operationCtor</c-></code></a>);
 
-  <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#workletsharedstorage"><c- n>WorkletSharedStorage</c-></a>? <a data-readonly data-type="WorkletSharedStorage?" href="#dom-sharedstorageworkletglobalscope-sharedstorage"><code><c- g>sharedStorage</c-></code></a>;
+  <c- b>readonly</c-> <c- b>attribute</c-> <a data-link-type="idl-name" href="#workletsharedstorage"><c- n>WorkletSharedStorage</c-></a> <a data-readonly data-type="WorkletSharedStorage" href="#dom-sharedstorageworkletglobalscope-sharedstorage"><code><c- g>sharedStorage</c-></code></a>;
 };
 
 <c- b>callback</c-> <a href="#callbackdef-sharedstorageoperationconstructor"><code><c- g>SharedStorageOperationConstructor</c-></code></a> =
