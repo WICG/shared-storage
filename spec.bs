@@ -272,7 +272,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
       undefined register(DOMString name,
                          SharedStorageOperationConstructor operationCtor);
 
-      readonly attribute WorkletSharedStorage? sharedStorage;
+      readonly attribute WorkletSharedStorage sharedStorage;
     };
 
     callback SharedStorageOperationConstructor =
@@ -340,7 +340,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
 
     1. If |this|'s [=addModule success=] is true, return |this|'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
-    1. Otherwise, throw a {{TypeError}} and return null.
+    1. Otherwise, throw a {{TypeError}}.
   </div>
 
   <div algorithm>
