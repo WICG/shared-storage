@@ -277,7 +277,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if mod
     };
   </xmp>
 
-  Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
+  Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=]. 
 
   The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s. 
 
