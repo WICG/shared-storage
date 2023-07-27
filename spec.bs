@@ -438,71 +438,79 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
 
   <div algorithm>
-    To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
+    To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return false.
     1. Let |valueStruct| be a new [=entry/value struct=].
     1. Set |valueStruct|'s [=value struct/value=] to |value|.
     1. Let |currentTime| be the |environment|'s [=environment settings object/current wall time=].
     1. Set |valueStruct|'s [=value struct/last updated=] to |currentTime|.
     1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
-    1. Return true.
+    1. If this throws an exception, catch it and return false.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
+    1. Otherwise, return true.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
+    To <dfn for="shared storage database">retrieve an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return failure.
     1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
     1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
+    1. If this throws an exception, catch it and return failure.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, return undefined.
     1. Return |valueStruct|'s [=value struct/value=].
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, an [=environment settings object=] |environment|, and a [=entry/key=] |key|, run the following steps on |queue|:
+    To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return false.
     1. [=map/Remove=] |databaseMap|[|key|].
+    1. If this throws an exception, catch it and return false.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+    To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return false.
     1. Run [=map/Clear=] on |databaseMap|.
+    1. If this throws an exception, catch it and return false.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+    To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return failure.
-    1. Return the result of running [=map/getting the values=] on |databaseMap|.
+    1. Let |values| be the result of running [=map/getting the values=] on |databaseMap|.
+    1. If this throws an exception, catch it and return failure.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
+    1. Return |values|.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">count entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+    To <dfn for="shared storage database">count entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return failure.
-    1. Return |databaseMap|'s [=map/size=].
+    1. Let |size| be |databaseMap|'s [=map/size=].
+    1. If this throws an exception, catch it and return failure.
+
+          Note: Errors with [=storage proxy map=] |databaseMap|'s members are possible depending on its implementation.
+    1. Return |size|.
   </div>
 
   <div algorithm>
-    To <dfn for="shared storage database">purge expired entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and an [=environment settings object=] |environment|, run the following steps on |queue|:
+    To <dfn for="shared storage database">purge expired entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, and an [=environment settings object=] |environment|, run the following steps on |queue|:
 
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
-    1. If |databaseMap| is failure, then return false.
     1. [=map/iterate|For each=] [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
+        1. If this throws an exception, catch it and return false.
         1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
+        1. If this throws an exception, catch it and return false.
     1. Return true.
   </div>
 
@@ -576,13 +584,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key| is not undefined:
+        1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key| is not undefined:
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
             1. Abort these steps.
-        1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Run [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -597,10 +607,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |currentValue| is failure:
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
             1. Abort these steps.
@@ -609,7 +621,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
-        1. Run [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value|.
+        1. Run [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -623,6 +635,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
@@ -639,6 +653,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
@@ -998,18 +1014,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
             1. If |currentValue| is failure:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. If |currentValue| is not undefined:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
                 1. Abort these steps.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
         1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -1025,10 +1043,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |currentValue| is failure:
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
             1. Abort these steps.
@@ -1037,7 +1057,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
         1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
     1. Return |promise|.
   </div>
@@ -1052,6 +1072,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
@@ -1069,6 +1091,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
@@ -1089,10 +1113,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |environment|, and |key|.
+        1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |value| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
         1. Otherwise, if |value| is undefined, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
         1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |value|.
@@ -1107,6 +1133,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
@@ -1153,6 +1181,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
