@@ -211,7 +211,7 @@ This document introduces a new storage API that is intentionally not partitioned
     class SelectURLOperation {
       hash(experimentName, seed) { … }
 
-      async run(data, urls) {
+      async run(urls, data) {
         const seed = await this.sharedStorage.get('seed');
         return hash(data.name, seed) % urls.length;
       }
@@ -975,7 +975,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
 <xmp class='idl'>
   partial interface Window {
-    readonly attribute WindowSharedStorage? sharedStorage;
+    [SecureContext] readonly attribute WindowSharedStorage? sharedStorage;
   };
 </xmp>
 
