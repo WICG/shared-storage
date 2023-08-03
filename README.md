@@ -207,7 +207,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   via specifying an content attribute, e.g.: 
         *   `<iframe src=[url] sharedstoragewritable></iframe>`
         *    `<img src=[url] sharedstoragewritable>`
-    *   or via an equivalent IDL attribute, e.g.:
+    *   or via an equivalent boolean IDL attribute, e.g.:
         *   `iframe.sharedStorageWritable = true`
         *   `img.sharedStorageWritable = true`.
 *  Redirects will be followed, and the request header will be sent to the host server for the redirect URL.
