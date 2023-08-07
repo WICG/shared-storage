@@ -204,7 +204,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
 *  The request header can alternatively be sent on document or image requests either 
-    *   via specifying an content attribute, e.g.: 
+    *   via specifying a boolean content attribute, e.g.: 
         *   `<iframe src=[url] sharedstoragewritable></iframe>`
         *    `<img src=[url] sharedstoragewritable>`
     *   or via an equivalent boolean IDL attribute, e.g.:
