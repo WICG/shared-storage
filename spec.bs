@@ -234,14 +234,14 @@ Each {{SharedStorageWorklet}} has an associated boolean <dfn>addModule initiated
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=addModule initiated=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} is called for a worklet, it will run [=check if module added and update status=], and if the result is true, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule allowed and update status=], and if the result is false, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
 
   <div algorithm>
-    To <dfn>check if module added and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
-
-    1. If |worklet|'s [=addModule initiated=] is true, return true.
-    1. Otherwise, set {{Worklet}}'s [=addModule initiated=] to true.
-    1. Return false.
+    To <dfn>check if addModule allowed and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
+    1. If the user preference setting disallows the access to [=shared storage=] from [=this=], return false.
+    1. If |worklet|'s [=addModule initiated=] is true, return false.
+    1. Set {{Worklet}}'s [=addModule initiated=] to true.
+    1. Return true.
   </div>
 
 Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=], initially empty, can contain at most one instance of its [=worklet global scope type=], the {{SharedStorageWorkletGlobalScope}}.
@@ -252,7 +252,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
 
-    0. If {{Worklet}} has an associated boolean [=addModule initiated=], and the result of running [=check if module added and update status=] on {{Worklet}} is true, return a [=promise rejected=] with a {{TypeError}}.
+    0. If {{Worklet}} has an associated boolean [=addModule initiated=], and the result of running [=check if addModule allowed and update status=] on {{Worklet}} is false, return a [=promise rejected=] with a {{TypeError}}.
 
   And the penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then resolve |promise|.", should be updated to:
 
@@ -376,7 +376,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |origin| be |environment|'s [=url/origin=].
     1. If |origin| is an [=opaque origin=], then return failure.
-    1. If the user has disabled [=shared storage=], then return failure.
+    1. If the user preference setting disallows the access to [=shared storage=] from |environment|, then return failure.
     1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
     1. Return |shed|[|origin|].
   </div>
@@ -584,6 +584,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If the user preference setting disallows the access to [=shared storage=] from |environment|, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
@@ -607,6 +608,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If the user preference setting disallows the access to [=shared storage=] from |environment|, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
