@@ -376,7 +376,8 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |origin| be |environment|'s [=url/origin=].
     1. If |origin| is an [=opaque origin=], then return failure.
-    1. If the user has disabled [=shared storage=], then return failure.
+    1. If the user has disabled [=shared storage=] or operation is denied due to other user agent defined mechanism e.g. |origin|'s site not being
+        <a href="https://github.com/privacysandbox/attestation">enrolled</a>, then return failure.
     1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
     1. Return |shed|[|origin|].
   </div>
@@ -928,6 +929,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |worklet|'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. [=Assert=] that |worklet|'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |worklet|'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=]  with a {{TypeError}}.
+    1. Optionally, return a [=promise rejected=] with a {{TypeError}}.
+
+    Note: This [=implementation-defined=] condition is intended to allow [=user
+        agents=] to disallow the operation for a number of reasons, for example user
+        opt-out or an origin not being
+        <a href="https://github.com/privacysandbox/attestation">enrolled</a>.
     1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |urlList| be an empty {{list}}.
     1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
