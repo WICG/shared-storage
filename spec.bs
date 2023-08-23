@@ -933,7 +933,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     Note: This [=implementation-defined=] condition is intended to allow [=user
         agents=] to disallow the operation for a number of reasons, for example user
-        opt-out or an origin not being
+        opt-out or an origin's site not being
         <a href="https://github.com/privacysandbox/attestation">enrolled</a>.
     1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |urlList| be an empty {{list}}.
