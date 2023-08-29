@@ -239,8 +239,6 @@ Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the s
 
 When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule allowed and update status=], and if the result is false, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
 
-To do so, the {{Worklet}} will need to obtain the result of an [=implementation-defined=] check to [=check if user preference setting allows access to shared storage|determine whether the user preference setting allows access to shared storage=], included as part of an overall check to [=determine whether shared storage is allowed|determine whether shared storage should be allowed=] for a given [=environment=].
-
   <div algorithm>
     To <dfn>check if user preference setting allows access to shared storage</dfn> from an [=environment settings object=] |environment|, run the following step:
     1. Using values available in |environment| as needed, use an [=implementation-defined=] algorithm to return either true or false.
