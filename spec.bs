@@ -252,8 +252,7 @@ To do so, the {{Worklet}} will need to obtain the result of an [=implementation-
     1. If |environment| is not a [=secure context=], then return false.
     1. Let |origin| be |environment|'s [=url/origin=].
     1. If |origin| is an [=opaque origin=], then return false.
-    1. Let |site| be the result of running [=obtaining a site=] with |origin|.
-    1. If |site| not is not [=enrolled=], then return false.
+    1. If the result of running [=obtaining a site=] with |origin| is not [=enrolled=], then return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
     1. Return true.
   </div>
