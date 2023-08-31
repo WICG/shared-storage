@@ -153,6 +153,9 @@ spec: html; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory
 spec: html; urlPrefix: https://github.com/privacysandbox/attestation
     type: dfn
         text: enrolled
+spec: html; urlPrefix: https://w3c.github.io/webappsec-permissions-policy/
+    type: dfn
+        text: is feature enabled; url: is-feature-enabled
 </pre>
 
 <style>
@@ -237,11 +240,11 @@ Each {{SharedStorageWorklet}} has an associated boolean <dfn>addModule initiated
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=addModule initiated=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule allowed and update status=], and if the result is false, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule is allowed and update status=], and if the result is false, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
 
   <div algorithm>
     To <dfn>check if user preference setting allows access to shared storage</dfn> from an [=environment settings object=] |environment|, run the following step:
-    1. Using values available in |environment| as needed, use an [=implementation-defined=] algorithm to return either true or false.
+    1. Using values available in |environment| as needed, perform an [=implementation-defined=] algorithm to return either true or false.
   </div>
 
   <div algorithm>
@@ -250,13 +253,16 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If |environment| is not a [=secure context=], then return false.
     1. Let |origin| be |environment|'s [=url/origin=].
     1. If |origin| is an [=opaque origin=], then return false.
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. [=Assert=] that |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
+    1. If |globalObject| is a {{Window}}, and the result of executing [=is feature enabled|Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |globalObject|'s [=associated Document=], and |origin| is "`Disabled`", return false.
     1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
     1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn>check if addModule allowed and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
+    To <dfn>check if addModule is allowed and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
     1. If the result of running [=determine whether shared storage is allowed=] on the [=relevant settings object=] of [=this=] is false, return false.
     1. If |worklet|'s [=addModule initiated=] is true, return false.
     1. Set |worklet|'s [=addModule initiated=] to true.
@@ -271,7 +277,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
 
-    0. If {{Worklet}} has an associated boolean [=addModule initiated=], and the result of running [=check if addModule allowed and update status=] on {{Worklet}} is false, return a [=promise rejected=] with a {{TypeError}}.
+    0. If {{Worklet}} has an associated boolean [=addModule initiated=], and the result of running [=check if addModule is allowed and update status=] on {{Worklet}} is false, return a [=promise rejected=] with a {{TypeError}}.
 
   And the penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then resolve |promise|.", should be updated to:
 
@@ -941,9 +947,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |resultPromise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |document| be |context|'s [=active document=].
+    1. If |document| is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |origin| be |document|'s [=url/origin=].
+    1. If the result of executing [=is feature enabled|Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document], and |origin| is "`Disabled`", return false.
     1. Let |worklet| be {{WindowSharedStorage}}'s {{WindowSharedStorage/worklet}}.
     1. If |worklet|'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. [=Assert=] that |worklet|'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
@@ -968,12 +978,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |indexPromise| be the result of running [=get the select-url result index=], given |worklet|, |name|, |urlList|, and |options|.
     1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
         1. Let |resultIndex| be the numerical value of |indexPromise|.
-        1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-        1. If |context| is null, let |resultURLWithMetadata| be |urls|[[=default index=]] and abort these steps.
-        1. Let |document| be |context|'s [=active document=].
-        1. If |document| is not [=fully active=], let |resultURLWithMetadata| be |urls|[[=default index=]] and abort these steps.
-        1. Let |origin| be |document|'s [=url/origin=].
-        1. [=Assert=] that |origin| is not [=opaque origin|opaque=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |origin|.
         1. [=Assert=] that |remainingBudget| is not undefined.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
@@ -1229,6 +1233,22 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entry|.
     1. Return |promise|.
   </div>
+
+HTTP Response Header Integration {#http}
+========================================
+
+In addition to the ECMAScript APIs defined above to access [=shared storage=] from a {{Window}} or {{SharedStorageWorkletGlobalScope}}, setter and deleter operations can be triggered via HTTP Response Headers. 
+
+Permissions Policy Integration {#permission}
+============================================
+
+This specification defines a [=policy-controlled feature=] identified by the string "<dfn for="PermissionsPolicy">shared-storage</dfn>," along with a second [=policy-controlled feature=] identified by "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>".
+
+"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an exra permission layer to {{WindowSharedStorage/selectURL()}}. For each of these, the default allowlist is *.
+
+Clear Site Data Integration {#clear}
+====================================
+<span class=todo>Add details for Clear Site Data integration.</span>
 
 Privacy Considerations {#privacy}
 =================================
