@@ -949,7 +949,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |document| be |context|'s [=active document=].
     1. If |document| is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
-
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |origin| be |document|'s [=url/origin=].
@@ -1233,11 +1232,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entry|.
     1. Return |promise|.
   </div>
-
-HTTP Response Header Integration {#http}
-========================================
-
-In addition to the ECMAScript APIs defined above to access [=shared storage=] from a {{Window}} or {{SharedStorageWorkletGlobalScope}}, setter and deleter operations can be triggered via HTTP Response Headers. 
 
 Permissions Policy Integration {#permission}
 ============================================
