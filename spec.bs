@@ -252,8 +252,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If |origin| is an [=opaque origin=], then return false.
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. [=Assert=] that |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
-    1. Let |document| be |globalObject|'s [=associated Document=].
-    1. If |globalObject| is a {{Window}} and |document| is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
+    1. If |globalObject| is a {{Window}} and |globalObject|'s [=associated Document=] is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
     1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
     1. Return true.
