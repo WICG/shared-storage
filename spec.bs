@@ -254,7 +254,6 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. [=Assert=] that |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
     1. Let |document| be |globalObject|'s [=associated Document=].
     1. If |globalObject| is a {{Window}} and |document| is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
-    1. If |globalObject| is a {SharedStorageWorkletGlobalScope}} and |document| is not [=fully active=], return false.
     1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
     1. Return true.
@@ -1028,6 +1027,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1056,6 +1056,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1084,6 +1085,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1102,6 +1104,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{WorkletSharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1123,6 +1126,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1142,6 +1146,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |promise| be a new [=promise=].
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{WorkletSharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -1161,6 +1167,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{WorkletSharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |origin| be |context|'s [=active document=]'s [=document/origin=].
@@ -1189,6 +1196,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{WorkletSharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |context| be {{WorkletSharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
