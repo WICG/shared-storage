@@ -1409,7 +1409,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 ## Shared Storage Fetch-Related Algorithms ## {#ss-fetch-algo}
 
   <div algorithm>
-    To <dfn>determine whether a request can use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
+    To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. Set |window| to |request|’s [=request/window=].
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
@@ -1417,15 +1417,15 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. Let |document| be |window|'s [=global object=]'s [=associated document=].
     1. Return the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |document|, and |request|'s [=request/current URL=]'s [=url/origin=].
 
-    Issue: The [=determine whether a request can use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
+    Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
   </div>
 
 
   <div algorithm>
     To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
 
-    1. If |request|'s [=request/shared storage writable=] is not true, then abort these steps and return.
-    1. If the result of running [=determine whether a request can use shared storage=] on |request| is false, perform the following steps:
+    1. If |request|'s [=request/shared storage writable=] is not true, then return.
+    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, perform the following steps:
         1. [=header list/Delete=] "[=Shared-Storage-Writable=]" from |request|'s [=request/header list=].
         1. Set |request|'s [=request/shared storage writable=] to false.
     1. Otherwise, [=header list/set=] ("[=Shared-Storage-Writable=]", "?1") in |request|'s [=request/header list=].
