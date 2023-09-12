@@ -548,6 +548,10 @@ In the short term, we have event-level reporting and less-restrictive [fenced fr
 * Each page load will have a per-origin bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
 * Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all origins on the page. As with the per-origin per-page load bit budget, this budget will refresh when the top frame navigates.
 
+#### Enrollment and Attestation
+Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
+
+For each method in the Shared Storage API surface, a check will be performed to determine whether the calling [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations). In the case where the [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), the promise returned by the method is rejected.
 
 #### Event Level Reporting
 In the long term we'd like all reporting via Shared Storage to happen via the Private Aggregation output gate (or some additional noised reporting gate). We understand that in the short term it may be necessary for the industry to continue to use event-level reporting as they transition to more private reporting. Event-level reporting for content selection (`selectURL()`) will be available until at least 2026, and we will provide substantial notice for developers before the transition takes place.
