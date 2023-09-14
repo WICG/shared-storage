@@ -124,7 +124,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *   `window.sharedStorage.worklet.addModule(url)`
     *   Loads and adds the module to the worklet (i.e. for registering operations).
     *   Operations defined by one context are not invokable by any other contexts.
-    *   Due to concerns of poisoning and using up the origin's budget ([issue](https://github.com/pythagoraskitty/shared-storage/issues/2)), the shared storage script's origin must match that of the context that created it. Redirects are also not allowed. 
+    *   Due to concerns of poisoning and using up the budget for the origin's [site](https://html.spec.whatwg.org/multipage/browsers.html#site) ([issue](https://github.com/pythagoraskitty/shared-storage/issues/2)), the shared storage script's origin must match that of the context that created it. Redirects are also not allowed. 
 *   `window.sharedStorage.run(name, options)`,  \
 `window.sharedStorage.selectURL(name, urls, options)`, …
     *   Runs the operation previously registered by `register()` with matching `name`. Does nothing if there’s no matching operation.
@@ -134,7 +134,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
             *   `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a dictionary, with the key being the event type and the value being the reporting URL; identical to FLEDGE's [registerAdBeacon()](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md#registeradbeacon) parameter), with a max length of 8.
                 *    The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining.
                 *    The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [FLEDGE explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
-            *    There will be a per-origin (the origin of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding origin’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
+            *    There will be a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) (the site of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding [site](https://html.spec.whatwg.org/multipage/browsers.html#site)’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
             *    The promise resolves to a fenced frame config only when `resolveToConfig` property is set to `true`. If the property is set to `false` or not set, the promise resolves to an opaque URN that can be rendered by an iframe.
     *   Options can include:
         *   `data`, an arbitrary serializable object passed to the worklet. 
@@ -525,9 +525,9 @@ selectURL() can be called in a top-level fenced frame, but not from within a nes
 > Fenced 
 
 #### Budgeting
-The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per origin. Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) [bits of information](https://en.wikipedia.org/wiki/Entropy_(information_theory)) can potentially be leaked for each selectURL() involved in the creation of the Fenced Frame. Therefore, Shared Storage will deduct that log2(|urls|) bits from each of the Shared Storage worklet's origin at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
+The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per [site](https://html.spec.whatwg.org/multipage/browsers.html#site). Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) [bits of information](https://en.wikipedia.org/wiki/Entropy_(information_theory)) can potentially be leaked for each selectURL() involved in the creation of the Fenced Frame. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's [site](https://html.spec.whatwg.org/multipage/browsers.html#site)'s budget at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
 
-Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the origin calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, they could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
+Why do we assume that log2(|urls|) bits of cross-site information are leaked by a call to `selectURL`? Because the embedder (the [site](https://html.spec.whatwg.org/multipage/browsers.html#site) calling `selectURL`) is providing a list of urls to choose from using cross-site information. If `selectURL` were abused to leak the first few bits of the user's cross-site identity, then, with 8 URLs to choose from, they could leak the first 3 bits of the id (e.g., imagine urls: https://example.com/id/000, https://example.com/id/001, https://example.com/id/010, ..., https://example.com/id/111). One can leak at most log2(|urls|) bits, and so that is what we deduct from the budget, but only after the fenced frame navigates the top page which is when its data can be communicated.
 
 ##### Budget Details
 The budgets for bits of entropy for Shared Storage are as follows.
@@ -536,17 +536,17 @@ The budgets for bits of entropy for Shared Storage are as follows.
 
 In the long term, `selectURL()` will leak bits of entropy on navigation. Therefore it is necessary to impose a budget for this leakage.
 
-* There is a 12 bit daily per-origin budget for `selectURL()`, to be queried on each `selectURL()` call for sufficient budget and charged on navigation. This is subject to change.
+* There is a 12 bit daily per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) budget for `selectURL()`, to be queried on each `selectURL()` call for sufficient budget and charged on navigation. This is subject to change.
 * The cost of a `selectURL()` call is log2(number of urls to `selectURL()` call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to`selectURL()`.
-* The remaining budget at any given time for an origin is 12 - (the sum of the log of budget deductions from the past 24 hours).
+* The remaining budget at any given time for a [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is 12 - (the sum of the log of budget deductions from the past 24 hours).
 * If the remaining budget is less than log2(number of urls in `selectURL()` call), the default URL is returned and 1 bit is logged if the fenced frame is navigated.
 
 ###### Short Term Budgets
 
 In the short term, we have event-level reporting and less-restrictive [fenced frames](https://github.com/WICG/fenced-frame), which allow further leakage; thus it is necessary to impose additional limits. On top of the navigation bit budget described above, there will be two more budgets, each maintained on a per top-level navigation basis. The bit values for each call to `selectURL()` are calculated in the same way as detailed for the navigation bit budget.
 
-* Each page load will have a per-origin bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
-* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all origins on the page. As with the per-origin per-page load bit budget, this budget will refresh when the top frame navigates.
+* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
+* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates.
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
