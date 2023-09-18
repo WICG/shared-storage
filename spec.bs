@@ -1425,9 +1425,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. If |request|'s [=request/shared storage writable=] is not true, then return.
-    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, perform the following steps:
-        1. [=header list/Delete=] "[=Shared-Storage-Writable=]" from |request|'s [=request/header list=].
-        1. Set |request|'s [=request/shared storage writable=] to false.
+    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] "[=Shared-Storage-Writable=]" from |request|'s [=request/header list=].
     1. Otherwise, [=header list/set=] ("[=Shared-Storage-Writable=]", "?1") in |request|'s [=request/header list=].
   </div>
 
