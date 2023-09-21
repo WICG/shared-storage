@@ -26,8 +26,6 @@ spec:html;
         for:realm; text:global object
         for:WorkerGlobalScope; text:module map
         for:navigable; text:top-level traversable
-
-
 </pre>
 
 <pre class="anchors">
