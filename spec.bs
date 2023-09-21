@@ -15,9 +15,7 @@ spec:infra;
     type:dfn;
         text:user agent
         text:list
-spec:url;
-    type:interface;
-        text:URL
+        for:/; text:string
 spec:webidl;
     type:interface;
         text:double
@@ -42,6 +40,9 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: content attributes; url: dom.html#concept-element-attributes
         text: update the image data; url: images.html#update-the-image-data
         text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetchin
+spec: url; urlPrefix: https://url.spec.whatwg.org/
+    type: dfn
+        text: URL; for: /; url: concept-url
 spec: dom; urlPrefix: https://dom.spec.whatwg.org/
     type: dfn
         text: origin; for: document; url: concept-document-origin
@@ -297,7 +298,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s.
 
-  Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=/strings=] (denoting operation names) to [=functions=].
+  Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
 
   Currently each {{SharedStorageOperation}} registered via {{SharedStorageWorkletGlobalScope/register()}} must be one of the following two types:
   * {{SharedStorageRunOperation}}
@@ -305,7 +306,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageRunOperation}} is designed to work with output gates that do not need a return value, like the [=private aggregation=] service. A {{SharedStorageRunOperation}} performs an async operation and returns a promise that resolves to undefined.
 
-  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=/strings=] representing {{URL}}s each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these {{URL}}s should be selected.
+  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing [=/URLs=] each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these [=/URLs=] should be selected.
 
   <xmp class='idl'>
     [Exposed=SharedStorageWorklet]
@@ -424,13 +425,13 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   Each <dfn for="shared storage database">entry</dfn> consists of a [=entry/key=] and a [=entry/value struct=].
 
-  An [=shared storage database/entry=]'s <dfn for=entry>key</dfn> is a [=/string=].
+  An [=shared storage database/entry=]'s <dfn for=entry>key</dfn> is a [=string=].
 
   [=User agents=] may specify the <dfn for=key>maximum length</dfn> of a [=entry/key=].
 
   Since [=entry/keys=] are used to organize and efficiently retrieve [=shared storage database/entry|entries=], [=entry/keys=] must appear at most once in any given [=shared storage database=].
 
-  An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=/string=] <dfn for="value struct">value</dfn> and {{DOMHighResTimeStamp}} <dfn for="value struct">last updated</dfn> (from the [=Unix Epoch=]).
+  An [=shared storage database/entry=]'s <dfn for=entry>value struct</dfn> is a [=struct=] composed of [=string=] <dfn for="value struct">value</dfn> and {{DOMHighResTimeStamp}} <dfn for="value struct">last updated</dfn> (from the [=Unix Epoch=]).
 
   [=User agents=] may specify the <dfn for=value>maximum length</dfn> of a [=value struct/value=].
 
@@ -662,7 +663,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   ### {{SharedStorageUrlWithMetadata}} and Reporting ### {#reporting}
 
-  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=/string=] representing a {{URL}} and, optionally, a {{reportingMetadata}} {{/object}}.
+  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a [=/URL=] and, optionally, a {{reportingMetadata}} {{/object}}.
 
   <xmp class='idl'>
     dictionary SharedStorageUrlWithMetadata {
@@ -671,7 +672,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     };
   </xmp>
 
-  If a {{SharedStorageUrlWithMetadata}} {{/object}} contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are [=FenceEvent/eventTypes=] and whose [=map/values=] are [=/strings=] that parse to valid [=/URLs=], then these [=FenceEvent/eventType=]-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{WindowSharedStorage/selectURL()}} call.
+  If a {{SharedStorageUrlWithMetadata}} {{/object}} contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are [=FenceEvent/eventTypes=] and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these [=FenceEvent/eventType=]-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{WindowSharedStorage/selectURL()}} call.
 
   Inside a [=fenced frame=] with [=FenceEvent/eventType=]-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{WindowSharedStorage/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if [=fence.reportEvent()=] is called on a [=FenceEvent=] with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`" and that [=FenceEvent=]'s corresponding [=FenceEvent/eventType=] is triggered, then the [=FenceEvent=]'s [=FenceEvent/eventData=] will be sent as a [=beacon=] to the registered [=/URL=] for that [=FenceEvent/eventType=].
 
@@ -685,10 +686,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    To <dfn>get the canonical URL string if valid</dfn>, given a [=/string=] |urlString|, run the following steps:
+    To <dfn>get the canonical URL string if valid</dfn>, given a [=string=] |urlString|, run the following steps:
 
     1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-    1. If |url| is not a valid {{URL}}, return undefined.
+    1. If |url| is not a valid [=/URL=], return undefined.
     1. Otherwise, return the result of running a [=URL serializer=] on |url|.
   </div>
 
@@ -700,7 +701,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
     1. [=map/iterate|For each=] |eventType| -> |urlString| of |reportingMetadata|:
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. [=Assert=] that |url| is a valid {{URL}}.
+        1. [=Assert=] that |url| is a valid [=/URL=].
         1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
     1. <span class=todo>Store |reportingUrlMap| inside a "fenced frame reporter" class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [=fenced frame|Fenced Frame specification=].</span>
   </div>
@@ -1439,7 +1440,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   <div algorithm>
     To <dfn>get the string value</dfn> for a [=Bare Item=] |item|, do the following:
     1. If the result of running [=check if string-like=] on |item| is false, return failure.
-    1. Let |itemAsString| be the |item|'s underlying [=/string=].
+    1. Let |itemAsString| be the |item|'s underlying [=string=].
     1. [=Assert=] that |itemAsString| is an [=ASCII string=].
     1. Switch on the type of |item|:
         <dl class=switch>
