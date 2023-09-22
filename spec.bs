@@ -577,12 +577,32 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Window Setter/Deleter Methods ### {#window-setter}
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
+    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/set a key-value pair=] on {{WindowSharedStorage}}, |key|, |value|, and |options|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/append a key-value pair=] on {{WindowSharedStorage}}, |key|, and |value|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/delete a key=] on {{WindowSharedStorage}} and |key|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">clear()</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/clear all keys=] on {{WindowSharedStorage}}.
+  </div>
+
+  <div algorithm>
+    To <dfn for="WindowSharedStorage">set a key-value pair</dfn>, given {{WindowSharedStorage}} |sharedStorage|, [=string=] |key|, [=string=] |value|, and {{SharedStorageSetMethodOptions}} |options|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -599,12 +619,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">append a key-value pair</dfn>, given {{WindowSharedStorage}} |sharedStorage|, [=string=] |key|, and [=string=] |value|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -627,11 +647,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">delete a key</dfn>, given {{WindowSharedStorage}} |sharedStorage| and [=string=] |key|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -645,10 +665,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">clear()</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">clear all keys</dfn>, given {{WindowSharedStorage}} |sharedStorage|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -1364,7 +1384,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   <div algorithm>
     To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
-    1. Set |window| to |request|’s [=request/window=].
+    1. Let |window| to |request|’s [=request/window=].
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
     1. If the result of running [=determine whether shared storage is allowed=] for |window| is false, return false.
     1. Let |document| be |window|'s [=global object=]'s [=associated document=].
@@ -1378,6 +1398,9 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. If |request|'s [=request/shared storage writable=] is not true, then return.
+
+        Note: On a redirect, it is possible for |request|'s [=request/shared storage writable=] to be true, but for the redirect not to have permission to use shared storage, making the result of running [=determine whether a request can currently use shared storage=] on |request| false.
+
     1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] "[:Shared-Storage-Writable:]" from |request|'s [=request/header list=].
     1. Otherwise, [=header list/set=] ("[:Shared-Storage-Writable:]", "?1") in |request|'s [=request/header list=].
   </div>
@@ -1386,7 +1409,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     To <dfn>handle a Shared-Storage-Write response</dfn>, given a [=/response=] |response| and a [=/request=] |request|, perform the following steps:
 
     1. If |request|'s [=request/header list=] does not [=list/contain=] "[:Shared-Storage-Writable:]", then return.
-    1. Set |window| to |request|’s [=request/window=].
+    1. Let |window| to |request|’s [=request/window=].
     1. [=Assert=] that |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
     1. Let |sharedStorage| be |window|'s [=global object=]'s {{Window/sharedStorage}}.
     1. If |sharedStorage| is null, then return.
@@ -1402,19 +1425,19 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
             <dl class=switch>
               <dt> If |operationString| is "`clear`":
                  <dd> Perform the following steps:
-                     1. Run {{WindowSharedStorage/clear()}} on |sharedStorage|.
+                     1. Run [=WindowSharedStorage/clear all keys=] on |sharedStorage|.
                      1. Continue.
               <dt> If |operationString| is "`delete`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
-                     1. If |key| is not null, run {{WindowSharedStorage/delete()}} on |sharedStorage| with |key|.
+                     1. If |key| is not null, run [=WindowSharedStorage/delete a key=] on |sharedStorage| with |key|.
                      1. Continue.
               <dt> If |operationString| is "`append`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
                      1. If |key| is null, continue.
                      1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
-                     1. If |value| is not null, run {{WindowSharedStorage/append()}} on |sharedStorage| with |key| and |value|.
+                     1. If |value| is not null, run [=WindowSharedStorage/append a key-value pair=] on |sharedStorage| with |key| and |value|.
                      1. Continue.
               <dt> If |operationString| is "`set`":
                 <dd> Perform the following steps:
@@ -1424,7 +1447,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                      1. If |value| is null, continue.
                      1. Let |options| be a new {{SharedStorageSetMethodOptions}}.
                      1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["`ignoreIfPresent`"] to true..
-                     1. Run {{WindowSharedStorage/set()}} on |sharedStorage| with |key|, |value|, and |options|.
+                     1. Run [=WindowSharedStorage/set a key-value pair=] on |sharedStorage| with |key|, |value|, and |options|.
                      1. Continue.
               <dt> If |operationString| is anything else:
                 <dd> Continue.
