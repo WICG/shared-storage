@@ -121,10 +121,10 @@ spec: rfc8941; urlPrefix: https://httpwg.org/specs/rfc8941.html
         text: list structured header; url: list
         text: parameters; url: param
         text: item; for: structured header; url: item
-        text: string; for: item; url: string
-        text: token; for: item; url: token
-        text: byte sequences; for: item; url: binary
-        text: boolean; for: item; url: boolean
+        text: string; for: structured header; url: string
+        text: token; for: structured header; url: token
+        text: byte sequence; for: structured header; url: binary
+        text: boolean; for: structured header; url: boolean
         text: inner list; url: inner-list
         text: bare item; url: item
 spec: wikipedia-entropy; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory)
@@ -1332,7 +1332,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
   This specification defines a <dfn>Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
 
-  The [=Shared-Storage-Writable=] [=/request=] [=header=] is a [=item/boolean|boolean structured header=].
+  The [=Shared-Storage-Writable=] [=/request=] [=header=] is a [=structured header/boolean|boolean structured header=].
 
   When the result of running [=get a structured field value=] for "[=Shared-Storage-Writable=]", "`item`", and [=/request=]'s [=request/header list=] is true, then the [=/response=] to this [=/request=] will be eligible to write to [=shared storage=].
 
@@ -1340,21 +1340,21 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
   This specification defines a <dfn>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
 
-  The [=Shared-Storage-Write=] [=/response=] [=header=] is a [=list structured header=], for which the [=parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=item/token=], [=item/string=], or [=item/byte sequence=]:
+  The [=Shared-Storage-Write=] [=/response=] [=header=] is a [=list structured header=], for which the [=parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=structured header/token=], [=structured header/string=], or [=structured header/byte sequence=]:
 
     * `set`
         - required [=parameters=]:
-            * key ([=item/Token=], [=item/String=], or [=item/Byte Sequence=])
-            * value ([=item/Token=], [=item/String=], or [=item/Byte Sequence=])
+            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
         - optional [=parameters|parameter=]:
-            * ignore_if_present ([=item/Boolean=])
+            * ignore_if_present ([=structured header/Boolean=])
     * `append`
         - required [=parameters=]:
-            * key ([=item/Token=], [=item/String=], or [=item/Byte Sequence=])
-            * value ([=item/Token=], [=item/String=], or [=item/Byte Sequence=])
+            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
     * `delete`
         - required [=parameters|parameter=]:
-            * key ([=item/Token=], [=item/String=], or [=item/Byte Sequence=])
+            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
     * `clear`
 
 <span class=todo>Add examples.</span>
@@ -1433,7 +1433,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
   <div algorithm>
     To <dfn>check if string-like</dfn> for a [=Bare Item=] |item|, do the following:
-    1. If the |item| is a [=item/String=], [=item/Token=], or [=item/Byte Sequence=], return true.
+    1. If the |item| is a [=structured header/String=], [=structured header/Token=], or [=structured header/Byte Sequence=], return true.
     1. Otherwise, return false.
   </div>
 
@@ -1444,11 +1444,11 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. [=Assert=] that |itemAsString| is an [=ASCII string=].
     1. Switch on the type of |item|:
         <dl class=switch>
-          <dt> If |item| is a [=item/Token=]:
+          <dt> If |item| is a [=structured header/Token=]:
             <dd> Return |itemAsString|.
-          <dt> If |item| is a [=item/String=]:
+          <dt> If |item| is a [=structured header/String=]:
             <dd> Return the result of [=unwrap a delimited ASCII string|unwrapping a delimited ASCII string=] for |itemAsString| and the double-quote character.
-          <dt> If |item| is a [=item/Byte Sequence=]:
+          <dt> If |item| is a [=structured header/Byte Sequence=]:
             <dd> Perform the following steps:
                 1. Let |innerItem| be the result of [=unwrap a delimited ASCII string|unwrapping a delimited ASCII string=] for |itemAsString| and "`:`".
                 1. If |innerItem| is failure, return failure.
@@ -1468,16 +1468,16 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   </div>
 
   <div algorithm>
-    To <dfn>obtain a string-like parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=item/Token=] |paramKey|, perform the following steps:
+    To <dfn>obtain a string-like parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If the result of [=check if string-like=] for |parameters|[|paramKey|] is false, return null.
     1. Return |parameters|[|paramKey|].
   </div>
 
     <div algorithm>
-    To <dfn>obtain a boolean parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=item/Token=] |paramKey|, perform the following steps:
+    To <dfn>obtain a boolean parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
-    1. If |parameters|[|paramKey|] is not a [=item/Boolean=], return null.
+    1. If |parameters|[|paramKey|] is not a [=structured header/Boolean=], return null.
     1. Return |parameters|[|paramKey|].
   </div>
 
