@@ -14,7 +14,6 @@ Abstract: Shared Storage is a storage API that is intentionally not partitioned 
 spec:infra;
     type:dfn;
         text:user agent
-        text:list
         for:/; text:string
 spec:webidl;
     type:interface;
@@ -118,15 +117,16 @@ spec: rfc4648; urlPrefix: https://www.rfc-editor.org/rfc/rfc4648.html
         text: base64 decoding; url: page-5
 spec: rfc8941; urlPrefix: https://httpwg.org/specs/rfc8941.html
     type: dfn
-        text: list structured header; url: list
-        text: parameters; url: param
+        text: structured header; url: specify
+        text: list; for: structured header; url: list
+        text: parameters; for: structured header; url: param
         text: item; for: structured header; url: item
         text: string; for: structured header; url: string
         text: token; for: structured header; url: token
         text: byte sequence; for: structured header; url: binary
         text: boolean; for: structured header; url: boolean
-        text: inner list; url: inner-list
-        text: bare item; url: item
+        text: inner list; for: structured header; url: inner-list
+        text: bare item; for: structured header; url: item
 spec: wikipedia-entropy; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory)
     type: dfn
         text: bits of entropy
@@ -306,7 +306,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageRunOperation}} is designed to work with output gates that do not need a return value, like the [=private aggregation=] service. A {{SharedStorageRunOperation}} performs an async operation and returns a promise that resolves to undefined.
 
-  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing [=/URLs=] each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these [=/URLs=] should be selected.
+  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=/list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing [=/URLs=] each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these [=/URLs=] should be selected.
 
   <xmp class='idl'>
     [Exposed=SharedStorageWorklet]
@@ -617,7 +617,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
-            1. Let |list| be a new [=list=].
+            1. Let |list| be a new [=/list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
@@ -724,7 +724,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling origins=] to [=navigation entropy ledgers=].
 
-  An <dfn>navigation entropy ledger</dfn> is a [=list=] of [=bit debits=].
+  An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
 
   A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
 
@@ -872,7 +872,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. If |operationMap| [=map/contains=] |name|:
                 1.  Let |operation| be |operationMap|[|name|].
                 1. If |options| [=map/contains=] |data|:
-                    1. Let |argumentsList| be a new [=list=].
+                    1. Let |argumentsList| be a new [=/list=].
                     1. [=list/Append=] |data| to |argumentsList|.
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
@@ -883,7 +883,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -899,7 +899,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |operationName|:
                 1. Let |operation| be |operationMap|[|operationName|].
-                1. Let |argumentsList| be a new [=list=] with a single entry [=list/contain|containing=] |urlList|.
+                1. Let |argumentsList| be a new [=/list=] with a single entry [=list/contain|containing=] |urlList|.
                 1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
                 1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
                 1. If |operationResult| has any error(s), then [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
@@ -1048,7 +1048,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
-            1. Let |list| be a new [=list=].
+            1. Let |list| be a new [=/list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
@@ -1328,32 +1328,32 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 ## Shared Storage HTTP Headers ## {#headers}
 
-### [=Shared-Storage-Writable=] Request Header ### {#request-header}
+### [:Shared-Storage-Writable:] Request Header ### {#request-header}
 
-  This specification defines a <dfn>Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
+  This specification defines a <dfn http-header>Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
 
-  The [=Shared-Storage-Writable=] [=/request=] [=header=] is a [=structured header/boolean|boolean structured header=].
+  The [:Shared-Storage-Writable:] [=/request=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
 
-  When the result of running [=get a structured field value=] for "[=Shared-Storage-Writable=]", "`item`", and [=/request=]'s [=request/header list=] is true, then the [=/response=] to this [=/request=] will be eligible to write to [=shared storage=].
+  When the result of running [=get a structured field value=] for "[:Shared-Storage-Writable:]", "`item`", and [=/request=]'s [=request/header list=] is true, then the [=/response=] to this [=/request=] will be eligible to write to [=shared storage=].
 
-### [=Shared-Storage-Write=] Response Header ### {#response-header}
+### [:Shared-Storage-Write:] Response Header ### {#response-header}
 
-  This specification defines a <dfn>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
+  This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
 
-  The [=Shared-Storage-Write=] [=/response=] [=header=] is a [=list structured header=], for which the [=parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=structured header/token=], [=structured header/string=], or [=structured header/byte sequence=]:
+  The [:Shared-Storage-Write:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/List=], for which the [=structured header/parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=structured header/token=], [=structured header/string=], or [=structured header/byte sequence=]:
 
     * `set`
-        - required [=parameters=]:
+        - required [=structured header/parameters=]:
             * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
             * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
-        - optional [=parameters|parameter=]:
+        - optional [=structured header/parameters|parameter=]:
             * ignore_if_present ([=structured header/Boolean=])
     * `append`
-        - required [=parameters=]:
+        - required [=structured header/parameters=]:
             * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
             * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
     * `delete`
-        - required [=parameters|parameter=]:
+        - required [=structured header/parameters|parameter=]:
             * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
     * `clear`
 
@@ -1378,24 +1378,24 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. If |request|'s [=request/shared storage writable=] is not true, then return.
-    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] "[=Shared-Storage-Writable=]" from |request|'s [=request/header list=].
-    1. Otherwise, [=header list/set=] ("[=Shared-Storage-Writable=]", "?1") in |request|'s [=request/header list=].
+    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] "[:Shared-Storage-Writable:]" from |request|'s [=request/header list=].
+    1. Otherwise, [=header list/set=] ("[:Shared-Storage-Writable:]", "?1") in |request|'s [=request/header list=].
   </div>
 
   <div algorithm>
     To <dfn>handle a Shared-Storage-Write response</dfn>, given a [=/response=] |response| and a [=/request=] |request|, perform the following steps:
 
-    1. If |request|'s [=request/header list=] does not [=list/contain=] "[=Shared-Storage-Writable=]", then return.
+    1. If |request|'s [=request/header list=] does not [=list/contain=] "[:Shared-Storage-Writable:]", then return.
     1. Set |window| to |request|’s [=request/window=].
     1. [=Assert=] that |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
     1. Let |sharedStorage| be |window|'s [=global object=]'s {{Window/sharedStorage}}.
     1. If |sharedStorage| is null, then return.
     1. Let |list| be |response|'s [=response/header list=].
-    1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given "[=Shared-Storage-Write=]", "`list`", and |list| as input.
+    1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given "[:Shared-Storage-Write:]", "`list`", and |list| as input.
     1. If |operationsToParse| is null or [=list/empty=], then return.
     1. For each tuple (|item|, |parameters|) in |operationsToParse|, perform the following steps:
-        1. If |item| is an [=Inner List=], continue.
-        1. [=Assert=] that |item| is an [=Bare Item=].
+        1. If |item| is an [=structured header/Inner List=], continue.
+        1. [=Assert=] that |item| is an [=structured header/Bare Item=].
         1. Let |operationString| be the result of running [=get the string value=] for |item|.
         1. If |operationString| is failure, continue.
         1. Switch on |operationString|:
@@ -1432,13 +1432,13 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   </div>
 
   <div algorithm>
-    To <dfn>check if string-like</dfn> for a [=Bare Item=] |item|, do the following:
+    To <dfn>check if string-like</dfn> for a [=structured header/Bare Item=] |item|, do the following:
     1. If the |item| is a [=structured header/String=], [=structured header/Token=], or [=structured header/Byte Sequence=], return true.
     1. Otherwise, return false.
   </div>
 
   <div algorithm>
-    To <dfn>get the string value</dfn> for a [=Bare Item=] |item|, do the following:
+    To <dfn>get the string value</dfn> for a [=structured header/Bare Item=] |item|, do the following:
     1. If the result of running [=check if string-like=] on |item| is false, return failure.
     1. Let |itemAsString| be the |item|'s underlying [=string=].
     1. [=Assert=] that |itemAsString| is an [=ASCII string=].
@@ -1468,14 +1468,14 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   </div>
 
   <div algorithm>
-    To <dfn>obtain a string-like parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
+    To <dfn>obtain a string-like parameter value</dfn>, given a [=structured header/parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If the result of [=check if string-like=] for |parameters|[|paramKey|] is false, return null.
     1. Return |parameters|[|paramKey|].
   </div>
 
     <div algorithm>
-    To <dfn>obtain a boolean parameter value</dfn>, given a [=parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
+    To <dfn>obtain a boolean parameter value</dfn>, given a [=structured header/parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If |parameters|[|paramKey|] is not a [=structured header/Boolean=], return null.
     1. Return |parameters|[|paramKey|].
