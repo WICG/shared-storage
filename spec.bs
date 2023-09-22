@@ -109,12 +109,6 @@ spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
         text: eventType; for: FenceEvent; url: dom-fenceevent-eventtype
     type: interface
         text: FencedFrameConfig; url: fencedframeconfig
-spec: rfc2781; urlPrefix: https://www.rfc-editor.org/rfc/rfc2781.html
-    type: dfn
-        text: encoding UTF-16; url: section-2.1
-spec: rfc4648; urlPrefix: https://www.rfc-editor.org/rfc/rfc4648.html
-    type: dfn
-        text: base64 decoding; url: page-5
 spec: rfc8941; urlPrefix: https://httpwg.org/specs/rfc8941.html
     type: dfn
         text: structured header; url: specify
@@ -1360,7 +1354,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
   This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
 
-  The [:Shared-Storage-Write:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/List=], for which the [=structured header/parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=structured header/token=], [=structured header/string=], or [=structured header/byte sequence=]:
+  The [:Shared-Storage-Write:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/List=], for which the [=structured header/parameters|parameterized=] [=structured header/items=] can have one of the following values, expressed as [=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=]:
 
     * `set`
         - required [=structured header/parameters=]:
@@ -1376,6 +1370,8 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
         - required [=structured header/parameters|parameter=]:
             * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
     * `clear`
+
+    Note: We allow [=structured header/Byte Sequences=] in order to accommodate Unicode keys and values. Any [=structured header/Byte Sequence=] will be assumed to be [=UTF-8 encoded=] and will fail to parse otherwise.
 
 <span class=todo>Add examples.</span>
 
@@ -1463,38 +1459,26 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   <div algorithm>
     To <dfn>get the string value</dfn> for a [=structured header/Bare Item=] |item|, do the following:
     1. If the result of running [=check if string-like=] on |item| is false, return failure.
-    1. Let |itemAsString| be the |item|'s underlying [=string=].
-    1. [=Assert=] that |itemAsString| is an [=ASCII string=].
     1. Switch on the type of |item|:
         <dl class=switch>
           <dt> If |item| is a [=structured header/Token=]:
-            <dd> Return |itemAsString|.
           <dt> If |item| is a [=structured header/String=]:
-            <dd> Return the result of [=unwrap a delimited ASCII string|unwrapping a delimited ASCII string=] for |itemAsString| and the double-quote character.
+            <dd> Perform the following steps:
+                1. [=Assert=] that |item| is an [=ASCII string=].
+                1. Return |item|.
           <dt> If |item| is a [=structured header/Byte Sequence=]:
             <dd> Perform the following steps:
-                1. Let |innerItem| be the result of [=unwrap a delimited ASCII string|unwrapping a delimited ASCII string=] for |itemAsString| and "`:`".
-                1. If |innerItem| is failure, return failure.
-                1. Let |bytes| be the [=base64 decoding=] of |innerItem|.
-                1. If |bytes| is an error, return failure.
-                1. Let |bytesFromUTF8| be the result of running [=UTF-8 decode=] on |bytes|.
-                1. If |bytesFromUTF8| is an error, return failure.
-                1. Return the result of [=encoding UTF-16=] on |bytesFromUTF8|.
+                1. Let |fromUTF8| be the result of running [=UTF-8 decode=] on |item|.
+                1. If |fromUTF8| is an error, return null.
+                1. Return |fromUTF8|.
         </dl>
-  </div>
-
-  <div algorithm>
-    To <dfn>unwrap a delimited ASCII string</dfn>, given a [=ASCII string=] |string| and an [=ASCII code point=] |delimiter|, perform the following steps:
-    1. If |string| does not [=string/starts with|start with=] |delimiter| or |string| does not [=string/ends with|end with=] |delimiter|, return failure.
-    1. Let |newLength| be |string|'s [=string/length=] - 2.
-    1. Return the [=code unit substring=] of |string| from 1 with length |newLength|.
   </div>
 
   <div algorithm>
     To <dfn>obtain a string-like parameter value</dfn>, given a [=structured header/parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If the result of [=check if string-like=] for |parameters|[|paramKey|] is false, return null.
-    1. Return |parameters|[|paramKey|].
+    1. Return the result of running [=get the string value=] for |parameters|[|paramKey|].
   </div>
 
     <div algorithm>
