@@ -11,122 +11,95 @@ Abstract: Shared Storage is a storage API that is intentionally not partitioned 
 </pre>
 
 <pre class=link-defaults>
-spec:url; type:interface; text:URL
+spec:infra;
+    type:dfn;
+        text:user agent
+        for:/; text:string
+spec:webidl;
+    type:interface;
+        text:double
+spec:html;
+    type:dfn;
+        for:realm; text:global object
+        for:WorkerGlobalScope; text:module map
+        for:navigable; text:top-level traversable
 </pre>
 
 <pre class="anchors">
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
         text: worklets; url: worklets.html#worklets
-        text: relevant settings object; url: webappapis.html#relevant-settings-object
-        text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
         text: environment; url: webappapis.html#environment
-        text: environment settings object; url: webappapis.html#environment-settings-object
-        text: relevant settings object; url: webappapis.html#relevant-settings-object
-        text: target browsing context; url: webappapis.html#concept-environment-target-browsing-context
-        text: active document; url: webappapis.html#active-document
-        text: module script; url: webappapis.html#module-script
-        text: global object; url: webappapis.html#concept-realm-global
-        text: module map; url: webappapis.html#module-map
+        text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
+        text: top-frame; url: webappapis.html#top-level-traversable
         text: beginning navigation; url: webappapis.html#beginning-navigation
         text: ending navigation; url: webappapis.html#ending-navigation
-        text: browsing context; for: Window; url: webappapis.html#window-bc
-        text: node navigable; url: webappapis.html#node-navigable
-        text: parent; for: navigable; url: webappapis.html#nav-parent
         text: get the top-level traversable; url: webappapis.html#nav-top
-        text: top-frame; url: webappapis.html#top-level-traversable
-        text: top-level traversable; url: webappapis.html#top-level-traversable
-        text: worklet global scope type; url: worklets.html#worklet-global-scope-type
-        text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
-        text: parallel queue; url: infrastructure.html#parallel-enqueue
-        text: enqueue the following steps; url: infrastructure.html#enqueue-the-following-steps
-        text: browsing context; url: document-sequences.html#browsing-context
-        text: active window; url: document-sequences.html#active-window
-spec: html; urlPrefix: https://url.spec.whatwg.org
+        text: boolean attributes; url: common-microsyntaxes.html#boolean-attributes
+        text: content attributes; url: dom.html#concept-element-attributes
+        text: update the image data; url: images.html#update-the-image-data
+        text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetchin
+spec: url; urlPrefix: https://url.spec.whatwg.org/
     type: dfn
-        text: URL parser; url: concept-url-parser
-        text: origin; for: url; url: concept-url-origin
-spec: html; urlPrefix: https://dom.spec.whatwg.org/
+        text: URL; for: /; url: concept-url
+spec: dom; urlPrefix: https://dom.spec.whatwg.org/
     type: dfn
         text: origin; for: document; url: concept-document-origin
-spec: html; urlPrefix: https://infra.spec.whatwg.org
+spec: infra; urlPrefix: https://infra.spec.whatwg.org
     type: dfn
-        text: user agent; url: user-agent
-        text: string; url: string
-        text: concatenate; for: string; url: string-concatenate
-        text: map; url: ordered-map
-        text: set; for: map; url: map-set
-        text: get; for: map; url: map-get
-        text: remove; url: map-remove
-        text: clear; for: map; url: map-clear
-        text: contains; for: map; url: map-exists
-        text: key; for: map; url: map-key
-        text: value; for: map; url: map-value
-        text: entry; for: map; url: map-entry
-        text: get the keys; url: map-getting-the-keys
-        text: get the values; url: map-getting-the-values
-        text: size; for: map; url: map-size
         text: empty; for: map; url: map-is-empty
-        text: append; for: set; url: set-append
-        text: list; url: list
-        text: empty; for: list; url: list-is-empty
-        text: append; for: list; url: list-append
-        text: item; for: list; url: list-item
-        text: struct; url: struct
-        text: item; for: struct; url: struct-item
-        text: queue; url: queue
-        text: enqueue; for: queue; url: queue-enqueue
-        text: dequeue; for: queue; url: queue-dequeue
-spec: html; urlPrefix: https://webidl.spec.whatwg.org
+        text: ASCII; url: ascii-code-point
+spec: webidl; urlPrefix: https://webidl.spec.whatwg.org
     type: dfn
-        text: upon fulfillment; url: upon-fulfillment
-        text: upon rejection; url: upon-rejection
-        text: promise; url: idl-promise
-        text: promise resolved; url: a-promise-resolved-with
-        text: promise rejected; url: a-promise-rejected-with
-        text: dictionary; url: dfn-dictionary
-        text: async iterator; url: idl-async-iterable
-        text: asynchronous iterator initialization steps; url: asynchronous-iterator-initialization-steps
-        text: get the next iteration result; url: dfn-get-the-next-iteration-result
         text: Web IDL Standard; url: introduction
-spec: html; urlPrefix: https://storage.spec.whatwg.org/
+        text: async iterator; url: idl-async-iterable
+        text: promise; url: idl-promise
+        text: promise rejected; url: a-promise-rejected-with
+spec: storage; urlPrefix: https://storage.spec.whatwg.org/
     type: dfn
         text: storage model; url: model
-        text: storage key; url: storage-key
+        text: storage type; url: storage-type
+        text: storage identifier; url: storage-identifier
         text: storage shed; url: storage-shed
         text: storage shelf; url: storage-shelf
         text: storage bucket; url: storage-bucket
         text: storage bottle; url: storage-bottle
         text: quota; for: storage bottle; url: storage-bottle-quota
-        text: storage endpoint; url: storage-endpoint
-        text: storage type; url: storage-type
-        text: storage identifier; url: storage-identifier
-        text: quota; for: storage endpoint; url: storage-endpoint-quota
         text: register; for: storage endpoint; url: registered-storage-endpoints
+        text: quota; for: storage endpoint; url: storage-endpoint-quota
         text: bucket map; url: bucket-map
         text: bottle map; url: bottle-map
         text: storage proxy map; url: storage-proxy-map
         text: backing map; url: storage-proxy-map-backing-map
         text: proxy map reference set; url: storage-bottle-proxy-map-reference-set
-spec: html; urlPrefix: https://w3c.github.io/beacon/
+spec: beacon; urlPrefix: https://w3c.github.io/beacon/
     type: dfn
         text: beacon; url: beacon
-spec: html; urlPrefix: https://tc39.es/ecma262/
+spec: ecma; urlPrefix: https://tc39.es/ecma262/
     type: dfn
-        text: object; url: sec-object-type
-        text: function; url: function-object
         text: call; url: sec-call
-        text: IsConstructor(); url: sec-isconstructor
-        text: constructor; url: constructor
-        text: GetMethod(); url: sec-getmethod
-        text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-        text: assert; url: assert
         text: current realm; url: current-realm
         text: casting; url: sec-touint32
-spec: html; urlPrefix: https://w3c.github.io/hr-time/
+        text: GetMethod(); url: sec-getmethod
+        text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+        text: IsConstructor(); url: sec-isconstructor
+spec: storage-partitioning; urlPrefix: https://privacycg.github.io/storage-partitioning/
     type: dfn
-        text: unix epoch; url: dfn-unix-epoch
-spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
+        text: client-side storage partitioning
+spec: fetch; urlPrefix: https://fetch.spec.whatwg.org/
+    type: dfn
+        text: http network or cache fetch; url: concept-http-network-or-cache-fetch
+        text: request-constructor; url: dom-request
+spec: permissions-policy; urlPrefix: https://www.w3.org/TR/permissions-policy/
+    type: dfn
+        text: Is feature enabled in document for origin?; url: algo-is-feature-enabled
+spec: attestation; urlPrefix: https://github.com/privacysandbox/attestation
+    type: dfn
+        text: enrolled
+spec: private-aggregation-api; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
+    type: dfn
+        text: private aggregation
+spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
@@ -137,22 +110,25 @@ spec: html; urlPrefix: https://wicg.github.io/fenced-frame/
         text: eventType; for: FenceEvent; url: dom-fenceevent-eventtype
     type: interface
         text: FencedFrameConfig; url: fencedframeconfig
-spec: md; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
+spec: rfc8941; urlPrefix: https://httpwg.org/specs/rfc8941.html
     type: dfn
-        text: private aggregation
-spec: html; urlPrefix: https://privacycg.github.io/storage-partitioning/
-    type: dfn
-        text: client-side storage partitioning
-spec: md; urlPrefix: https://github.com/WICG/shared-storage
-    type:dfn
-        text: legitimate use cases; url: example-scenarios
-spec: html; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+        text: structured header; url: specify
+        text: list; for: structured header; url: list
+        text: parameters; for: structured header; url: param
+        text: item; for: structured header; url: item
+        text: string; for: structured header; url: string
+        text: token; for: structured header; url: token
+        text: byte sequence; for: structured header; url: binary
+        text: boolean; for: structured header; url: boolean
+        text: inner list; for: structured header; url: inner-list
+        text: bare item; for: structured header; url: item
+spec: wikipedia-entropy; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(information_theory)
     type: dfn
         text: bits of entropy
         text: entropy bits
-spec: html; urlPrefix: https://github.com/privacysandbox/attestation
-    type: dfn
-        text: enrolled
+spec: shared-storage-explainer; urlPrefix: https://github.com/WICG/shared-storage
+    type:dfn
+        text: legitimate use cases; url: example-scenarios
 </pre>
 
 <style>
@@ -252,7 +228,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If |origin| is an [=opaque origin=], then return false.
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. [=Assert=] that |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
-    1. If |globalObject| is a {{Window}} and |globalObject|'s [=associated Document=] is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
+    1. If |globalObject| is a {{Window}} and |globalObject|'s [=associated document=] is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
     1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
     1. Return true.
@@ -313,7 +289,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
 
-  Each {{SharedStorageWorkletGlobalScope}} has an associated [=boolean=] <dfn for=SharedStorageWorkletGlobalScope>addModule success</dfn>, which is initialized to false.
+  Each {{SharedStorageWorkletGlobalScope}} has an associated [=/boolean=] <dfn for=SharedStorageWorkletGlobalScope>addModule success</dfn>, which is initialized to false.
 
   The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s.
 
@@ -325,7 +301,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageRunOperation}} is designed to work with output gates that do not need a return value, like the [=private aggregation=] service. A {{SharedStorageRunOperation}} performs an async operation and returns a promise that resolves to undefined.
 
-  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing {{URL}}s each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these {{URL}}s should be selected.
+  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=/list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing [=/URLs=] each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these [=/URLs=] should be selected.
 
   <xmp class='idl'>
     [Exposed=SharedStorageWorklet]
@@ -596,12 +572,32 @@ On the other hand, methods for getting data from the [=shared storage database=]
   ### Window Setter/Deleter Methods ### {#window-setter}
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method steps are:
+    The <dfn method for="WindowSharedStorage">set(|key|, |value|, |options|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/set a key-value pair=] on {{WindowSharedStorage}}, |key|, |value|, and |options|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/append a key-value pair=] on {{WindowSharedStorage}}, |key|, and |value|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/delete a key=] on {{WindowSharedStorage}} and |key|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">clear()</dfn> method step is:
+    1. Return the result of running [=WindowSharedStorage/clear all keys=] on {{WindowSharedStorage}}.
+  </div>
+
+  <div algorithm>
+    To <dfn for="WindowSharedStorage">set a key-value pair</dfn>, given {{WindowSharedStorage}} |sharedStorage|, [=string=] |key|, [=string=] |value|, and {{SharedStorageSetMethodOptions}} |options|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -618,12 +614,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">append(|key|, |value|)</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">append a key-value pair</dfn>, given {{WindowSharedStorage}} |sharedStorage|, [=string=] |key|, and [=string=] |value|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -636,7 +632,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
-            1. Let |list| be a new [=list=].
+            1. Let |list| be a new [=/list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
@@ -646,11 +642,11 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">delete(|key|)</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">delete a key</dfn>, given {{WindowSharedStorage}} |sharedStorage| and [=string=] |key|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -664,10 +660,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    The <dfn method for="WindowSharedStorage">clear()</dfn> method steps are:
+    To <dfn for="WindowSharedStorage">clear all keys</dfn>, given {{WindowSharedStorage}} |sharedStorage|, perform the following steps:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
+    1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
@@ -682,7 +678,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   ### {{SharedStorageUrlWithMetadata}} and Reporting ### {#reporting}
 
-  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a {{URL}} and, optionally, a {{reportingMetadata}} {{/object}}.
+  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a [=/URL=] and, optionally, a {{reportingMetadata}} {{/object}}.
 
   <xmp class='idl'>
     dictionary SharedStorageUrlWithMetadata {
@@ -708,7 +704,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     To <dfn>get the canonical URL string if valid</dfn>, given a [=string=] |urlString|, run the following steps:
 
     1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-    1. If |url| is not a valid {{URL}}, return undefined.
+    1. If |url| is not a valid [=/URL=], return undefined.
     1. Otherwise, return the result of running a [=URL serializer=] on |url|.
   </div>
 
@@ -720,7 +716,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
     1. [=map/iterate|For each=] |eventType| -> |urlString| of |reportingMetadata|:
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. [=Assert=] that |url| is a valid {{URL}}.
+        1. [=Assert=] that |url| is a valid [=/URL=].
         1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
     1. <span class=todo>Store |reportingUrlMap| inside a "fenced frame reporter" class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [=fenced frame|Fenced Frame specification=].</span>
   </div>
@@ -743,7 +739,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
   To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling origins=] to [=navigation entropy ledgers=].
 
-  An <dfn>navigation entropy ledger</dfn> is a [=list=] of [=bit debits=].
+  An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
 
   A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
 
@@ -891,7 +887,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. If |operationMap| [=map/contains=] |name|:
                 1.  Let |operation| be |operationMap|[|name|].
                 1. If |options| [=map/contains=] |data|:
-                    1. Let |argumentsList| be a new [=list=].
+                    1. Let |argumentsList| be a new [=/list=].
                     1. [=list/Append=] |data| to |argumentsList|.
                     1. [=Call=] |operation| with |argumentsList|.
                 1. Otherwise, [=call=] |operation| without any arguments list.
@@ -902,7 +898,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   </div>
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
@@ -918,7 +914,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |operationName|:
                 1. Let |operation| be |operationMap|[|operationName|].
-                1. Let |argumentsList| be a new [=list=] with a single entry [=list/contain|containing=] |urlList|.
+                1. Let |argumentsList| be a new [=/list=] with a single entry [=list/contain|containing=] |urlList|.
                 1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
                 1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
                 1. If |operationResult| has any error(s), then [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
@@ -1067,7 +1063,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
-            1. Let |list| be a new [=list=].
+            1. Let |list| be a new [=/list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
@@ -1224,6 +1220,282 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entry|.
     1. Return |promise|.
+  </div>
+
+Triggering Operations Via HTTP Response Header {#http}
+======================================================
+
+While setter and deleter operations (e.g.. {{WindowSharedStorage/set()}}, {{WindowSharedStorage/append()}}, {{WindowSharedStorage/delete()}}, {{WindowSharedStorage/clear()}}) can be initiated via the above APIs for {{Window}} or {{SharedStorageWorkletGlobalScope}}, setter/deleter operations can alternatively be triggered via HTTP [=/response=] [=header=].
+
+This will require monkey patches to the HTML and Fetch specifications.
+
+# HTML Monkey Patches # {#html-monkeypatches}
+
+## {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}} & <{iframe/sharedstoragewritable}> Attributes ## {#html-attr}
+
+Define the following [=interface mixin=] and include it in the IDL [=interfaces=] for {{HTMLIFrameElement}} and {{HTMLImageElement}}:
+
+<xmp class='idl'>
+  interface mixin HTMLSharedStorageWritableElementUtils {
+    [CEReactions, SecureContext] attribute boolean sharedStorageWritable;
+  };
+
+  HTMLIFrameElement includes HTMLSharedStorageWritableElementUtils;
+  HTMLImageElement includes HTMLSharedStorageWritableElementUtils;
+</xmp>
+
+Add the following [=boolean attributes|boolean content attributes=]:
+
+: <{iframe}>
+:: <dfn for="iframe" element-attr>sharedstoragewritable</dfn>
+: <{img}>
+:: <dfn for="img" element-attr>sharedstoragewritable</dfn>
+
+The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}} must [=reflect=] the respective [=content attribute=] of the same name.
+
+## HTML Algorithm Modifications ## {#html-algo}
+
+### Modification to [=Update the image data=] Algorithm ### {#mod-update-img}
+
+  <div algorithm="modification-to-update-the-image-data">
+    Modify [=update the image data=] as follows:
+
+    After the step
+
+    > Set |request|'s [=request/priority=] to the current state...
+
+    add the step
+
+    1. If the element has the <{img/sharedstoragewritable}> attribute present, set |request|'s [=request/shared storage writable=] to true.
+  </div>
+
+### Modification to [=Create navigation params by fetching=] Algorithm ### {#mod-create-nav}
+
+  <div algorithm="modification-to-create-navigation-params-by-fetching">
+    Modify [=create navigation params by fetching=] as follows:
+
+    After the step
+
+    > Let |request| be a new [=Request/request=], with ...
+
+    add the step
+
+    1. If <var ignore=''>navigable</var>'s [=container=] is an <{iframe}> element, and if it has a <{iframe/sharedstoragewritable}> [=content attribute=], then set |request|'s [=request/shared storage writable=] to true.
+  </div>
+
+# Fetch Monkey Patches # {#fetch-monkeypatches}
+
+## {{RequestInit/sharedStorageWritable}} Key ## {#fetch-attr}
+
+  A [=/request=] has an associated [=/boolean=] <dfn for=request>shared storage writable</dfn>. Unless stated otherwise it is false.
+
+  The {{RequestInit}} dictionary contains a {{RequestInit/sharedStorageWritable}} key:
+
+<xmp class='idl'>
+  partial dictionary RequestInit {
+    boolean sharedStorageWritable;
+  };
+</xmp>
+
+## Fetch Algorithm Modifications ## {#mod-fetch-algo}
+
+### Modification to the [=request-constructor|Request Constructor=] Algorithm ### {#mod-request-con}
+
+  <div algorithm="modification-to-request-constructor">
+    Modify the [=request-constructor|new Request(input, init) constructor=] as follows:
+
+    Before the step
+
+    > Set this's [=Request/request=] to |request|.
+
+    add the step
+
+    1. If <var ignore=''>init</var>["{{RequestInit/sharedStorageWritable}}"] [=map/exists=], then set |request|'s [=request/shared storage writable=] to it.
+  </div>
+
+### Modification to [=HTTP network or cache fetch=] Algorithm ### {#mod-http-net-fetch}
+
+  <div algorithm="modification-to-http-network-or-cache-fetch">
+    Modify the [=HTTP network or cache fetch=] algorithm as follows:
+
+    Before the step
+
+    > Modify |httpRequest|'s [=request/header list=] per HTTP. ...
+
+    add the step
+
+    1. [=Append or modify a Shared-Storage-Writable request header=] for |httpRequest|.
+  </div>
+
+### Modification to [=HTTP fetch=] Algorithm ### {#mod-http-fetch}
+
+  <div algorithm="modification-to-http-fetch">
+    Modify the [=HTTP fetch=] algorithm as follows:
+
+    Before the step
+
+    > If |internalResponse|'s [=response/status=] is a [=redirect status=]: ...
+
+    add the step
+
+    1. [=Handle a Shared-Storage-Write response=], given [=/response=] |internalResponse| and [=/request=] <var ignore=''>request</var> as input.
+  </div>
+
+## Shared Storage HTTP Headers ## {#headers}
+
+### [:Shared-Storage-Writable:] Request Header ### {#request-header}
+
+  This specification defines a <dfn http-header>Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
+
+  The [:Shared-Storage-Writable:] [=/request=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
+
+  When a [=/request=] sets [:Shared-Storage-Writable:] to true its [=/response=] will be able to write to [=shared storage=].
+
+### [:Shared-Storage-Write:] Response Header ### {#response-header}
+
+  This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
+
+  The [:Shared-Storage-Write:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/List=]. The following list members are defined. [=structured header/Tokens=] and [=structured header/Strings=] holding the same sequence of characters are considered equivalent. [=structured header/Byte Sequences=] representing [=UTF-8 encoded=] bytes are also allowed, in order to provide functionality for writing and deleting non-[=ASCII=] [=Unicode=] keys and values via HTTP headers.
+
+  Unknown list members, including types that are neither strings nor [=structured header/Byte Sequences=], are skipped, and the rest of the list is processed as if they weren't present. Members are also skipped if they're missing required [=structured header/parameters=] or those parameters have unexpected types.
+
+    * `set`
+        - Required [=structured header/parameters=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * `value` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - Optional [=structured header/parameters|parameter=]:
+            * `ignore_if_present` ([=structured header/Boolean=])
+        - If the [=structured header/parameter=] value of `ignore_if_present` is null or false, or if the [=structured header/parameter=] value of `key` does not already exist in the [=shared storage database=] for the responding server's [=/origin=], `set` writes the [=shared storage database/entry=] consisting of the [=structured header/parameter=] values for `key` and `value`, as the [=shared storage database/entry=]'s [=entry/key=] and [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] respectively, in the [=shared storage database=] for the responding server's [=/origin=].
+        - If the [=structured header/parameter=] value of `ignore_if_present` is true and the [=structured header/parameter=] value of `key` already exists in the [=shared storage database=] for the responding server's [=/origin=], then `set` is a no-op.
+    * `append`
+        - Required [=structured header/parameters=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * `value` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - If the [=structured header/parameter=] value of `key` already exists in the [=shared storage database=] for the responding server's [=/origin=], then `append` updates the [=entry/key=]'s [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] by appending the [=structured header/parameter=] value for `value` to it.
+        - If the [=structured header/parameter=] value of `key` does not already exist in the [=shared storage database=] for the responding server's [=/origin=], `append` is equivalent to `set` with `ignore_if_present` false, i.e. `append` writes the [=shared storage database/entry=] consisting of the [=structured header/parameter=] values for `key` and `value`, as the [=shared storage database/entry=]'s [=entry/key=] and [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] respectively, in the [=shared storage database=] for the responding server's [=/origin=].
+    * `delete`
+        - Required [=structured header/parameters|parameter=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - `delete` erases any [=shared storage database/entry=] in the [=shared storage database=] for the responding server's [=/origin=] for which the [=entry/key=] is equal to the [=structured header/parameter=] value of `key`.
+    * `clear`
+        - `clear` erases all [=shared storage database/entries=] in the [=shared storage database=] for the responding server's [=/origin=].
+
+    Note: We allow [=structured header/Byte Sequences=] in order to accommodate Unicode keys and values. Any [=structured header/Byte Sequence=] will be assumed to be [=UTF-8 encoded=] and will fail to parse otherwise.
+
+<span class=todo>Add examples.</span>
+
+## Shared Storage Fetch-Related Algorithms ## {#ss-fetch-algo}
+
+  <div algorithm>
+    To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
+
+    1. Let |window| to |request|’s [=request/window=].
+    1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
+    1. If the result of running [=determine whether shared storage is allowed=] for |window| is false, return false.
+    1. Let |document| be |window|'s [=global object=]'s [=associated document=].
+    1. Return the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |document|, and |request|'s [=request/current URL=]'s [=url/origin=].
+
+    Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
+  </div>
+
+
+  <div algorithm>
+    To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
+
+    1. If |request|'s [=request/shared storage writable=] is not true, then return.
+
+        Note: On a redirect, it is possible for |request|'s [=request/shared storage writable=] to be true, but for the redirect not to have permission to use shared storage, making the result of running [=determine whether a request can currently use shared storage=] on |request| false.
+
+    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] [:Shared-Storage-Writable:] from |request|'s [=request/header list=].
+    1. Otherwise, [=header list/set a structured field value=] ([:Shared-Storage-Writable:], true) in |request|'s [=request/header list=].
+  </div>
+
+  <div algorithm>
+    To <dfn>handle a Shared-Storage-Write response</dfn>, given a [=/response=] |response| and a [=/request=] |request|, perform the following steps:
+
+    1. Let |sharedStorageWritable| the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Writable:], "`item`", and |request|'s [=request/header list=] as input.
+    1. If |sharedStorageWritable| is null, or |sharedStorageWritable| is not a [=structured header/Boolean=], or the value of |sharedStorageWritable| is false, return.
+    1. Let |window| to |request|’s [=request/window=].
+    1. [=Assert=] that |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
+    1. Let |sharedStorage| be |window|'s [=global object=]'s {{Window/sharedStorage}}.
+    1. If |sharedStorage| is null, then return.
+    1. Let |list| be |response|'s [=response/header list=].
+    1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Write:], "`list`", and |list| as input.
+    1. If |operationsToParse| is null or [=list/empty=], then return.
+    1. For each tuple (|item|, |parameters|) in |operationsToParse|, perform the following steps:
+        1. If |item| is an [=structured header/Inner List=], continue.
+        1. [=Assert=] that |item| is an [=structured header/Bare Item=].
+        1. Let |operationString| be the result of running [=get the string value=] for |item|.
+        1. If |operationString| is failure, continue.
+        1. Switch on |operationString|:
+            <dl class=switch>
+              <dt> If |operationString| is "`clear`":
+                 <dd> Perform the following steps:
+                     1. Run [=WindowSharedStorage/clear all keys=] on |sharedStorage|.
+                     1. Continue.
+              <dt> If |operationString| is "`delete`":
+                <dd> Perform the following steps:
+                     1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
+                     1. If |key| is not null, run [=WindowSharedStorage/delete a key=] on |sharedStorage| with |key|.
+                     1. Continue.
+              <dt> If |operationString| is "`append`":
+                <dd> Perform the following steps:
+                     1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
+                     1. If |key| is null, continue.
+                     1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
+                     1. If |value| is not null, run [=WindowSharedStorage/append a key-value pair=] on |sharedStorage| with |key| and |value|.
+                     1. Continue.
+              <dt> If |operationString| is "`set`":
+                <dd> Perform the following steps:
+                     1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
+                     1. If |key| is null, continue.
+                     1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
+                     1. If |value| is null, continue.
+                     1. Let |options| be a new {{SharedStorageSetMethodOptions}}.
+                     1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["`ignoreIfPresent`"] to true..
+                     1. Run [=WindowSharedStorage/set a key-value pair=] on |sharedStorage| with |key|, |value|, and |options|.
+                     1. Continue.
+              <dt> If |operationString| is anything else:
+                <dd> Continue.
+            </dl>
+  </div>
+
+  <div algorithm>
+    To <dfn>check if string-like</dfn> for a [=structured header/Bare Item=] |item|, do the following:
+    1. If the |item| is a [=structured header/String=], [=structured header/Token=], or [=structured header/Byte Sequence=], return true.
+    1. Otherwise, return false.
+  </div>
+
+  <div algorithm>
+    To <dfn>get the string value</dfn> for a [=structured header/Bare Item=] |item|, do the following:
+    1. If the result of running [=check if string-like=] on |item| is false, return failure.
+    1. Switch on the type of |item|:
+        <dl class=switch>
+          <dt> If |item| is a [=structured header/Token=]:
+          <dt> If |item| is a [=structured header/String=]:
+            <dd> Perform the following steps:
+                1. [=Assert=] that |item| is an [=ASCII string=].
+                1. Return |item|.
+          <dt> If |item| is a [=structured header/Byte Sequence=]:
+            <dd> Perform the following steps:
+                1. Let |fromUTF8| be the result of running [=UTF-8 decode=] on |item|.
+                1. If |fromUTF8| is an error, return null.
+                1. Return |fromUTF8|.
+        </dl>
+  </div>
+
+  <div algorithm>
+    To <dfn>obtain a string-like parameter value</dfn>, given a [=structured header/parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
+    1. If |parameters| does not [=map/contain=] |paramKey|, return null.
+    1. If the result of [=check if string-like=] for |parameters|[|paramKey|] is false, return null.
+    1. Return the result of running [=get the string value=] for |parameters|[|paramKey|].
+  </div>
+
+    <div algorithm>
+    To <dfn>obtain a boolean parameter value</dfn>, given a [=structured header/parameters|parameters map=] |parameters| and a [=structured header/Token=] |paramKey|, perform the following steps:
+    1. If |parameters| does not [=map/contain=] |paramKey|, return null.
+    1. If |parameters|[|paramKey|] is not a [=structured header/Boolean=], return null.
+    1. Return |parameters|[|paramKey|].
   </div>
 
 Permissions Policy Integration {#permission}
