@@ -1360,19 +1360,25 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   Unknown list members, including types that are neither strings nor [=structured header/Byte Sequences=], are skipped, and the rest of the list is processed as if they weren't present. Members are also skipped if they're missing required [=structured header/parameters=] or those parameters have unexpected types.
 
     * `set`
-        - required [=structured header/parameters=]:
-            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
-            * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
-        - optional [=structured header/parameters|parameter=]:
-            * ignore_if_present ([=structured header/Boolean=])
+        - Required [=structured header/parameters=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * `value` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - Optional [=structured header/parameters|parameter=]:
+            * `ignore_if_present` ([=structured header/Boolean=])
+        - If the [=structured header/parameter=] value of `ignore_if_present` is null or false, or if the [=structured header/parameter=] value of `key` does not already exist in the [=shared storage database=] for the responding server's [=/origin=], `set` writes the [=shared storage database/entry=] consisting of the [=structured header/parameter=] values for `key` and `value`, as the [=shared storage database/entry=]'s [=entry/key=] and [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] respectively, in the [=shared storage database=] for the responding server's [=/origin=].
+        - If the [=structured header/parameter=] value of `ignore_if_present` is true and the [=structured header/parameter=] value of `key` already exists in the [=shared storage database=] for the responding server's [=/origin=], then `set` is a no-op.
     * `append`
-        - required [=structured header/parameters=]:
-            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
-            * value ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - Required [=structured header/parameters=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+            * `value` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - If the [=structured header/parameter=] value of `key` already exists in the [=shared storage database=] for the responding server's [=/origin=], then `append` updates the [=entry/key=]'s [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] by appending the [=structured header/parameter=] value for `value` to it.
+        - If the [=structured header/parameter=] value of `key` does not already exist in the [=shared storage database=] for the responding server's [=/origin=], `append` is equivalent to `set` with `ignore_if_present` false, i.e. `append` writes the [=shared storage database/entry=] consisting of the [=structured header/parameter=] values for `key` and `value`, as the [=shared storage database/entry=]'s [=entry/key=] and [=shared storage database/entry=]'s [=entry/value struct=]'s [=value struct/value=] respectively, in the [=shared storage database=] for the responding server's [=/origin=].
     * `delete`
-        - required [=structured header/parameters|parameter=]:
-            * key ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - Required [=structured header/parameters|parameter=]:
+            * `key` ([=structured header/Token=], [=structured header/String=], or [=structured header/Byte Sequence=])
+        - `delete` erases any [=shared storage database/entry=] in the [=shared storage database=] for the responding server's [=/origin=] for which the [=entry/key=] is equal to the [=structured header/parameter=] value of `key`.
     * `clear`
+        - `clear` erases all [=shared storage database/entries=] in the [=shared storage database=] for the responding server's [=/origin=].
 
     Note: We allow [=structured header/Byte Sequences=] in order to accommodate Unicode keys and values. Any [=structured header/Byte Sequence=] will be assumed to be [=UTF-8 encoded=] and will fail to parse otherwise.
 
