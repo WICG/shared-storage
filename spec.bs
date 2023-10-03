@@ -803,9 +803,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |navigable| is not a [=navigable/traversable navigable=], return.
     1. Let |node| be |sourceDocument|'s [=node navigable=].
     1. While |node| is not null:
-        1. If |node| has a "fenced frame config struct":
-            1. Let |site| be the result of running [=obtain a site=] with |node|'s [=active document=]'s [=document/origin=].
-            1. [=Assert=] that |site| is not an [=opaque origin=].
+        1. Let |site| be the result of running [=obtain a site=] with |node|'s [=active document=]'s [=document/origin=].
+        1. If |node| has a "fenced frame config struct" and |site| is not an [=opaque origin=], perform the following steps:
             1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
             1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has navigated=] is false, run the following steps:
                 1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
