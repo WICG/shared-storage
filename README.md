@@ -201,7 +201,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
                 *    `:aGVsbG8K:` encodes "hello\n" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) (where "\n" is the newline character).
                 *    `:8J+YgA==:` encodes "😀" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
-*  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Shared-Storage-Writable: ?1`.
+*  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Sec-Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
 *  The request header can alternatively be sent on document or image requests either 
     *   via specifying a boolean content attribute, e.g.: 
@@ -214,7 +214,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  The origin used for Shared Storage is that of the server that sends the `Shared-Storage-Write` response header(s).
     *   If there are no redirects, this will be the origin of the request URL.
     *   If there are redirects, the origin of the redirect URL that is accompanied by the `Shared-Storage-Write` response header(s) will be used.
-*  The response header will only be honored if the corresponding request included the request header: `Shared-Storage-Writable: ?1`.
+*  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
 
 
@@ -447,7 +447,9 @@ register('report', ReportOperation);
 
 For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below. 
 
-In order to perform operations via response header, the origin must first opt-in through the HTTP request header `Shared-Storage-Writable`. An origin `a.example` could initiate such a request in multiple ways
+In order to perform operations via response header, the origin must first opt-in via one of the methods below, causing the HTTP request header `Sec-Shared-Storage-Writable: ?1` to be added by the user agent if the request is eligible based on permissions checks. 
+
+An origin `a.example` could initiate such a request in multiple ways.
 
 On the client side, to initiate the request:
 1. `fetch()` option:
