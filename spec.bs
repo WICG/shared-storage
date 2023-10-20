@@ -1325,7 +1325,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
     add the step
 
-    1. [=Append or modify a Shared-Storage-Writable request header=] for |httpRequest|.
+    1. [=Append or modify a Sec-Shared-Storage-Writable request header=] for |httpRequest|.
   </div>
 
 ### Modification to [=HTTP fetch=] Algorithm ### {#mod-http-fetch}
@@ -1344,13 +1344,13 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 ## Shared Storage HTTP Headers ## {#headers}
 
-### [:Shared-Storage-Writable:] Request Header ### {#request-header}
+### [:Sec-Shared-Storage-Writable:] Request Header ### {#request-header}
 
-  This specification defines a <dfn http-header>Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
+  This specification defines a <dfn http-header>Sec-Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
 
-  The [:Shared-Storage-Writable:] [=/request=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
+  The [:Sec-Shared-Storage-Writable:] [=/request=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
 
-  When a [=/request=] sets [:Shared-Storage-Writable:] to true its [=/response=] will be able to write to [=shared storage=].
+  When a [=/request=] sets [:Sec-Shared-Storage-Writable:] to true its [=/response=] will be able to write to [=shared storage=].
 
 ### [:Shared-Storage-Write:] Response Header ### {#response-header}
 
@@ -1401,20 +1401,20 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 
   <div algorithm>
-    To <dfn>append or modify a Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
+    To <dfn>append or modify a Sec-Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. If |request|'s [=request/shared storage writable=] is not true, then return.
 
         Note: On a redirect, it is possible for |request|'s [=request/shared storage writable=] to be true, but for the redirect not to have permission to use shared storage, making the result of running [=determine whether a request can currently use shared storage=] on |request| false.
 
-    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] [:Shared-Storage-Writable:] from |request|'s [=request/header list=].
-    1. Otherwise, [=header list/set a structured field value=] ([:Shared-Storage-Writable:], true) in |request|'s [=request/header list=].
+    1. If the result of running [=determine whether a request can currently use shared storage=] on |request| is false, [=header list/delete=] [:Sec-Shared-Storage-Writable:] from |request|'s [=request/header list=].
+    1. Otherwise, [=header list/set a structured field value=] ([:Sec-Shared-Storage-Writable:], true) in |request|'s [=request/header list=].
   </div>
 
   <div algorithm>
     To <dfn>handle a Shared-Storage-Write response</dfn>, given a [=/response=] |response| and a [=/request=] |request|, perform the following steps:
 
-    1. Let |sharedStorageWritable| the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Writable:], "`item`", and |request|'s [=request/header list=] as input.
+    1. Let |sharedStorageWritable| the result of running [=get a structured field value=] algorithm given [:Sec-Shared-Storage-Writable:], "`item`", and |request|'s [=request/header list=] as input.
     1. If |sharedStorageWritable| is null, or |sharedStorageWritable| is not a [=structured header/Boolean=], or the value of |sharedStorageWritable| is false, return.
     1. Let |window| to |request|’s [=request/window=].
     1. [=Assert=] that |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
