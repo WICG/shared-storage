@@ -1346,7 +1346,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 ### [:Sec-Shared-Storage-Writable:] Request Header ### {#request-header}
 
-  This specification defines a <dfn http-header>Sec-Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
+  This specification defines a <dfn http-header>Sec-Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=]. Note that the '`sec-`' prefix makes [:Sec-Shared-Storage-Writable:] a [=forbidden request-header=].
 
   The [:Sec-Shared-Storage-Writable:] [=/request=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
 
@@ -1354,7 +1354,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 ### [:Shared-Storage-Write:] Response Header ### {#response-header}
 
-  This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
+  This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=]. It also adds [:Shared-Storage-Write:] to the list of [=forbidden response-header name|forbidden response-headers=].
 
   The [:Shared-Storage-Write:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/List=]. The following list members are defined. [=structured header/Tokens=] and [=structured header/Strings=] holding the same sequence of characters are considered equivalent. [=structured header/Byte Sequences=] representing [=UTF-8 encoded=] bytes are also allowed, in order to provide functionality for writing and deleting non-[=ASCII=] [=Unicode=] keys and values via HTTP headers.
 
