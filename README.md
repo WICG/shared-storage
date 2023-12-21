@@ -172,7 +172,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
-*   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.sendHistogramReport()`.
+*   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
     *   After a Shared Storage operation has been running for 5 seconds, Private Aggregation contributions are timed out. Any future contributions are ignored and contributions already made are sent in a report as if the Shared Storage operation had completed. 
@@ -256,7 +256,7 @@ class SendReachReportOperation {
     }
 
     // The user agent will send the report to a default endpoint after a delay.
-    privateAggregation.sendHistogramReport({
+    privateAggregation.contributeToHistogram({
       bucket: data.campaignId,
       value: 128, // A predetermined fixed value; see Private Aggregation API explainer: Scaling values.
     });
@@ -378,7 +378,7 @@ class ReportingOperation {
     
     // The user agent sends the report to the reporting endpoint of the script's
     // origin (that is, the caller of `sharedStorage.run()`) after a delay.
-    privateAggregation.sendHistogramReport({
+    privateAggregation.contributeToHistogram({
       bucket: convertEmbedderContextToBucketId(sharedStorage.context) ,
       value: convertFrameInfoToValue(data.info)
     });
