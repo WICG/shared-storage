@@ -3,7 +3,7 @@
 Authors: Alex Turner, Camillia Smith Barnes, Josh Karlin, Yao Xiao
 
 
-## Introduction
+## Introduction 
 
 In order to prevent cross-site user tracking, browsers are [partitioning](https://blog.chromium.org/2020/01/building-more-private-web-path-towards.html) all forms of storage (cookies, localStorage, caches, etc) by top-frame site. But, there are many legitimate use cases currently relying on unpartitioned storage that will vanish without the help of new web APIs. We’ve seen a number of APIs proposed to fill in these gaps (e.g., [Conversion Measurement API](https://github.com/WICG/conversion-measurement-api), [Private Click Measurement](https://github.com/privacycg/private-click-measurement), [Storage Access](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API), [Private State Tokens](https://github.com/WICG/trust-token-api), [TURTLEDOVE](https://github.com/WICG/turtledove), [FLoC](https://github.com/WICG/floc)) and some remain (including cross-origin A/B experiments and user measurement). We propose a general-purpose, low-level API that can serve a number of these use cases.
 
@@ -13,7 +13,7 @@ The idea is to provide a storage API (named Shared Storage) that is intentionall
 
 See the [draft specification](https://wicg.github.io/shared-storage/).
 
-### Demonstration
+### Demonstration 
 
 You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (currently in canary and dev channels as of June 7th 2022).
 
@@ -24,7 +24,7 @@ A third-party, `a.example`, wants to randomly assign users to different groups (
 
 To do so, `a.example` writes a seed to its shared storage (which is not added if already present). `a.example` then registers and runs an operation in the shared storage [worklet](https://developer.mozilla.org/en-US/docs/Web/API/Worklet) that assigns the user to a group based on the seed and the experiment name and chooses the appropriate ad for that group.
 
-In an `a.example` document:
+In an `a.example` document: 
 
 
 ```js
@@ -86,9 +86,9 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 ## Fenced frame enforcement
 
-The usage of fenced frames with the URL Selection operation will not be required until at least 2026. We will provide significant advanced notice before the fenced frame usage is required. Until 2026, you are free to use an iframe with URL Selection instead of a fenced frame.
+The usage of fenced frames with the URL Selection operation will not be required until at least 2026. We will provide significant advanced notice before the fenced frame usage is required. Until 2026, you are free to use an iframe with URL Selection instead of a fenced frame. 
 
-To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe.
+To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe. 
 
 ```js
 const opaqueURN = await window.sharedStorage.selectURL(
@@ -138,7 +138,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
             *    There will be a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) (the site of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding [site](https://html.spec.whatwg.org/multipage/browsers.html#site)’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
             *    The promise resolves to a fenced frame config only when `resolveToConfig` property is set to `true`. If the property is set to `false` or not set, the promise resolves to an opaque URN that can be rendered by an iframe.
     *   Options can include:
-        *   `data`, an arbitrary serializable object passed to the worklet.
+        *   `data`, an arbitrary serializable object passed to the worklet. 
         *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
             *   If `keepAlive` is false or not specified, the worklet will shutdown as soon as the operation finishes and subsequent calls to it will fail.
             *   To keep the worklet alive throughout multiple calls to `run()` and/or `selectURL()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
@@ -178,14 +178,14 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *   `sharedStorage.remainingBudget()`
-    *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.
+    *   Returns a number indicating the remaining available privacy budget for `sharedStorage.selectURL()`, in bits.   
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
-    *   After a Shared Storage operation has been running for 5 seconds, Private Aggregation contributions are timed out. Any future contributions are ignored and contributions already made are sent in a report as if the Shared Storage operation had completed.
+    *   After a Shared Storage operation has been running for 5 seconds, Private Aggregation contributions are timed out. Any future contributions are ignored and contributions already made are sent in a report as if the Shared Storage operation had completed. 
 *   Unrestricted access to identifying operations that would normally use up part of a page’s [privacy budget](http://github.com/bslassey/privacy-budget), e.g. `navigator.userAgentData.getHighEntropyValues()`
 
 
@@ -203,7 +203,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
         *   `clear()` &larr;&rarr; `clear`
-    *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
+    *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). 
         *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
         *   To pass a key and/or value that contains non-ASCII and/or non-printable [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   A [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) is delimited with colons and encoded using [base64](https://www.rfc-editor.org/rfc/rfc4648.html).
@@ -214,8 +214,8 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
 *  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Sec-Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
-*  The request header can alternatively be sent on document or image requests either
-    *   via specifying a boolean content attribute, e.g.:
+*  The request header can alternatively be sent on document or image requests either 
+    *   via specifying a boolean content attribute, e.g.: 
         *   `<iframe src=[url] sharedstoragewritable></iframe>`
         *    `<img src=[url] sharedstoragewritable>`
     *   or via an equivalent boolean IDL attribute, e.g.:
@@ -339,9 +339,9 @@ By instead maintaining a counter in shared storage, the approach for cross-site 
 
 In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, we might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
 
-In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [FLEDGE auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.
+In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [FLEDGE auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
 
-Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below.
+Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below. 
 
 Subsequently, anything we've written to `fencedFrameConfig` through `setSharedStorageContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
 
@@ -385,7 +385,6 @@ class ReportingOperation {
     // See also https://github.com/patcg-individual-drafts/private-aggregation-api#examples
     function convertEmbedderContextToBucketId(context) { ... }
     function convertFrameInfoToValue(info) { ... }
-
     
     // The user agent sends the report to the reporting endpoint of the script's
     // origin (that is, the caller of `sharedStorage.run()`) after a delay.
@@ -457,9 +456,9 @@ register('report', ReportOperation);
 
 ### Writing to Shared Storage via response headers
 
-For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below.
+For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below. 
 
-In order to perform operations via response header, the origin must first opt-in via one of the methods below, causing the HTTP request header `Sec-Shared-Storage-Writable: ?1` to be added by the user agent if the request is eligible based on permissions checks.
+In order to perform operations via response header, the origin must first opt-in via one of the methods below, causing the HTTP request header `Sec-Shared-Storage-Writable: ?1` to be added by the user agent if the request is eligible based on permissions checks. 
 
 An origin `a.example` could initiate such a request in multiple ways.
 
@@ -513,7 +512,7 @@ The [Private Aggregation API](https://github.com/patcg-individual-drafts/private
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
 
 ## Data Storage Limits
-Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit its size in the following way: Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 characters apiece.
+Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit its size in the following way: Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 characters apiece. 
 
 ## Dependencies
 
@@ -536,7 +535,7 @@ The worklet selects from a small list of (up to 8) URLs, each in its own diction
 
 selectURL() can be called in a top-level fenced frame, but not from within a nested fenced frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Use cases that will benefit from selectURL() being allowed from inside the top level fenced frame: [issue](https://github.com/WICG/fenced-frame/issues/44).
 
-> Fenced
+> Fenced 
 
 #### Budgeting
 The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per [site](https://html.spec.whatwg.org/multipage/browsers.html#site). Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) [bits of information](https://en.wikipedia.org/wiki/Entropy_(information_theory)) can potentially be leaked for each selectURL() involved in the creation of the Fenced Frame. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's [site](https://html.spec.whatwg.org/multipage/browsers.html#site)'s budget at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
@@ -612,7 +611,7 @@ Revealing the time an operation takes to run could also leak information. We avo
 
 
 ### Allowing noised data as output to the embedder
-We could consider allowing the worklet to send data directly to the embedder, with some local differential privacy guarantees. These might look similar to the differential privacy protections that we apply in the Private Aggregation API.
+We could consider allowing the worklet to send data directly to the embedder, with some local differential privacy guarantees. These might look similar to the differential privacy protections that we apply in the Private Aggregation API. 
 
 ### Interactions between worklets
 
