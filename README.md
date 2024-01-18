@@ -148,13 +148,13 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *   `window.sharedStorage.createWorklet(url, options)`
     *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
     *   The worklet uses the `url`'s origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
-    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are legitimate, whereas `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
+    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
     *   Redirects are not allowed.
     *   The website that serves the module script should be aware of the implication of CORS: when the module script's URL's origin is cross-origin with the worklet's creator window's origin, by granting the module script resource via CORS, it will also grant the worklet's creation and subsequent operations on the worklet, under the worklet origin. The worklet's creator context could poison and use up the worklet origin's budget.
 
 
 
-### In the worklet, during `sharedStorage.worklet.addModule(url)` or `sharedStorage.createWorklet(url)`
+### In the worklet, during `sharedStorage.worklet.addModule(url, options)` or `sharedStorage.createWorklet(url, options)`
 
 
 
