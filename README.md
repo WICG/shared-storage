@@ -142,8 +142,8 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
             *   If `keepAlive` is false or not specified, the worklet will shutdown as soon as the operation finishes and subsequent calls to it will fail.
             *   To keep the worklet alive throughout multiple calls to `run()` and/or `selectURL()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
-*   `window.sharedStorage.worklet.run(name, options)`,  \
-`window.sharedStorage.worklet.selectURL(name, urls, options)`, …
+*   `window.sharedStorage.run(name, options)`,  \
+`window.sharedStorage.selectURL(name, urls, options)`, …
     *   The behaivor is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
 *   `window.sharedStorage.createWorklet(url, options)`
     *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
