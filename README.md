@@ -502,7 +502,7 @@ The [Private Aggregation API](https://github.com/patcg-individual-drafts/private
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
 
 ## Data Storage Limits
-Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit its size in the following way: Shared Storage allows each origin up to 10,000 key/value pairs, with each key and value limited to a maximum of 1024 characters apiece. 
+Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit its size in the following way: Shared Storage allows each origin up to 5 Megabytes. 
 
 ## Dependencies
 
