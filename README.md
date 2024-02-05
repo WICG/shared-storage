@@ -121,12 +121,13 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Deletes the entry at the given `key`.
 *   `window.sharedStorage.clear()`
     *   Deletes all entries.
-*   `window.sharedStorage.worklet.addModule(url)`
-    *   Loads and adds the module to the worklet (i.e. for registering operations).
-    *   Operations defined by one context are not invokable by any other contexts.
-    *   Due to concerns of poisoning and using up the budget for the origin's [site](https://html.spec.whatwg.org/multipage/browsers.html#site) ([issue](https://github.com/pythagoraskitty/shared-storage/issues/2)), the shared storage script's origin must match that of the context that created it. Redirects are also not allowed. 
-*   `window.sharedStorage.run(name, options)`,  \
-`window.sharedStorage.selectURL(name, urls, options)`, …
+*   `window.sharedStorage.worklet.addModule(url, options)`
+    *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
+    *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
+    *   `url`'s origin must match that of the context that invoked `addModule(url)`.
+    *   Redirects are not allowed.
+*   `window.sharedStorage.worklet.run(name, options)`,  \
+`window.sharedStorage.worklet.selectURL(name, urls, options)`, …
     *   Runs the operation previously registered by `register()` with matching `name`. Does nothing if there’s no matching operation.
     *   Each operation returns a promise that resolves when the operation is queued:
         *   `run()` returns a promise that resolves into `undefined`.
@@ -141,10 +142,19 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
             *   If `keepAlive` is false or not specified, the worklet will shutdown as soon as the operation finishes and subsequent calls to it will fail.
             *   To keep the worklet alive throughout multiple calls to `run()` and/or `selectURL()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
+*   `window.sharedStorage.run(name, options)`,  \
+`window.sharedStorage.selectURL(name, urls, options)`, …
+    *   The behaivor is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
+*   `window.sharedStorage.createWorklet(url, options)`
+    *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
+    *   The worklet uses the `url`'s origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
+    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
+    *   Redirects are not allowed.
+    *   The website that serves the module script should be aware of the implication of CORS: when the module script's URL's origin is cross-origin with the worklet's creator window's origin, by granting the module script resource via CORS, it will also grant the worklet's creation and subsequent operations on the worklet, under the worklet origin. The worklet's creator context could poison and use up the worklet origin's budget.
 
 
 
-### In the worklet, during `addModule()`
+### In the worklet, during `sharedStorage.worklet.addModule(url, options)` or `sharedStorage.createWorklet(url, options)`
 
 
 
