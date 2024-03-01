@@ -25,9 +25,14 @@ spec:html;
         for:realm; text:global object
         for:WorkerGlobalScope; text:module map
         for:navigable; text:top-level traversable
+spec:fenced-frame;
+    type:dfn;
+        for:fencedframetype; text:fenced frame reporter
 </pre>
 
 <pre class="anchors">
+urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
+    type: dfn; text: urn uuid
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
         text: worklets; url: worklets.html#worklets
@@ -222,7 +227,11 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">addModule initiated</dfn>, initialized to false.
 
-Each {{SharedStorageWorklet}} has an associated [=/origin=] <dfn for="SharedStorageWorklet">worklet origin</dfn>, initialized to null. It will be set to the |moduleURL|'s [=url/origin=] when {{Worklet/addModule()|addModule}}(|moduleURL|, <var ignore=''>options</var>) is called.
+Each {{SharedStorageWorklet}} has an associated [=/origin=]-or-null <dfn for="SharedStorageWorklet">worklet origin</dfn>, initialized to null.
+
+<div class="note">
+The intent is for [=SharedStorageWorklet/worklet origin=] to match, identically, the <var ignore=''>insideSettings</var>'s [=environment settings object/origin=] (as computed in [=create a worklet global scope=]).
+</div>
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">cross-origin worklet allowed</dfn>, initialized to false.
 
@@ -262,18 +271,19 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
   <div class="note">
     Here are the scenarios where the algorithms [=determine whether shared storage is allowed by context=] and [=determine whether shared storage is allowed by enrollment and user preference=] are used:
 
-    - For [[#window-setter]], |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
-    - For creating a worklet, and for initiating (from {{Window}}) and running (from {{SharedStorageWorkletGlobalScope}}) operations on a worklet, |environment| is the worklet's creator window, and |origin| is the [=SharedStorageWorklet/worklet origin=].
+    - For each method under [[#window-setter]], |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
+    - For creating a worklet, and for initiating (from {{Window}}) and running (from {{SharedStorageWorkletGlobalScope}}) operations on a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the [=SharedStorageWorklet/worklet origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=] origin.
   </div>
 
   <div algorithm>
-    To <dfn>check if addModule is allowed and update state</dfn> given a {{SharedStorageWorklet}} |worklet| and an [=/URL=] |moduleURL|, run the following steps:
-    1. Let |workletOrigin| be |moduleURL|'s [=url/origin=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given [=current global object=]'s [=relevant settings object=] and |workletOrigin| is false, return "DisallowedDueToNonPreferenceError".
+    To <dfn>check if addModule is allowed and update state</dfn> given a {{SharedStorageWorklet}} |worklet| and an [=/URL=] |moduleURLRecord|, run the following steps:
     1. If |worklet|'s [=addModule initiated=] is true, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=addModule initiated=] to true.
-    1. If |workletOrigin| and [=current global object=]'s [=relevant settings object=]'s [=environment settings object/origin=] are [=same origin=], set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to true.
+    1. [=Assert=]: |worklet|'s [=SharedStorageWorklet/worklet origin=] is null.
+    1. Let |workletOrigin| be |moduleURLRecord|'s [=url/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given [=current global object=]'s [=relevant settings object=] and |workletOrigin| is false, return "DisallowedDueToNonPreferenceError".
+    1. If |workletOrigin| and [=current global object=]'s [=relevant settings object=]'s [=environment settings object/origin=] are not [=same origin=], set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to true.
     1. If |worklet|'s [=cross-origin worklet allowed=] is false, and if |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] is true, return "DisallowedDueToNonPreferenceError".
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given [=current global object=]'s [=relevant settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
     1. Set |worklet|'s [=SharedStorageWorklet/worklet origin=] to |workletOrigin|.
@@ -341,14 +351,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
             1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |resultPromise| with a {{TypeError}} and abort these steps.
-    1. Let |fencedFrameConfigStruct| be a "fenced frame config struct" with an invalid "urn uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. Let |fencedFrameConfigStruct| be a [=fenced frame config=] with an invalid "urn uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Let |environment| be |window|'s [=relevant settings object=].
     1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Else, set |fencedFrameConfigStruct| to a "fenced frame config struct" with a pending mapped "url uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. Else, set |fencedFrameConfigStruct| to a [=fenced frame config=] with a pending mapped "url uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
 
-        Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
+        Issue: The [=fenced frame config=] and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
 
     1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
@@ -408,10 +418,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   This specification will make some modifications to the [=Worklet=] standard to accommodate the needs of Shared Storage.
 
-  In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
+  In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
 
-    0. If |this| is of type {{SharedStorageWorklet}}:
-        1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and |moduleURL|.
+    4. If |this| is of type {{SharedStorageWorklet}}:
+        1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and <var ignore=''>moduleURLRecord</var>.
         1. If |addModuleAllowedResult| is "DisallowedDueToNonPreferenceError":
             1. Reject <var ignore="">promise</var> with a {{TypeError}}.
         1. Else if |addModuleAllowedResult| is "DisallowedDueToPreferenceError":
@@ -422,13 +432,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Return <var ignore="">promise</var>.
 
     <div class="note">
-
-    On user preferences error, addModule() will be aborted at an early stage. However, the error will only be exposed to the caller for a same-origin worklet (i.e. where the initiator document's origin is same-origin with the module script's origin). For a cross-origin worklet, the error will be hidden. This is to prevent a caller from knowing which origins the user has disabled shared storage for via preferences (if a per-origin preference exists for that browser vendor).
+    On user preferences error, {{Worklet/addModule()}} will be aborted at an early stage. However, the error will only be exposed to the caller for a same-origin worklet (i.e. where the initiator document's origin is same-origin with the module script's origin). For a cross-origin worklet, the error will be hidden. This is to prevent a caller from knowing which origins the user has disabled shared storage for via preferences (if a per-origin preference exists for that browser vendor).
 
     A caller may still use timing attacks to know this information, but this is a minor security/privacy issue, as in reality very few users would set such preferences, and doing a wide search would incur a significant performance cost spinning up the worklets.
 
     This rationale also applies to the handling for user preferences error for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}}.
-
     </div>
 
     <span class=todo>Specify that redirects are disallowed when fetching the module script for {{SharedStorageWorklet}}.</span>
@@ -437,7 +445,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     2. If |pendingTasks| is 0, perform the following steps:
         1. If |workletGlobalScope| has an associated boolean [=addModule success=], set |workletGlobalScope|'s [=addModule success=] to true.
-        2. [=resolve=] |promise|.
+        2. [=Resolve=] |promise|.
 
   <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
 
@@ -532,7 +540,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   ## {{SharedStorageUrlWithMetadata}} and Reporting ## {#reporting}
 
-  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a [=/URL=] and, optionally, a {{reportingMetadata}} {{/object}}.
+  {{SharedStorageUrlWithMetadata}} [=dictionaries=] contain a [=string=] representing a [=/URL=] and, optionally, a {{reportingMetadata}} {{/object}}.
 
   <xmp class='idl'>
     dictionary SharedStorageUrlWithMetadata {
@@ -541,16 +549,16 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     };
   </xmp>
 
-  If a {{SharedStorageUrlWithMetadata}} {{/object}} contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are [=FenceEvent/eventTypes=] and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these [=FenceEvent/eventType=]-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{SharedStorageWorklet/selectURL()}} call.
+  If a {{SharedStorageUrlWithMetadata}} [=dictionary=] contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are {{FenceEvent/eventType}}s and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these {{FenceEvent/eventType}}-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{SharedStorageWorklet/selectURL()}} call.
 
-  Inside a [=fenced frame=] with [=FenceEvent/eventType=]-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{SharedStorageWorklet/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if [=fence.reportEvent()=] is called on a [=FenceEvent=] with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`" and that [=FenceEvent=]'s corresponding [=FenceEvent/eventType=] is triggered, then the [=FenceEvent=]'s [=FenceEvent/eventData=] will be sent as a [=beacon=] to the registered [=/URL=] for that [=FenceEvent/eventType=].
+  Inside a [=fenced frame=] with {{FenceEvent/eventType}}-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{SharedStorageWorklet/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if [=fence.reportEvent()=] is called on a {{FenceEvent}} with a {{FenceEvent/destination}} [=list/containing=] "`shared-storage-select-url`" and that {{FenceEvent}}'s corresponding {{FenceEvent/eventType}} is triggered, then the {{FenceEvent}}'s {{FenceEvent/eventData}} will be sent as a [=beacon=] to the registered [=/URL=] for that {{FenceEvent/eventType}}.
 
   <div algorithm>
     To <dfn>validate reporting metadata</dfn>, given an {{/object}} |reportingMetadata|, run the following steps:
 
-    1. If |reportingMetadata| is [=map/empty=], return true.
     1. If |reportingMetadata| is not a [=dictionary=], return false.
-    1. [=map/iterate|For each=] <var ignore="">eventType</var> -> |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
+    1. If |reportingMetadata| is [=map/empty=], return true.
+    1. [=map/iterate|For each=] <var ignore="">eventType</var> → |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
     1. Return true.
   </div>
 
@@ -563,16 +571,16 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   <div algorithm>
-    To <dfn>register reporting metadata</dfn>, given an {{/object}} |reportingMetadata| and a "fenced frame config struct" |fencedFrameConfigStruct|, run the following steps:
+    To <dfn>register reporting metadata</dfn>, given an {{/object}} |reportingMetadata| and a [=fenced frame config=] |fencedFrameConfigStruct|, run the following steps:
 
     1. If |reportingMetadata| is [=map/empty=], return.
     1. [=Assert=]: |reportingMetadata| is a [=dictionary=].
     1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
-    1. [=map/iterate|For each=] |eventType| -> |urlString| of |reportingMetadata|:
+    1. [=map/iterate|For each=] |eventType| → |urlString| of |reportingMetadata|:
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
         1. [=Assert=]: |url| is a valid [=/URL=].
         1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
-    1. <span class=todo>Store |reportingUrlMap| inside a "fenced frame reporter" class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [=fenced frame|Fenced Frame specification=].</span>
+    1. <span class=todo>Store |reportingUrlMap| inside a [=fenced frame reporter=] class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [[Fenced-Frame]].</span>
   </div>
 
   ## Entropy Budgets ## {#budgets}
@@ -581,9 +589,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   ### Navigation Entropy Budget ### {#nav-budget}
 
-  If a user activates a [=fenced frame=] whose {{FencedFrameConfig}} was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-frame=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
+  If a user [=user activation|activates=] a [=fenced frame=] whose {{FencedFrameConfig}} was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
 
-  A <dfn>calling site</dfn> for {{SharedStorageWorklet/selectURL()}} is the [=site=] resulting from running [=obtain a site=] with the [=url/origin=] of an [=environment=] that makes a {{SharedStorageWorklet/selectURL()}} call.
+  A <dfn>calling site</dfn> for {{SharedStorageWorklet/selectURL()}} is a [=site=].
 
   A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-frame=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=calling site=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling site=]-agnostic.
 
@@ -595,7 +603,15 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
 
-  A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
+  A <dfn>bit debit</dfn> is a [=struct=] with the following [=struct/items=]:
+
+  <dl dfn-for="bit debit">
+    : <dfn>bits</dfn>
+    :: a double
+
+    : <dfn>timestamp</dfn>
+    :: a {{DOMHighResTimeStamp}} (from the [=Unix Epoch=])
+  </dl>
 
   [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=navigation budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
 
@@ -605,9 +621,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   {{SharedStorageWorklet/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
 
-  When a [=calling site=] has insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or an opaque [=/URL=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
+  When a [=calling site=] has insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or a [=urn uuid=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
 
-  The <dfn>default index</dfn> for a call to {{SharedStorageWorklet/selectURL()}} is implementation-defined in such a way that it is independent from the result of the associated {{SharedStorageSelectURLOperation}}'s "`run`" method.
+  The <dfn>default index</dfn> for a call to {{SharedStorageWorklet/selectURL()}} is [=implementation-defined=] in such a way that it is independent from the result of the associated {{SharedStorageSelectURLOperation}}'s "`run`" method.
 
   <div class="example">
     The [=default index=] could be defined to be 0.
@@ -645,68 +661,68 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Otherwise, return false.
   </div>
 
-  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-frame=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
+  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-level traversable=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
 
   Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
 
-  Issue: The "fenced frame config struct" and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The [=fenced frame config=] and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
 
-    1. If |navigable| is not a [=navigable/traversable navigable=], return.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. While |node| is not null:
-        1. Let |site| be the result of running [=obtain a site=] with |node|'s [=active document=]'s [=document/origin=].
-        1. If |node| has a "fenced frame config struct" and |site| is not an [=opaque origin=], perform the following steps:
-            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has navigated=] is false, run the following steps:
+    1. If |navigable| is not a [=top-level traversable=], return.
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. While |currentNavigable| is not null:
+        1. Let |site| be the result of running [=obtain a site=] with |currentNavigable|'s [=active document=]'s [=document/origin=].
+        1. If |currentNavigable| has a [=fenced frame config=] and |site| is not an [=opaque origin=], perform the following steps:
+            1. Let |pendingBits| be |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if [=fenced frame config=]'s [=has navigated=] is false, run the following steps:
                 1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
                 1. Let |currentTime| be the [=/current wall time=].
                 1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
-                1. Set |node|'s "fenced frame config struct"'s [=has navigated=] to true.
-        1. Set |node| to |node|'s [=navigable/parent=].
+                1. Set |currentNavigable|'s [=fenced frame config=]'s [=has navigated=] to true.
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
   </div>
 
   ### Reporting Entropy Budget ### {#report-budget}
 
-  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{SharedStorageWorklet/selectURL()}} whose [=FenceEvent/destination=] [=list/contains=] "`shared-storage-select-url`" and whose [=FenceEvent/eventType=] is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
+  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{SharedStorageWorklet/selectURL()}} whose {{FenceEvent/destination}} [=list/contains=] "`shared-storage-select-url`" and whose {{FenceEvent/eventType}} is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
 
   A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fence.reportEvent()=] during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
 
   Each [=top-level traversable=] will have a new {{double}} <dfn>shared storage reporting budget</dfn> associated to it which will be initialized with the value of [=user agent=]'s [=reporting entropy allowance=] upon [=top-level traversable=]'s creation.
 
-  When [=fence.reportEvent()=] is called with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
+  When [=fence.reportEvent()=] is called with a {{FenceEvent/destination}} [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
 
   <div algorithm>
     To <dfn>determine reporting budget to charge</dfn>, given a {{Document}} |sourceDocument|, run the following steps:
 
     1. Let |debitSum| be 0.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. While |node| is not null:
-        1. If |node| has a "fenced frame config struct":
-            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has reported=] is false, increment |debitSum| by |pendingBits|
-        1. Set |node| to |node|'s [=navigable/parent=].
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. While |currentNavigable| is not null:
+        1. If |currentNavigable| has a [=fenced frame config=]:
+            1. Let |pendingBits| be |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if [=fenced frame config=]'s [=has reported=] is false, increment |debitSum| by |pendingBits|
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
     1. Return |debitSum|.
   </div>
 
 
-  Issue: The "fenced frame config struct" and its boolean <dfn>has reported</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The [=fenced frame config=] and its boolean <dfn>has reported</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
 
     1. Let |toCharge| be the result of running [=determine reporting budget to charge=] with |sourceDocument|.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. Let |topNode| be the result of running [=get the top-level traversable=] for |node|.
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. Let |topNode| be the result of running [=get the top-level traversable=] for |currentNavigable|.
     1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
-    1. While |node| is not null:
-        1. If |node| has a "fenced frame config struct" and if |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=] is greater than 0, set |node|'s "fenced frame config struct"'s [=has reported=] to true.
-        1. Set |node| to |node|'s [=navigable/parent=].
+    1. While |currentNavigable| is not null:
+        1. If |currentNavigable| has a [=fenced frame config=] and if |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=] is greater than 0, set |currentNavigable|'s [=fenced frame config=]'s [=has reported=] to true.
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
     1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
     1. Return true.
   </div>
