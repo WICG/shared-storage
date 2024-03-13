@@ -15,6 +15,8 @@ spec:infra;
     type:dfn;
         text:user agent
         for:/; text:string
+    type:dfn;
+        for:/; text:list
 spec:webidl;
     type:interface;
         text:double
@@ -300,30 +302,43 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
 
     1. Let |promise| be a new [=promise=].
-    1. Let |window| be the [=current global object=].
+    1. Let |window| be |worklet|'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
     1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
     1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |outsideSettings| be |worklet|'s [=relevant settings object=].
-    1. Return |promise|, and immediately [=obtain a worklet agent=] given |outsideSettings| and run the rest of these steps in that agent:
+    1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. Let |index| be [=default index=].
-        1. If |worklet|'s [=module map=] is not [=map/empty=]:
-            1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
-            1. If |operationMap| [=map/contains=] |operationName|:
-                1. Let |operation| be |operationMap|[|operationName|].
-                1. Let |argumentsList| be the [=/list=] « |urlList| ».
-                1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
-                1. Let |operationResult| be the result of [=invoking=] |operation| with |argumentsList|.
-                1. If [=an exception was thrown=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
-                1. Otherwise:
-                    1. Set |index| to |operationResult|, [=converted to a JavaScript value=] of type {{unsigned long}}.
-                    1. If [=an exception was thrown=]:
-                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
-                        1. Abort these steps.
-                    1. Otherwise, if |index| is greater than |urlList|'s [=list/size=]:
-                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
-                        1. Abort these steps.
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+        1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
+        1. [=Assert=]: |worklet|'s [=module map=] is not [=map/empty=].
+        1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+        1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
+        1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+
+            Note: This could happen if {{SharedStorageWorkletGlobalScope/register()}} was never called with |operationName|.
+
+        1. Let |operation| be |operationMap|[|operationName|].
+        1. Let |argumentsList| be the [=/list=] « |urlList| ».
+        1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
+        1. Let |operationResult| be the result of [=invoking=] |operation| with |argumentsList|.
+        1. If [=an exception was thrown=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+
+            Note: This indicates that |operationCtor|'s run() method encounters an error, where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}.
+
+        1. Otherwise:
+            1. Set |index| to |operationResult|, [=converted to a JavaScript value=] of type {{unsigned long}}.
+            1. If [=an exception was thrown=]:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+
+                Note: The result index is a non-integer value. This violates the selectURL() protocol, and we don't know which url should be selected.
+
+            1. Otherwise, if |index| is greater than |urlList|'s [=list/size=]:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+
+                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
   </div>
 
   <div algorithm>
@@ -331,17 +346,18 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     1. Let |resultPromise| be a new [=promise=].
     1. If [=this=]'s [=addModule initiated=] is false, then return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |window| be the [=current global object=].
+    1. Let |window| be [=this=]'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
     1. Let |context| be |window|'s [=Window/browsing context=].
     1. If |context| is null, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |document| be |context|'s [=active document=].
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and [=this=]'s [=SharedStorageWorklet/worklet origin=] returns false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If [=this=]'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=Assert=]: [=this=]'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for [=this=]'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=]  with a {{TypeError}}.
-    1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |urlList| be an empty {{list}}.
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+    1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
+    1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |urls| is empty or if |urls|'s [=list/size=] is greater than 8, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |urlList| be an empty [=list=].
     1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
         1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}.
         1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
@@ -350,7 +366,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |resultPromise| with a {{TypeError}} and abort these steps.
+            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, [=reject=] |resultPromise| with a {{TypeError}} and abort these steps.
     1. Let |fencedFrameConfigStruct| be a [=fenced frame config=] with an invalid "urn uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Let |environment| be |window|'s [=relevant settings object=].
     1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
@@ -360,12 +376,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
         Issue: The [=fenced frame config=] and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
 
-    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. Othewise, [=resolve=] |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. If |fencedFrameConfigStruct|'s "urn uuid" is invalid (i.e. instead of pending mapped), then return. <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
     1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, and |options|.
-    1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
-        1. Let |resultIndex| be the numerical value of |indexPromise|.
+    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=url/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
         1. [=Assert=]: |remainingBudget| is not undefined.
@@ -375,10 +390,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
         1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
         1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=]'s {{SharedStorageWorkletGlobalScope}}.
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. [=Upon rejection=] of |indexPromise|, perform the following steps:
         1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=]'s {{SharedStorageWorkletGlobalScope}}.
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. Return |resultPromise|.
   </div>
 
@@ -387,18 +402,21 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     1. Let |promise| be a new [=promise=].
     1. If [=this=]'s [=addModule initiated=] is false, then return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |window| be the [=current global object=].
+    1. Let |window| be [=this=]'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
-    1. If [=this=]'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=Assert=]: [=this=]'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for [=this=]'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |outsideSettings| be [=this=]'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |outsideSettings| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, [=reject=] |promise| with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |outsideSettings| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false:
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+    1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
+    1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, [=reject=] |promise| with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, [=reject=] |promise| with a {{TypeError}}.
         1. Else, [=resolve=] |promise| with undefined.
         1. Return |promise|.
-    1. Return |promise|, and immediately [=obtaining a worklet agent=] given |outsideSettings| and run the rest of these steps in that agent:
+    1. Return |promise|, and immediately [=obtaining a worklet agent=] given |window| and run the rest of these steps in that agent:
+
+        Note: The |promise|'s resolution should be before and not depend on the execution inside {{SharedStorageWorkletGlobalScope}}. This is because shared storage is a type of unpartitioned storage, and a {{SharedStorageWorkletGlobalScope}} can have access to cross-site data, which shouldn't be leaked via {{SharedStorageWorklet/run()}} (via its success/error result).
+
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with undefined.
         1. If [=this=]'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be [=this=]'s {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
@@ -411,7 +429,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                 1. Otherwise, [=invoke=] |operation| without any arguments list.
         1. If |options|["`keepAlive`"] is false:
             1. Wait for |operation| to finish running, if applicable.
-            1. Run [=terminate a worklet global scope=] with [=this=]'s {{SharedStorageWorkletGlobalScope}}.
+            1. Run [=terminate a worklet global scope=] with [=this=].
   </div>
 
   ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
@@ -423,13 +441,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     4. If |this| is of type {{SharedStorageWorklet}}:
         1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and <var ignore=''>moduleURLRecord</var>.
         1. If |addModuleAllowedResult| is "DisallowedDueToNonPreferenceError":
-            1. Reject <var ignore="">promise</var> with a {{TypeError}}.
+            1. Return [=a promise rejected with=] a {{TypeError}}.
         1. Else if |addModuleAllowedResult| is "DisallowedDueToPreferenceError":
-            1. If |this|'s [=SharedStorageWorklet/is cross-origin worklet=] is false, then reject <var ignore="">promise</var> with a {{TypeError}}. Else, resolve <var ignore="">promise</var>.
+            1. If |this|'s [=SharedStorageWorklet/is cross-origin worklet=] is false, then return [=a promise rejected with=] a {{TypeError}}.
         1. Else:
             1. [=Assert=]: |addModuleAllowedResult| is "Allowed".
-            1. Resolve <var ignore="">promise</var>.
-        1. Return <var ignore="">promise</var>.
 
     <div class="note">
     On user preferences error, {{Worklet/addModule()}} will be aborted at an early stage. However, the error will only be exposed to the caller for a same-origin worklet (i.e. where the initiator document's origin is same-origin with the module script's origin). For a cross-origin worklet, the error will be hidden. This is to prevent a caller from knowing which origins the user has disabled shared storage for via preferences (if a per-origin preference exists for that browser vendor).
@@ -1090,8 +1106,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Set |sharedStorageWorklet|'s [=cross-origin worklet allowed=] to true.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
-    1. [=Upon fulfillment=] of |addModulePromise|, resolve |resultPromise| to |sharedStorageWorklet|.
-    1. [=Upon rejection=] of |addModulePromise|, reject |resultPromise| with a {{TypeError}}.
+    1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
+    1. [=Upon rejection=] of |addModulePromise|, [=reject=] |resultPromise| with a {{TypeError}}.
     1. Return |resultPromise|.
   </div>
 
@@ -1289,7 +1305,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |site|.
         1. [=Assert=]: |remainingBudget| is not undefined.
-        1. Resolve [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |remainingBudget|.
+        1. [=Resolve=] [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |remainingBudget|.
     1. Return |promise|.
   </div>
 
