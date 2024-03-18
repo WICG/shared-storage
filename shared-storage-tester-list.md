@@ -45,3 +45,4 @@ The usefulness of this page depends on testers sharing information and updates; 
 | Criteo | DSP | Testing ongoing | | privacy-sandbox-testing@criteo.com |
 | NextRoll | DSP | 2024-01-30 | | privacysandbox@nextroll.com |
 | CyberAgent(Dynalyst) | DSP | Testing ongoing | | privacysandbox@cyberagent.co.jp |
+| Raptive | Ad Network | Testing Ongoing | datascience@adthrive.com |
