@@ -44,5 +44,5 @@ The usefulness of this page depends on testers sharing information and updates; 
 | Google Ads Unique Reach | Metrics | Testing ongoing | | https://support.google.com/google-ads/gethelp |
 | Criteo | DSP | Testing ongoing | | privacy-sandbox-testing@criteo.com |
 | NextRoll | DSP | 2024-01-30 | | privacysandbox@nextroll.com |
-| Raptive | Ad Network | Testing Ongoing | datascience@adthrive.com |
 | CyberAgent(Dynalyst) | DSP | Testing ongoing | | privacysandbox@cyberagent.co.jp |
+| Raptive | Ad Network | Testing Ongoing | datascience@adthrive.com |
