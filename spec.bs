@@ -30,6 +30,7 @@ spec:html;
 spec:fenced-frame;
     type:dfn;
         for:fencedframetype; text:fenced frame reporter
+        for:browsing context; text:fenced frame config instance
 </pre>
 
 <pre class="anchors">
@@ -38,6 +39,11 @@ urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
         text: worklets; url: worklets.html#worklets
+        text: added modules list; url: worklets.html#concept-worklet-added-modules-list
+        text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
+        text: fetch a worklet/module worker script graph; url: webappapis.html#fetch-a-worklet/module-worker-script-graph
+        text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
+        text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
         text: top-frame; url: webappapis.html#top-level-traversable
@@ -229,19 +235,13 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">addModule initiated</dfn>, initialized to false.
 
-Each {{SharedStorageWorklet}} has an associated [=/origin=]-or-null <dfn for="SharedStorageWorklet">worklet origin</dfn>, initialized to null.
-
-<div class="note">
-The intent is for [=SharedStorageWorklet/worklet origin=] to match, identically, the <var ignore=''>insideSettings</var>'s [=environment settings object/origin=] (as computed in [=create a worklet global scope=]).
-</div>
-
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">cross-origin worklet allowed</dfn>, initialized to false.
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">is cross-origin worklet</dfn>, initialized to false.
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=addModule initiated=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule is allowed and update state=], and if the result is "DisallowedDueToNonPreferenceError", or if the result is "DisallowedDueToPreferenceError" and the worklet's [=SharedStorageWorklet/is cross-origin worklet=] is false, it will cause {{Worklet/addModule()}} to fail, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule is allowed and update state=], and if the result is "DisallowedDueToNonPreferenceError", or if the result is "DisallowedDueToPreferenceError" and the worklet's [=SharedStorageWorklet/is cross-origin worklet=] is false, it will cause {{Worklet/addModule()}} to fail, as detailed in the [[#add-module-monkey-patch]].
 
   <div algorithm>
     To <dfn>check if user preference setting allows access to shared storage</dfn> given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run the following step:
@@ -274,7 +274,8 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     Here are the scenarios where the algorithms [=determine whether shared storage is allowed by context=] and [=determine whether shared storage is allowed by enrollment and user preference=] are used:
 
     - For each method under [[#window-setter]], |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
-    - For creating a worklet, and for initiating (from a {{Window}}) and running (from {{SharedStorageWorkletGlobalScope}}) operations on a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the [=SharedStorageWorklet/worklet origin=].
+    - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module scirpt url's [=url/origin=].
+    - For initiating (from a {{Window}}) and for running (from {{SharedStorageWorkletGlobalScope}}) operations on a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
   </div>
 
@@ -282,19 +283,17 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     To <dfn>check if addModule is allowed and update state</dfn> given a {{SharedStorageWorklet}} |worklet| and a [=/URL=] |moduleURLRecord|, run the following steps:
     1. If |worklet|'s [=addModule initiated=] is true, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=addModule initiated=] to true.
-    1. [=Assert=]: |worklet|'s [=SharedStorageWorklet/worklet origin=] is null.
     1. Let |workletOrigin| be |moduleURLRecord|'s [=url/origin=].
     1. If the result of running [=determine whether shared storage is allowed by context=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToNonPreferenceError".
     1. If |workletOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to true.
     1. If |worklet|'s [=cross-origin worklet allowed=] is false, and if |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] is true, return "DisallowedDueToNonPreferenceError".
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
-    1. Set |worklet|'s [=SharedStorageWorklet/worklet origin=] to |workletOrigin|.
     1. Return "Allowed".
   </div>
 
 Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=], initially empty, can contain at most one instance of its [=worklet global scope type=], the {{SharedStorageWorkletGlobalScope}}.
 
-  Note: The website that serves the module script should be aware of the implication of CORS: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, under that module script's [=url/origin=]. For example, the worklet's creator {{Window}} could poison and use up the [=SharedStorageWorklet/worklet origin=]'s [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}.
+  Note: The website that serves the module script should be aware of the implication of CORS: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, under that module script's [=url/origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
 
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
@@ -326,7 +325,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             Note: This indicates that |operationCtor|'s run() method encounters an error, where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}.
 
         1. Otherwise:
-            1. Set |index| to |operationResult|, [=converted to a JavaScript value=] of type {{unsigned long}}.
+            1. Set |index| to |operationResult|.
             1. If [=an exception was thrown=]:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
@@ -352,10 +351,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |context| be |window|'s [=Window/browsing context=].
     1. If |context| is null, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |document| be |context|'s [=active document=].
-    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and [=this=]'s [=SharedStorageWorklet/worklet origin=] returns false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+    1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
+    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and |workletOrigin| returns false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |urls| is empty or if |urls|'s [=list/size=] is greater than 8, return a [=promise rejected=] with a {{TypeError}}.
 
@@ -371,18 +371,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
             1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, [=reject=] |resultPromise| with a {{TypeError}} and abort these steps.
-    1. Let |fencedFrameConfigStruct| be a [=fenced frame config=] with an invalid "urn uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. Let |fencedFrameConfigMapping| be |globalScope|'s [=associated Document=]'s [=node navigable=]'s
+  [=navigable/traversable navigable=]'s [=traversable navigable/fenced frame config mapping=].
+    1. Let |pendingConfig| be a new [=fenced frame config=].
+    1. Let |urn| be the result of running [=fenced frame config mapping/store a pending config=] on |fencedFrameConfigMapping| with |pendingConfig|.
+    1. If |urn| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |window|'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false:
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |workletOrigin| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Else, set |fencedFrameConfigStruct| to a [=fenced frame config=] with a pending mapped "url uuid". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-
-        Issue: The [=fenced frame config=] and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
-
-    1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. Othewise, [=resolve=] |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. If |fencedFrameConfigStruct|'s "urn uuid" is invalid (i.e. instead of pending mapped), then return. <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
+    1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
+    1. Othewise, [=resolve=] |resultPromise| to |urn|.
     1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, and |options|.
     1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
@@ -390,13 +389,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. [=Assert=]: |remainingBudget| is not undefined.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
         1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
-        1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
-        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
+        1. Let |finalConfig| be a new [=fenced frame config=].
+        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
+        1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
+        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
         1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
         1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. [=Upon rejection=] of |indexPromise|, perform the following steps:
-        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
+        1. Let |finalConfig| be a new [=fenced frame config=].
+        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default index=]].
+        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. Return |resultPromise|.
   </div>
@@ -412,8 +415,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false, [=reject=] |promise| with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and [=this=]'s [=SharedStorageWorklet/worklet origin=] is false:
+    1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and |workletOrigin| is false, [=reject=] |promise| with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, [=reject=] |promise| with a {{TypeError}}.
         1. Else, [=resolve=] |promise| with undefined.
         1. Return |promise|.
@@ -441,7 +445,42 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   This specification will make some modifications to the [=Worklet=] standard to accommodate the needs of Shared Storage.
 
-  In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
+  ### Monkey Patch for [=set up a worklet environment settings object=] ### {#set-up-a-worklet-environment-settings-object-monkey-patch}
+
+  The [=set up a worklet environment settings object=] algorithm will need to include an additional parameter: {{Worklet}} |worklet|. The step that defines the |settingsObject|'s [=environment settings object/origin=] should be modified as follows:
+
+    6. Let |settingsObject| be a new [=environment settings object=] whose algorithms are defined as follows:
+
+        ......
+
+        <b>The [=environment settings object/origin=]</b>
+          1. Let |workletGlobalScope| be the [=global object=] of <var ignore=''>realmExecutionContext</var>'s Realm component.
+          1. If |workletGlobalScope| is not {{SharedStorageWorkletGlobalScope}}, return |origin|.
+          1. Let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
+          1. [=Assert=]: |pendingAddedModules|'s [=list/size=] is 1.
+          1. Let |moduleURL| be |pendingAddedModules|[0].
+          1. Return |moduleURL|'s [=url/origin=].
+
+        ......
+
+  ### Monkey Patch for [=set up a worklet environment settings object=] ### {#create-a-worklet-global-scope-monkey-patch}
+
+  The [=create a worklet global scope=] algorithm will need to be modified to pass in the |worklet| parameter:
+
+    5. Let <var ignore=''>insideSettings</var> be the result of [=setting up a worklet environment settings object=] given <var ignore=''>realmExecutionContext</var>, <var ignore=''>outsideSettings</var>, and |worklet|.
+
+  ### Monkey Patch for [=fetch a worklet script graph=] ### {#fetch-a-worklet-script-graph-monkey-patch}
+
+  The algorithm [=fetch a worklet script graph=] calls into the <a href="https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-worklet/module-worker-script-graph">fetch a worklet/module worker script graph</a> algorithm, which takes in an algorithm parameter |processCustomFetchResponse|. The definition of that |processCustomFetchResponse| parameter will need to include the following step before the step "5. [=Fetch=] |request|, ...":
+
+    5. Set |request|'s [=request/redirect mode=] to "<code>error</code>".
+
+  Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
+
+
+  ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
+
+  The {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
 
     4. If |this| is of type {{SharedStorageWorklet}}:
         1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and <var ignore=''>moduleURLRecord</var>.
@@ -462,7 +501,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     <span class=todo>Specify that redirects are disallowed when fetching the module script for {{SharedStorageWorklet}}.</span>
 
-  And the penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then [=resolve=] |promise|.", should be updated to:
+  The penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then [=resolve=] |promise|.", should be updated to:
 
     2. If |pendingTasks| is 0, perform the following steps:
         1. If |workletGlobalScope| has an associated boolean [=addModule success=], set |workletGlobalScope|'s [=addModule success=] to true.
@@ -479,6 +518,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   <span class=todo>Add "sharedstorageworklet" to the possible strings that a request [=request/destination=] can have.</span>
 
   <xmp class='idl'>
+    callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<DOMString> urls, optional any data);
+  </xmp>
+
+  <xmp class='idl'>
     [Exposed=SharedStorageWorklet, Global=SharedStorageWorklet]
     interface SharedStorageWorkletGlobalScope : WorkletGlobalScope {
       undefined register(DOMString name,
@@ -489,8 +532,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </xmp>
 
   Each {{SharedStorageWorkletGlobalScope}} has an associated [=environment settings object=] <dfn for=SharedStorageWorkletGlobalScope>outside settings</dfn>, which is the associated {{SharedStorageWorklet}}'s [=relevant settings object=].
-
-  Each {{SharedStorageWorkletGlobalScope}} has an associated [=/origin=] <dfn for=SharedStorageWorkletGlobalScope>worklet origin</dfn>, which is initialized to the associated {{SharedStorageWorklet}}'s [=SharedStorageWorklet/worklet origin=].
 
   Each {{SharedStorageWorkletGlobalScope}} has an associated [=/boolean=] <dfn for=SharedStorageWorkletGlobalScope>addModule success</dfn>, which is initialized to false.
 
@@ -508,7 +549,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |operationCtor| is missing, throw a {{TypeError}}.
     1. Let |operationClassInstance| be the result of [=constructing=] |operationCtor|, with no arguments.
     1. Let |runFunction| be [=Get=](|operationClassInstance|, "`run`"). Rethrow any exceptions.
-    1. Let |runIDLFunction| be the result of [=converting=] |runFunction| to a Web IDL Function instance.
+    1. Let |runIDLFunction| be the result of [=converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
     1. [=map/Set=] the value of |operationMap|[|name|] to |runIDLFunction|.
   </div>
 
@@ -576,7 +617,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   ### Navigation Entropy Budget ### {#nav-budget}
 
-  If a user [=user activation|activates=] a [=fenced frame=] whose {{FencedFrameConfig}} was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
+  If a user [=user activation|activates=] a [=fenced frame=] whose [=fenced frame config instance=] was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
 
   A <dfn>calling site</dfn> for {{SharedStorageWorklet/selectURL()}} is a [=site=].
 
@@ -648,11 +689,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Otherwise, return false.
   </div>
 
-  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-level traversable=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
+  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose [=fenced frame config instance=] was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-level traversable=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding [=fenced frame config instance=] until this time.
+
+  <span class=todo>Move the definition of [=pending shared storage budget debit=] to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification.</span>
 
   Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
 
-  Issue: The [=fenced frame config=] and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The boolean <dfn>shared storage navigation budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
@@ -661,16 +704,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
     1. While |currentNavigable| is not null:
         1. Let |site| be the result of running [=obtain a site=] with |currentNavigable|'s [=active document=]'s [=document/origin=].
-        1. If |currentNavigable| has a [=fenced frame config=] and |site| is not an [=opaque origin=], perform the following steps:
-            1. Let |pendingBits| be |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if [=fenced frame config=]'s [=has navigated=] is false, run the following steps:
+        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
+        1. If |instance| is not null and |site| is not an [=opaque origin=], perform the following steps:
+            1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if |instance|'s [=shared storage navigation budget charged=] is false, run the following steps:
                 1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
                 1. Let |bitDebit| be a new [=bit debit=].
                 1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
                 1. Let |currentTime| be the [=/current wall time=].
                 1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
                 1. [=list/Append=] |bitDebit| to |ledger|.
-                1. Set |currentNavigable|'s [=fenced frame config=]'s [=has navigated=] to true.
+                1. Set |instance|'s [=shared storage navigation budget charged=] to true.
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
   </div>
 
@@ -690,15 +734,16 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |debitSum| be 0.
     1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
     1. While |currentNavigable| is not null:
-        1. If |currentNavigable| has a [=fenced frame config=]:
-            1. Let |pendingBits| be |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if [=fenced frame config=]'s [=has reported=] is false, increment |debitSum| by |pendingBits|
+        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
+        1. If |instance| is not null:
+            1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
+            1. If |pendingBits| is greater than 0 and if |instance|'s [=shared storage reporting budget charged=] is false, increment |debitSum| by |pendingBits|
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
     1. Return |debitSum|.
   </div>
 
 
-  Issue: The [=fenced frame config=] and its boolean <dfn>has reported</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The boolean <dfn>shared storage reporting budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
@@ -708,7 +753,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |topNode| be the result of running [=get the top-level traversable=] for |currentNavigable|.
     1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
     1. While |currentNavigable| is not null:
-        1. If |currentNavigable| has a [=fenced frame config=] and if |currentNavigable|'s [=fenced frame config=]'s [=pending shared storage budget debit=] is greater than 0, set |currentNavigable|'s [=fenced frame config=]'s [=has reported=] to true.
+        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
+        1. If |instance| is not null and if |instance|'s [=pending shared storage budget debit=] is greater than 0, set |instance|'s [=shared storage reporting budget charged=] to true.
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
     1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
     1. Return true.
@@ -1133,10 +1179,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
@@ -1162,10 +1208,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |currentValue| is failure:
@@ -1191,10 +1237,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
         1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
@@ -1210,10 +1256,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
         1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
@@ -1232,10 +1278,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |value| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
@@ -1253,10 +1299,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
         1. If |numEntries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
@@ -1273,12 +1319,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |site| be the result of running [=obtain a site=] with [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |site| be the result of running [=obtain a site=] with |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. [=Assert=]: |site| is not an [=opaque origin=].
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |site|.
         1. [=Assert=]: |remainingBudget| is not undefined.
@@ -1303,10 +1349,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and [=current global object=]'s [=SharedStorageWorkletGlobalScope/worklet origin=].
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |queue| and |environment|.
         1. If |entries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
