@@ -691,11 +691,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose [=fenced frame config instance=] was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-level traversable=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding [=fenced frame config instance=] until this time.
 
-  <span class=todo>Move the definition of [=pending shared storage budget debit=] to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification.</span>
+  <span class=todo>Move the definition of [=pending shared storage budget debit=] to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification.</span>
 
   Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
 
-  Issue: The boolean <dfn>shared storage navigation budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The boolean <dfn>shared storage navigation budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
@@ -743,7 +743,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
 
-  Issue: The boolean <dfn>shared storage reporting budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
+  Issue: The boolean <dfn>shared storage reporting budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
 
   <div algorithm>
     To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
