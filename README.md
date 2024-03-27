@@ -150,7 +150,8 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   The worklet uses the `url`'s origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
     *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
     *   Redirects are not allowed.
-    *   The website that serves the module script should be aware of the implication of CORS: when the module script's URL's origin is cross-origin with the worklet's creator window's origin, by granting the module script resource via CORS, it will also grant the worklet's creation and subsequent operations on the worklet, under the worklet origin. The worklet's creator context could poison and use up the worklet origin's budget.
+    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin, a `Shared-Storage-Worklet-Allowed: ?1` response header is required.
+    *   The script server must carefully consider security risks of allowing worklet creation by other origins (via `Shared-Storage-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
 
 
 
