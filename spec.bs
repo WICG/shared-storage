@@ -463,20 +463,34 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
         ......
 
-  ### Monkey Patch for [=set up a worklet environment settings object=] ### {#create-a-worklet-global-scope-monkey-patch}
+  ### Monkey Patch for [=create a worklet global scope=] ### {#create-a-worklet-global-scope-monkey-patch}
 
   The [=create a worklet global scope=] algorithm will need to be modified to pass in the |worklet| parameter:
 
     5. Let <var ignore=''>insideSettings</var> be the result of [=setting up a worklet environment settings object=] given <var ignore=''>realmExecutionContext</var>, <var ignore=''>outsideSettings</var>, and |worklet|.
 
+  ### Monkey Patch for [=/request=] ### {#request-monkey-patch}
+  A [=/request=] has an associated <dfn for=request>is cross origin shared storage worklet request boolean</dfn>. Unless stated otherwise it is false.
+
   ### Monkey Patch for [=fetch a worklet script graph=] ### {#fetch-a-worklet-script-graph-monkey-patch}
 
   The algorithm [=fetch a worklet script graph=] calls into the <a href="https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-worklet/module-worker-script-graph">fetch a worklet/module worker script graph</a> algorithm, which takes in an algorithm parameter |processCustomFetchResponse|. The definition of that |processCustomFetchResponse| parameter will need to include the following step before the step "5. [=Fetch=] |request|, ...":
 
-    5. Set |request|'s [=request/redirect mode=] to "<code>error</code>".
+    5. If |fetchClient|'s [=environment settings object/realm execution context=]'s Realm component's [=global object=] is {{SharedStorageWorkletGlobalScope}}:
+        1. Set |request|'s [=request/redirect mode=] to "<code>error</code>".
 
-  Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
+            Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
 
+        1. If <var ignore=''>moduleResponsesMap</var>'s [=associated realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=] and |fetchClient|'s [=environment settings object/origin=] are not [=same origin=]:
+            1. Set |request|'s [=request/is cross origin shared storage worklet request boolean=] to true.
+
+  ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
+  The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "If |actualResponse|'s status is a redirect status, ..."):
+
+  1. If |request|'s [=request/is cross origin shared storage worklet request boolean=] is true:
+      1. Let |list| be |actualResponse|'s [=response/header list=].
+      1. Let |sharedStorageWorkletAllowed| be the result of running [=get a structured field value=] algorithm given "Shared-Storage-Worklet-Allowed", "item", and |list| as input.
+      1. If |sharedStorageWorkletAllowed| is false, then return a [=network error=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
