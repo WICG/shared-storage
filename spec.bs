@@ -487,10 +487,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   1. If |request|'s [=request/is cross origin shared storage worklet request boolean=] is true:
       1. Let |list| be |actualResponse|'s [=response/header list=].
-      1. Let |sharedStorageWorkletAllowed| be the result of running [=get a structured field value=] algorithm given "Shared-Storage-Worklet-Allowed", "item", and |list| as input.
+      1. Let |sharedStorageWorkletAllowed| be the result of running [=get a structured field value=] algorithm given "Shared-Storage-Cross-Origin-Worklet-Allowed", "item", and |list| as input.
       1. If |sharedStorageWorkletAllowed| is false, then return a [=network error=].
 
-        Note: The website that serves the module script must carefully consider the security risks: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers and the "Shared-Storage-Worklet-Allowed" header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, under that module script's [=url/origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
+        Note: The website that serves the module script must carefully consider the security risks: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers and the "Shared-Storage-Cross-Origin-Worklet-Allowed" header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, under that module script's [=url/origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s <span class=todo>HostDefined</span> field's [=environment settings object/origin=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
