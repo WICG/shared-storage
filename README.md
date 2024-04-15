@@ -548,7 +548,7 @@ The budgets for bits of entropy for Shared Storage are as follows.
 
 ###### Long Term Budget
 
-In the long term, `selectURL()` will leak bits of entropy on navigation. Therefore it is necessary to impose a budget for this leakage.
+In the long term, `selectURL()` will leak bits of entropy on top-level navigation (e.g., a tab navigates). Therefore it is necessary to impose a budget for this leakage.
 
 * There is a 12 bit daily per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) budget for `selectURL()`, to be queried on each `selectURL()` call for sufficient budget and charged on navigation. This is subject to change.
 * The cost of a `selectURL()` call is log2(number of urls to `selectURL()` call) bits. This cost is only logged once the fenced frame holding the selected URL navigates the top frame. e.g., if the fenced frame can't communicate its contents (doesn't navigate), then there is no budget cost for that call to`selectURL()`.
