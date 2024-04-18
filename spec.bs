@@ -696,7 +696,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |navigable| is not a [=top-level traversable=], return.
     1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
     1. While |currentNavigable| is not null:
-        1. Let |site| be the result of running [=obtain a site=] with |currentNavigable|'s [=active document=]'s [=document/origin=].
+        1. Let |site| be the result of running [=obtain a site=] with |currentNavigable|'s [=active document=]'s [=Document/origin=].
         1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
         1. If |instance| is null or |site| is an [=opaque origin=], then [=iteration/continue=].
