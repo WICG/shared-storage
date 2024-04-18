@@ -466,6 +466,18 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
             Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
 
+  ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
+  The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "If |actualResponse|'s status is a redirect status, ..."):
+
+  1. If |request|'s [=request/destination=] is "sharedstorageworklet":
+      1. [=Assert=]: |request|'s [=request/client=] is not null.
+      1. If |request|'s [=request/client=]'s [=environment settings object/origin=] and |request|'s [=request/origin=] are not [=same origin=]:
+          1. Let |list| be |actualResponse|'s [=response/header list=].
+          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given "Shared-Storage-Cross-Origin-Worklet-Allowed", "item", and |list| as input.
+          1. If |allowed| is false, then return a [=network error=].
+
+  Note: The website that serves the module script must carefully consider the security risks: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers and the "Shared-Storage-Cross-Origin-Worklet-Allowed" header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
   The {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
@@ -501,7 +513,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorklet}}'s [=worklet destination type=] is "sharedstorageworklet".
 
-  Issue(145): Add "sharedstorageworklet" to the possible strings that a request [=request/destination=] can have.
+  ### Monkey Patch for request [=request/destination=] ### {#request-destination-monkey-patch}
+
+  The fetch request's [=request/destination=] field should additionally include the "sharedstorageworklet" option.
 
   <xmp class='idl'>
     callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
