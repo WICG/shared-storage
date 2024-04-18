@@ -4,10 +4,11 @@ Shortname: sharedStorage
 Level: 1
 Status: CG-DRAFT
 Group: WICG
+Repository: WICG/shared-storage
 URL: https://github.com/WICG/shared-storage
 Editor: Camillia Smith Barnes, Google https://google.com, cammie@chromium.org
 Markup Shorthands: markdown yes
-Abstract: Shared Storage is a storage API that is intentionally not partitioned by top-frame site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates.
+Abstract: Shared Storage is a storage API that is intentionally not partitioned by top-level traversable site (though still partitioned by context origin of course!). To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment that has carefully constructed output gates.
 </pre>
 
 <pre class=link-defaults>
@@ -15,23 +16,37 @@ spec:infra;
     type:dfn;
         text:user agent
         for:/; text:string
+    type:dfn;
+        for:/; text:list
 spec:webidl;
     type:interface;
         text:double
+    type:dfn;
+        text:an exception was thrown
 spec:html;
     type:dfn;
         for:realm; text:global object
         for:WorkerGlobalScope; text:module map
         for:navigable; text:top-level traversable
+spec:fenced-frame;
+    type:dfn;
+        for:fencedframetype; text:fenced frame reporter
+        for:browsing context; text:fenced frame config instance
 </pre>
 
 <pre class="anchors">
+urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
+    type: dfn; text: urn uuid
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
     type: dfn
         text: worklets; url: worklets.html#worklets
+        text: added modules list; url: worklets.html#concept-worklet-added-modules-list
+        text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
+        text: fetch a worklet/module worker script graph; url: webappapis.html#fetch-a-worklet/module-worker-script-graph
+        text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
+        text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
-        text: top-frame; url: webappapis.html#top-level-traversable
         text: beginning navigation; url: webappapis.html#beginning-navigation
         text: ending navigation; url: webappapis.html#ending-navigation
         text: get the top-level traversable; url: webappapis.html#nav-top
@@ -80,7 +95,7 @@ spec: ecma; urlPrefix: https://tc39.es/ecma262/
         text: call; url: sec-call
         text: current realm; url: current-realm
         text: casting; url: sec-touint32
-        text: GetMethod(); url: sec-getmethod
+        text: Get; url: sec-get-o-p
         text: [[GetPrototypeOf]](); for: object; url: sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
         text: IsConstructor(); url: sec-isconstructor
 spec: storage-partitioning; urlPrefix: https://privacycg.github.io/storage-partitioning/
@@ -103,6 +118,7 @@ spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
+        text: initiator fenced frame config instance; for: source snapshot params; url: source-snapshot-params-initiator-fenced-frame-config-instance
         text: fence.reportEvent(); url: dom-fence-reportevent
         text: FenceEvent; url: dictdef-fenceevent
         text: destination; for: FenceEvent; url: dom-fenceevent-destination
@@ -156,9 +172,9 @@ Introduction {#intro}
 =====================
 <em>This section is not normative.</em>
 
-In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-frame=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
+In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-frame=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=private aggregation|private aggregation report=]. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=private aggregation|private aggregation report=]. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -201,89 +217,303 @@ This document introduces a new storage API that is intentionally not partitioned
 
 The {{SharedStorageWorklet}} Interface {#worklet}
 =================================================
-The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=private aggregation=] output gate and the {{WindowSharedStorage/selectURL()|URL-selection}} output gate.
+The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=private aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
+
+<xmp class='idl'>
+  typedef (USVString or FencedFrameConfig) SharedStorageResponse;
+</xmp>
 
 <xmp class='idl'>
   [Exposed=(Window)]
   interface SharedStorageWorklet : Worklet {
+    Promise<SharedStorageResponse> selectURL(DOMString name,
+                                 FrozenArray<SharedStorageUrlWithMetadata> urls,
+                                 optional SharedStorageRunOperationMethodOptions options = {});
+    Promise<any> run(DOMString name,
+                     optional SharedStorageRunOperationMethodOptions options = {});
   };
 </xmp>
 
-Each {{SharedStorageWorklet}} has an associated boolean <dfn>addModule initiated</dfn>, initialized to false.
+Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">addModule initiated</dfn>, initialized to false.
+
+Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">cross-origin worklet allowed</dfn>, initialized to false.
+
+Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">is cross-origin worklet</dfn>, initialized to false.
 
 Because adding multiple [=module scripts=] via {{Worklet/addModule()}} for the same {{SharedStorageWorklet}} would give the caller the ability to store data from [=Shared Storage=] in global variables defined in the [=module scripts=] and then exfiltrate the data through later call(s) to {{Worklet/addModule()}}, each {{SharedStorageWorklet}} can only call {{Worklet/addModule()}} once. The [=addModule initiated=] boolean makes it possible to enforce this restriction.
 
-When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule is allowed and update status=], and if the result is false, abort the remaining steps in the {{Worklet/addModule()}} call, as detailed in the [[#worklet-monkey-patch]].
+When {{Worklet/addModule()}} is called for a worklet, it will run [=check if addModule is allowed and update state=], and if the result is "DisallowedDueToNonPreferenceError", or if the result is "DisallowedDueToPreferenceError" and the worklet's [=SharedStorageWorklet/is cross-origin worklet=] is false, it will cause {{Worklet/addModule()}} to fail, as detailed in the [[#add-module-monkey-patch]].
 
   <div algorithm>
-    To <dfn>check if user preference setting allows access to shared storage</dfn> from an [=environment settings object=] |environment|, run the following step:
-    1. Using values available in |environment| as needed, perform an [=implementation-defined=] algorithm to return either true or false.
+    To <dfn>check if user preference setting allows access to shared storage</dfn> given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run the following step:
+
+    1. Using values available in |environment| and |origin| as needed, perform an [=implementation-defined=] algorithm to return either true or false.
   </div>
 
   <div algorithm>
-    To <dfn>determine whether shared storage is allowed</dfn>, given an [=environment settings object=] |environment|, run these steps:
+    To <dfn>determine whether shared storage is allowed by context</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
 
     1. If |environment| is not a [=secure context=], then return false.
-    1. Let |origin| be |environment|'s [=url/origin=].
+    1. Let |outsideSettingsOrigin| be |environment|'s [=environment settings object/origin=].
+    1. If |outsideSettingsOrigin| is an [=opaque origin=], then return false.
     1. If |origin| is an [=opaque origin=], then return false.
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
-    1. [=Assert=] that |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
-    1. If |globalObject| is a {{Window}} and |globalObject|'s [=associated document=] is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage=]" feature, return false.
-    1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
-    1. If the result of running [=check if user preference setting allows access to shared storage=] from |environment| is false, then return false.
+    1. [=Assert=]: |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
+    1. If |globalObject| is a {{Window}}, and if the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |globalObject|'s [=associated document=], and |origin| returns false, then return false.
     1. Return true.
   </div>
 
   <div algorithm>
-    To <dfn>check if addModule is allowed and update status</dfn> for a {{SharedStorageWorklet}} |worklet|, run the following steps:
-    1. If the result of running [=determine whether shared storage is allowed=] on the [=relevant settings object=] of [=this=] is false, return false.
-    1. If |worklet|'s [=addModule initiated=] is true, return false.
+    To <dfn>determine whether shared storage is allowed by enrollment and user preference</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
+
+    1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
+    1. Return the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |origin|.
+  </div>
+
+  <div class="note">
+    Here are the scenarios where the algorithms [=determine whether shared storage is allowed by context=] and [=determine whether shared storage is allowed by enrollment and user preference=] are used:
+
+    - For each method under [[#window-setter]], |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
+    - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
+    - For running operations on a worklet (from a {{Window}}), and for each method under [[#worklet-setter]] (from {{SharedStorageWorkletGlobalScope}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+    - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
+  </div>
+
+  <div algorithm>
+    To <dfn>check if addModule is allowed and update state</dfn> given a {{SharedStorageWorklet}} |worklet| and a [=/URL=] |moduleURLRecord|, run the following steps:
+    1. If |worklet|'s [=addModule initiated=] is true, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=addModule initiated=] to true.
-    1. Return true.
+    1. Let |workletOrigin| be |moduleURLRecord|'s [=url/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToNonPreferenceError".
+    1. If |workletOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to true.
+    1. If |worklet|'s [=cross-origin worklet allowed=] is false, and if |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] is true, return "DisallowedDueToNonPreferenceError".
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
+    1. Return "Allowed".
   </div>
 
 Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=], initially empty, can contain at most one instance of its [=worklet global scope type=], the {{SharedStorageWorkletGlobalScope}}.
+
+  ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
+
+  <div algorithm>
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+
+    1. Let |promise| be a new [=promise=].
+    1. Let |window| be |worklet|'s [=relevant settings object=].
+    1. [=Assert=]: |window| is a {{Window}}.
+    1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
+    1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
+        1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
+        1. [=Assert=]: |worklet|'s [=module map=] is not [=map/empty=].
+        1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+        1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
+        1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+
+            Note: This could happen if {{SharedStorageWorkletGlobalScope/register()}} was never called with |operationName|.
+
+        1. Let |operation| be |operationMap|[|operationName|].
+        1. [=Assert=]: |operation|'s [=associated realm=] is [=this=]'s [=relevant realm=].
+        1. Let |argumentsList| be the [=/list=] « |urlList| ».
+        1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
+        1. Let |index| be the result of [=invoking=] |operation| with |argumentsList|.
+        1. If [=an exception was thrown=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+
+            Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
+
+        1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+
+            Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="SharedStorageWorklet">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
+
+    1. Let |resultPromise| be a new [=promise=].
+    1. If [=this=]'s [=addModule initiated=] is false, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |window| be [=this=]'s [=relevant settings object=].
+    1. [=Assert=]: |window| is a {{Window}}.
+    1. Let |context| be |window|'s [=Window/browsing context=].
+    1. If |context| is null, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |document| be |context|'s [=active document=].
+    1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
+    1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+    1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and |workletOrigin| returns false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: This can happen if either {{WindowSharedStorage/selectURL()}} or {{SharedStorageWorklet/selectURL()}} is called before {{addModule()}}.
+
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |urls| is empty or if |urls|'s [=list/size=] is greater than 8, return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: 8 is chosen here so that each call of {{SharedStorageWorklet/selectURL()}} can leak at most log2(8) = 3 bits of information when the result fenced frame is clicked. It's not a lot of information per-call.
+
+    1. Let |urlList| be an empty [=list=].
+    1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
+        1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}.
+        1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
+        1. Let |serializedUrl| be the result of running [=get the canonical URL string if valid=] with |urlString|.
+        1. If |serializedUrl| is undefined, return a [=promise rejected=] with a {{TypeError}}.
+        1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
+        1. If |urlWithMetadata| has field "`reportingMetadata`":
+            1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
+            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, [=reject=] |resultPromise| with a {{TypeError}} and abort these steps.
+    1. Let |fencedFrameConfigMapping| be |window|'s [=associated document=]'s [=node navigable=]'s [=navigable/traversable navigable=]'s [=traversable navigable/fenced frame config mapping=].
+    1. Let |pendingConfig| be a new [=fenced frame config=].
+    1. Let |urn| be the result of running [=fenced frame config mapping/store a pending config=] on |fencedFrameConfigMapping| with |pendingConfig|.
+    1. If |urn| is failure, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |environment| be |window|'s [=relevant settings object=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |workletOrigin| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |workletOrigin| is false:
+        1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
+    1. Otherwise, [=resolve=] |resultPromise| with |urn|.
+    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, and |options|.
+    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
+        1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
+        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
+        1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
+        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
+        1. Let |finalConfig| be a new [=fenced frame config=].
+        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
+        1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
+        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
+        1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
+        1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
+    1. [=Upon rejection=] of |indexPromise|, perform the following steps:
+        1. Let |finalConfig| be a new [=fenced frame config=].
+        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default index=]].
+        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
+        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
+    1. Return |resultPromise|.
+  </div>
+
+  <div algorithm>
+    The <dfn method for="SharedStorageWorklet">run(|name|, |options|)</dfn> method steps are:
+
+    1. Let |promise| be a new [=promise=].
+    1. If [=this=]'s [=addModule initiated=] is false, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |window| be [=this=]'s [=relevant settings object=].
+    1. [=Assert=]: |window| is a {{Window}}.
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+    1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
+    1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and |workletOrigin| is false, [=reject=] |promise| with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |workletOrigin| is false:
+        1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, [=reject=] |promise| with a {{TypeError}}.
+        1. Else, [=resolve=] |promise| with undefined.
+        1. Return |promise|.
+    1. Return |promise|, and immediately [=obtaining a worklet agent=] given |window| and run the rest of these steps in that agent:
+
+        Note: The |promise|'s resolution should be before and not depend on the execution inside {{SharedStorageWorkletGlobalScope}}. This is because shared storage is a type of unpartitioned storage, and a {{SharedStorageWorkletGlobalScope}} can have access to cross-site data, which shouldn't be leaked via {{SharedStorageWorklet/run()}} (via its success/error result).
+
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with undefined.
+        1. If [=this=]'s [=module map=] is not [=map/empty=]:
+            1. Let |operationMap| be [=this=]'s {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
+            1. If |operationMap| [=map/contains=] |name|:
+                1.  Let |operation| be |operationMap|[|name|].
+                1. [=Assert=]: |operation|'s [=associated realm=] is [=this=]'s [=relevant realm=].
+                1. If |options| [=map/contains=] |data|:
+                    1. Let |argumentsList| be a new [=/list=].
+                    1. [=list/Append=] |data| to |argumentsList|.
+                    1. [=Invoke=] |operation| with |argumentsList|.
+                1. Otherwise, [=invoke=] |operation| without any arguments list.
+        1. If |options|["`keepAlive`"] is false:
+            1. Wait for |operation| to finish running, if applicable.
+            1. Run [=terminate a worklet global scope=] with [=this=].
+  </div>
 
   ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
 
   This specification will make some modifications to the [=Worklet=] standard to accommodate the needs of Shared Storage.
 
-  In particular, the {{Worklet/addModule()}} method steps for {{Worklet}} will need to be prepended with the following step:
+  ### Monkey Patch for [=set up a worklet environment settings object=] ### {#set-up-a-worklet-environment-settings-object-monkey-patch}
 
-    0. If {{Worklet}} has an associated boolean [=addModule initiated=], and the result of running [=check if addModule is allowed and update status=] on {{Worklet}} is false, return a [=promise rejected=] with a {{TypeError}}.
+  The [=set up a worklet environment settings object=] algorithm will need to include an additional parameter: {{Worklet}} |worklet|. The step that defines the |settingsObject|'s [=environment settings object/origin=] should be modified as follows:
 
-  And the penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then resolve |promise|.", should be updated to:
+    6. Let |settingsObject| be a new [=environment settings object=] whose algorithms are defined as follows:
+
+        ......
+
+        <b>The [=environment settings object/origin=]</b>
+          1. Let |workletGlobalScope| be the [=global object=] of <var ignore=''>realmExecutionContext</var>'s Realm component.
+          1. If |workletGlobalScope| is not {{SharedStorageWorkletGlobalScope}}, return |origin|.
+          1. Let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
+          1. [=Assert=]: |pendingAddedModules|'s [=list/size=] is 1.
+          1. Let |moduleURL| be |pendingAddedModules|[0].
+          1. Return |moduleURL|'s [=url/origin=].
+
+        ......
+
+  ### Monkey Patch for [=create a worklet global scope=] ### {#create-a-worklet-global-scope-monkey-patch}
+
+  The [=create a worklet global scope=] algorithm will need to be modified to pass in the |worklet| parameter:
+
+    5. Let <var ignore=''>insideSettings</var> be the result of [=setting up a worklet environment settings object=] given <var ignore=''>realmExecutionContext</var>, <var ignore=''>outsideSettings</var>, and |worklet|.
+
+  ### Monkey Patch for [=fetch a worklet script graph=] ### {#fetch-a-worklet-script-graph-monkey-patch}
+
+  The algorithm [=fetch a worklet script graph=] calls into the <a href="https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-worklet/module-worker-script-graph">fetch a worklet/module worker script graph</a> algorithm, which takes in an algorithm parameter |processCustomFetchResponse|. The definition of that |processCustomFetchResponse| parameter will need to include the following step before the step "5. [=Fetch=] |request|, ...":
+
+    5. If <var ignore=''>fetchClient</var>'s [=environment settings object/global object=] is {{SharedStorageWorkletGlobalScope}}:
+        1. Set |request|'s [=request/redirect mode=] to "<code>error</code>".
+
+            Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
+
+  ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
+
+  The {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
+
+    4. If |this| is of type {{SharedStorageWorklet}}:
+        1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and <var ignore=''>moduleURLRecord</var>.
+        1. If |addModuleAllowedResult| is "DisallowedDueToNonPreferenceError":
+            1. Return [=a promise rejected with=] a {{TypeError}}.
+        1. Else if |addModuleAllowedResult| is "DisallowedDueToPreferenceError":
+            1. If |this|'s [=SharedStorageWorklet/is cross-origin worklet=] is false, then return [=a promise rejected with=] a {{TypeError}}.
+        1. Else:
+            1. [=Assert=]: |addModuleAllowedResult| is "Allowed".
+
+    <div class="note">
+    On user preferences error, {{Worklet/addModule()}} will be aborted at an early stage. However, the error will only be exposed to the caller for a same-origin worklet (i.e. where the initiator document's origin is same-origin with the module script's origin). For a cross-origin worklet, the error will be hidden. This is to prevent a caller from knowing which origins the user has disabled shared storage for via preferences (if a per-origin preference exists for that browser vendor).
+
+    A caller may still use timing attacks to know this information, but this is a minor security/privacy issue, as in reality very few users would set such preferences, and doing a wide search would incur a significant performance cost spinning up the worklets.
+
+    This rationale also applies to the handling for user preferences error for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}}.
+    </div>
+
+  The penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then [=resolve=] |promise|.", should be updated to:
 
     2. If |pendingTasks| is 0, perform the following steps:
         1. If |workletGlobalScope| has an associated boolean [=addModule success=], set |workletGlobalScope|'s [=addModule success=] to true.
-        2. Resolve |promise|.
+        2. [=Resolve=] |promise|.
 
   <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
 
   ## The {{SharedStorageWorkletGlobalScope}} ## {#global-scope}
 
-  The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}. 
+  The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
+
+  The {{SharedStorageWorklet}}'s [=worklet destination type=] is "sharedstorageworklet".
+
+  Issue(145): Add "sharedstorageworklet" to the possible strings that a request [=request/destination=] can have.
+
+  <xmp class='idl'>
+    callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
+  </xmp>
 
   <xmp class='idl'>
     [Exposed=SharedStorageWorklet, Global=SharedStorageWorklet]
     interface SharedStorageWorkletGlobalScope : WorkletGlobalScope {
       undefined register(DOMString name,
-                         SharedStorageOperationConstructor operationCtor);
+                         Function operationCtor);
 
       readonly attribute WorkletSharedStorage sharedStorage;
-    };
-
-    callback SharedStorageOperationConstructor =
-      SharedStorageOperation(optional SharedStorageRunOperationMethodOptions options);
-
-    [Exposed=SharedStorageWorklet]
-    interface SharedStorageOperation {
-    };
-
-    dictionary SharedStorageRunOperationMethodOptions {
-      object data;
-      boolean resolveToConfig = false;
-      boolean keepAlive = false;
     };
   </xmp>
 
@@ -291,30 +521,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} has an associated [=/boolean=] <dfn for=SharedStorageWorkletGlobalScope>addModule success</dfn>, which is initialized to false.
 
-  The {{SharedStorageWorkletGlobalScope}}'s [=module map=]'s [=module scripts=] should each define and {{register}} one or more {{SharedStorageOperation}}s.
-
   Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
-
-  Currently each {{SharedStorageOperation}} registered via {{SharedStorageWorkletGlobalScope/register()}} must be one of the following two types:
-  * {{SharedStorageRunOperation}}
-  * {{SharedStorageSelectURLOperation}}
-
-  The {{SharedStorageRunOperation}} is designed to work with output gates that do not need a return value, like the [=private aggregation=] service. A {{SharedStorageRunOperation}} performs an async operation and returns a promise that resolves to undefined.
-
-  A {{SharedStorageSelectURLOperation}} is an {{SharedStorageOperation}} that takes in a [=/list=] of {{SharedStorageUrlWithMetadata}}s (i.e. [=dictionaries=] containing [=strings=] representing [=/URLs=] each wrapped with optional metadata), performs an async operation, and then returns a promise to a {{long}} integer index specifying which of these [=/URLs=] should be selected.
-
-  <xmp class='idl'>
-    [Exposed=SharedStorageWorklet]
-    interface SharedStorageRunOperation : SharedStorageOperation {
-      Promise<undefined> run(object data);
-    };
-
-    [Exposed=SharedStorageWorklet]
-    interface SharedStorageSelectURLOperation : SharedStorageOperation {
-      Promise<long> run(object data,
-                        FrozenArray<SharedStorageUrlWithMetadata> urls);
-    };
-  </xmp>
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated {{WorkletSharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
 
@@ -326,18 +533,18 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
     1. If |operationMap| [=map/contains=] an [=map/entry=] with [=map/key=] |name|, throw a {{TypeError}}.
     1. If |operationCtor| is missing, throw a {{TypeError}}.
-    1. If the result of running [=IsConstructor()=] with |operationCtor| is false, throw a {{TypeError}}.
-    1. Let |prototype| be the result of running |operationCtor|'s [=object/[[GetPrototypeOf]]()=] method.
-    1. If |prototype| is not an [=object=], throw a {{TypeError}}.
-    1. Let |run| be the result of running [=GetMethod()=] with |prototype| and "`run`".
-    1. If |run| is undefined, throw a {{TypeError}}.
-    1. [=map/Set=] the value of |operationMap|[|name|] to |run|.
+    1. Let |operationClassInstance| be the result of [=constructing=] |operationCtor|, with no arguments.
+    1. Let |runFunction| be [=Get=](|operationClassInstance|, "`run`"). Rethrow any exceptions.
+    1. Let |runIDLFunction| be the result of [=converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
+    1. [=map/Set=] the value of |operationMap|[|name|] to |runIDLFunction|.
   </div>
+
+  Issue(151): The "name" and "operationCtor" cannot be missing here given WebIDL. Should just check for default/empty values.
 
   <div algorithm>
     The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
 
-    1. If |this|'s [=addModule success=] is true, return |this|'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
+    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
     1. Otherwise, throw a {{TypeError}}.
   </div>
 
@@ -345,6 +552,216 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     To <dfn for="SharedStorageWorkletGlobalScope">check whether addModule is finished</dfn>, the step is:
 
     1. Return the value of [=addModule success=].
+  </div>
+
+  ## {{SharedStorageUrlWithMetadata}} and Reporting ## {#reporting}
+
+  <xmp class='idl'>
+    dictionary SharedStorageUrlWithMetadata {
+      required USVString url;
+      object reportingMetadata;
+    };
+  </xmp>
+
+  If a {{SharedStorageUrlWithMetadata}} [=dictionary=] contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are {{FenceEvent}}'s {{FenceEvent/eventType}}s and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these {{FenceEvent/eventType}}-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{SharedStorageWorklet/selectURL()}} call.
+
+  Issue(141): {{SharedStorageUrlWithMetadata/reportingMetadata}} should be a [=dictionary=].
+
+  Inside a [=fenced frame=] with {{FenceEvent/eventType}}-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{SharedStorageWorklet/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if {{reportEvent()}} is called on a {{FenceEvent}} with a {{FenceEvent/destination}} [=list/containing=] "`shared-storage-select-url`" and that {{FenceEvent}}'s corresponding {{FenceEvent/eventType}} is triggered, then the {{FenceEvent}}'s {{FenceEvent/eventData}} will be sent as a [=beacon=] to the registered [=/URL=] for that {{FenceEvent/eventType}}.
+
+  <div algorithm>
+    To <dfn>validate reporting metadata</dfn>, given an {{/object}} |reportingMetadata|, run the following steps:
+
+    1. If |reportingMetadata| is not a [=dictionary=], return false.
+    1. If |reportingMetadata| is [=map/empty=], return true.
+    1. [=map/iterate|For each=] <var ignore="">eventType</var> → |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
+    1. Return true.
+  </div>
+
+  <div algorithm>
+    To <dfn>get the canonical URL string if valid</dfn>, given a [=string=] |urlString|, run the following steps:
+
+    1. Let |url| be the result of running a [=URL parser=] on |urlString|.
+    1. If |url| is not a valid [=/URL=], return undefined.
+    1. Otherwise, return the result of running a [=URL serializer=] on |url|.
+  </div>
+
+  <div algorithm>
+    To <dfn>register reporting metadata</dfn>, given an {{/object}} |reportingMetadata| and a [=fenced frame config=] |fencedFrameConfigStruct|, run the following steps:
+
+    1. If |reportingMetadata| is [=map/empty=], return.
+    1. [=Assert=]: |reportingMetadata| is a [=dictionary=].
+    1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
+    1. [=map/iterate|For each=] |eventType| → |urlString| of |reportingMetadata|:
+        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
+        1. [=Assert=]: |url| is a valid [=/URL=].
+        1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
+    
+    Issue(144): Store |reportingUrlMap| inside a [=fenced frame reporter=] class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [[Fenced-Frame]].
+  </div>
+
+  ## Entropy Budgets ## {#budgets}
+
+  Because [=bits of entropy=] can leak via {{SharedStorageWorklet/selectURL()}}, the [=user agent=] will need to maintain budgets to limit these leaks.
+
+  ### Navigation Entropy Budget ### {#nav-budget}
+
+  If a user [=user activation|activates=] a [=fenced frame=] whose [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=] was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
+
+  A <dfn>calling site</dfn> for {{SharedStorageWorklet/selectURL()}} is a [=site=].
+
+  A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-level traversable=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=calling site=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling site=]-agnostic.
+
+  A [=user agent=] will define a fixed predetermined [=duration=] <dfn>navigation budget lifetime</dfn>.
+
+  An <dfn>navigation budget epoch</dfn> is any interval of time whose [=duration=] is the [=navigation budget lifetime=].
+
+  To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling sites=] to [=navigation entropy ledgers=].
+
+  An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
+
+  A <dfn>bit debit</dfn> is a [=struct=] with the following [=struct/items=]:
+
+  <dl dfn-for="bit debit">
+    : <dfn>bits</dfn>
+    :: a double
+
+    : <dfn>timestamp</dfn>
+    :: a {{DOMHighResTimeStamp}} (from the [=Unix Epoch=])
+  </dl>
+
+  [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=navigation budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
+
+  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling site=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage navigation budget table=].
+
+  A [=calling site=]'s <dfn for="calling site">remaining navigation budget</dfn> is the [=navigation entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=navigation budget epoch=].
+
+  {{SharedStorageWorklet/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
+
+  When a [=calling site=] has insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or a [=urn uuid=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
+
+  The <dfn>default index</dfn> for a call to {{SharedStorageWorklet/selectURL()}} is [=implementation-defined=] in such a way that it is independent from the result of the registered operation class's "`run`" method.
+
+  Issue(147): Methods can't have state attached to them. Many definitions in this section needs improving.
+
+  <div class="example">
+    The [=default index=] could be defined to be 0.
+
+    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], the "`run`" method would return 0, and hence {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
+  </div>
+
+  <div class="example">
+    The [=default index=] could be defined to be [=selectURL/input URL list=]'s [=list/size=] &minus; 1.
+
+    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
+  </div>
+
+  <div algorithm>
+    To <dfn>determine remaining navigation budget</dfn>, given an [=environment settings object=] |environment| and a [=calling site=] |site|, run the following steps:
+
+    1. [=Assert=]: |site| is not an [=opaque origin=].
+    1. Let |maxBits| be the [=user agent=]'s [=navigation entropy allowance=].
+    1. If the [=user agent=]'s [=shared storage navigation budget table=] does not [=map/contain=] |site|, then return |maxBits|.
+    1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
+    1. Let |debitSum| be 0.
+    1. [=map/iterate|For each=] [=list/item=] |bitDebit| in |ledger|, do the following steps:
+        1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
+        1. If the result of running [=check whether a bit debit is expired=] with |environment| and |bitDebit| is false, then increment |debitSum| by |debit|.
+    1. Return |maxBits| &minus; |debitSum|.
+  </div>
+
+  <div algorithm>
+    To <dfn>check whether a bit debit is expired</dfn>, given an [=environment settings object=] |environment| and a [=bit debit=] |bitDebit|, run the following steps:
+
+    1. Let |epochLength| be the [=user agent=]'s [=navigation budget lifetime=].
+    1. Let |currentTime| be |environment|'s [=environment settings object/current wall time=].
+    1. Let |threshold| be |currentTime| &minus; |epochLength|.
+    1. If |bitDebit|'s [=bit debit/timestamp=] is less than |threshold|, return true.
+    1. Otherwise, return false.
+  </div>
+
+  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-level traversable=] [=navigate|navigation=] initiated by a [=fenced frame=] whose [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=] was generated via {{SharedStorageWorklet/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{SharedStorageWorklet/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-level traversable=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding fenced frame's [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=] until this time.
+
+  Issue(148): Move the definition of [=pending shared storage budget debit=] to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification.
+
+  Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
+
+  Issue(138): Need to find a better way to specify timing of the navigation budget charging.
+
+  Issue(149): The boolean <dfn>shared storage navigation budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. Fix the names when they are added.
+
+  <div algorithm>
+    To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
+
+    1. If |navigable| is not a [=top-level traversable=], return.
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. While |currentNavigable| is not null:
+        1. Let |site| be the result of running [=obtain a site=] with |currentNavigable|'s [=active document=]'s [=document/origin=].
+        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
+        1. If |instance| is null or |site| is an [=opaque origin=], then [=iteration/continue=].
+        1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
+        1. If |pendingBits| is not greater than 0, or if |instance|'s [=shared storage navigation budget charged=] is true, then [=iteration/continue=].
+        1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
+        1. Let |bitDebit| be a new [=bit debit=].
+        1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
+        1. Let |currentTime| be the [=/current wall time=].
+        1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
+        1. [=list/Append=] |bitDebit| to |ledger|.
+        1. Set |instance|'s [=shared storage navigation budget charged=] to true.
+  </div>
+
+  ### Reporting Entropy Budget ### {#report-budget}
+
+  Likewise, each time a call to {{reportEvent()}} from a [=fenced frame=] originating via {{SharedStorageWorklet/selectURL()}} whose {{FenceEvent/destination}} [=list/contains=] "`shared-storage-select-url`" and whose {{FenceEvent/eventType}} is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
+
+  A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via {{reportEvent()}} during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
+
+  Each [=top-level traversable=] will have a new {{double}} <dfn>shared storage reporting budget</dfn> associated to it which will be initialized with the value of [=user agent=]'s [=reporting entropy allowance=] upon [=top-level traversable=]'s creation.
+
+  When {{reportEvent()}} is called with a {{FenceEvent/destination}} [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
+
+  Issue(150): Move this to {{reportEvent()}} in [[Fenced-Frame]].
+
+  <div algorithm>
+    To <dfn>determine reporting budget to charge</dfn>, given a {{Document}} |sourceDocument|, run the following steps:
+
+    1. Let |debitSum| be 0.
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. While |currentNavigable| is not null:
+        1. Let |instance| be |currentNavigable|'s [=source snapshot params/initiator fenced frame config instance=].
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
+        1. If |instance| is null, then [=iteration/continue=].
+        1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
+        1. If |pendingBits| is greater than 0 and if |instance|'s [=shared storage reporting budget charged=] is false, increment |debitSum| by |pendingBits|.
+    1. Return |debitSum|.
+  </div>
+
+
+  Issue(149): The boolean <dfn>shared storage reporting budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. Fix the names when they are added.
+
+  <div algorithm>
+    To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
+
+    1. Let |toCharge| be the result of running [=determine reporting budget to charge=] with |sourceDocument|.
+    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
+    1. Let |topNode| be the result of running [=get the top-level traversable=] for |currentNavigable|.
+    1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
+    1. While |currentNavigable| is not null:
+        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
+        1. If |instance| is not null and if |instance|'s [=pending shared storage budget debit=] is greater than 0, set |instance|'s [=shared storage reporting budget charged=] to true.
+        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
+    1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
+    1. Return true.
+  </div>
+
+  A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
+
+  <div algorithm>
+    To <dfn>purge expired bit debits from all navigation entropy ledgers</dfn>, run the following steps:
+
+    1. [=map/iterate|For each=] <var ignore="">origin</var> → |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
+        1. [=map/iterate|For each=] |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
   </div>
 
 Shared Storage's Backend {#backend}
@@ -370,10 +787,10 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   A [=user agent=]'s [=shared storage shed=] holds all <dfn>shared storage</dfn> data.
 
   <div algorithm>
-    To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed| and an [=environment settings object=] |environment|, run these steps:
+    To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed|, an [=environment settings object=] |environment|, and an [=/origin=] |origin|, run these steps:
 
-    1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, then return failure.
-    1. Let |origin| be |environment|'s [=url/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |origin| is false, then return failure.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |origin| is false, then return failure.
     1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
     1. Return |shed|[|origin|].
   </div>
@@ -400,10 +817,10 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   Note: Currently, a [=shared storage bucket=]'s [=bottle map=] has [=map/size=] `1`, since there is only one [=storage endpoint=] [=storage endpoint/registered=] with [=storage type|type=] "`shared`".
 
   <div algorithm>
-    To <dfn>obtain a shared storage bottle map</dfn>, given an [=environment settings object=] |environment|, run these steps:
+    To <dfn>obtain a shared storage bottle map</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
 
     1. Let |shed| be the [=user agent=]'s [=shared storage shed=].
-    1. Let |shelf| be the result of running [=obtain a shared storage shelf=] with |shed| and |environment|.
+    1. Let |shelf| be the result of running [=obtain a shared storage shelf=] with |shed|, |environment|, and |origin|.
     1. If |shelf| is failure, then return failure.
     1. Let |bucket| be |shelf|'s [=bucket map=]["`default`"].
     1. Let |bottle| be |bucket|'s [=bottle map=]["`sharedStorage`"].
@@ -442,7 +859,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Let |currentTime| be the |environment|'s [=environment settings object/current wall time=].
     1. Set |valueStruct|'s [=value struct/last updated=] to |currentTime|.
     1. [=map/Set=] |databaseMap|[|key|] to |valueStruct|.
-    1. If this throws an exception, catch it and return false.
+    1. If [=an exception was thrown=], then return false.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Otherwise, return true.
@@ -453,7 +870,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. If |databaseMap| does not [=map/contain=] |key|, return undefined.
     1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-    1. If this throws an exception, catch it and return failure.
+    1. If [=an exception was thrown=], then return failure.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, return undefined.
@@ -464,7 +881,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">delete an entry from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, and a [=entry/key=] |key|, run the following steps on |queue|:
 
     1. [=map/Remove=] |databaseMap|[|key|].
-    1. If this throws an exception, catch it and return false.
+    1. If [=an exception was thrown=], then return false.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Return true.
@@ -474,7 +891,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">clear all entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
     1. Run [=map/Clear=] on |databaseMap|.
-    1. If this throws an exception, catch it and return false.
+    1. If [=an exception was thrown=], then return false.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Return true.
@@ -484,7 +901,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">retrieve all entries from the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
     1. Let |values| be the result of running [=map/getting the values=] on |databaseMap|.
-    1. If this throws an exception, catch it and return failure.
+    1. If [=an exception was thrown=], then return failure.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s methods are possible depending on its implementation.
     1. Return |values|.
@@ -494,7 +911,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">count entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue| and a [=storage proxy map=] |databaseMap|, run the following steps on |queue|:
 
     1. Let |size| be |databaseMap|'s [=map/size=].
-    1. If this throws an exception, catch it and return failure.
+    1. If [=an exception was thrown=], then return failure.
 
           Note: Errors with [=storage proxy map=] |databaseMap|'s members are possible depending on its implementation.
     1. Return |size|.
@@ -505,9 +922,9 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. [=map/iterate|For each=] [=entry/key=] |key| in |databaseMap|:
         1. Let |valueStruct| be the result of running [=map/Get=] on |databaseMap| with |key|.
-        1. If this throws an exception, catch it and return false.
+        1. If [=an exception was thrown=], then return false.
         1. If the result of running [=shared storage database/determine whether an entry is expired=] with |environment| and |valueStruct| is true, [=map/Remove=] |databaseMap|[|key|].
-        1. If this throws an exception, catch it and return false.
+        1. If [=an exception was thrown=], then return false.
     1. Return true.
   </div>
 
@@ -529,7 +946,7 @@ The {{SharedStorage}} interface is the base for derived interfaces {{WindowShare
 
 Methods that allow the setting and/or deleting of data are exposed to both the {{Window}} and the {{SharedStorageWorklet}} and hence are declared in the base {{SharedStorage}} interface, although their implementations may vary depending on their [=environment=]. This makes it possible to modify the data in Shared Storage from multiple contexts.
 
-Meanwhile, methods for running {{SharedStorageOperation}}s, along with the {{WindowSharedStorage/worklet}} attribute which is used to call {{Worklet/addModule()}}, are declared in {{WindowSharedStorage}} and exposed to the {{Window}} only, as these are the means by which the {{Window}} interacts with the {{SharedStorageWorklet}}.
+Meanwhile, methods for posting operations to run inside {{SharedStorageWorkletGlobalScope}} (i.e. {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}}), along with the {{WindowSharedStorage/worklet}} attribute which is used to call {{Worklet/addModule()}}, are declared in {{WindowSharedStorage}} and exposed to the {{Window}} only, as these are the means by which the {{Window}} interacts with the {{SharedStorageWorklet}}.
 
 On the other hand, methods for getting data from the [=shared storage database=] are declared in {{WorkletSharedStorage}} and exposed to the {{SharedStorageWorklet}} only, in order to carefully control the flow of data read from the [=shared storage database|database=].
 
@@ -555,17 +972,23 @@ On the other hand, methods for getting data from the [=shared storage database=]
   The {{WindowSharedStorage}} interface is as follows.
 
 <xmp class='idl'>
-  typedef (USVString or FencedFrameConfig) SharedStorageResponse;
-
   [Exposed=(Window)]
   interface WindowSharedStorage : SharedStorage {
-    Promise<any> run(DOMString name,
-                     optional SharedStorageRunOperationMethodOptions options = {});
     Promise<SharedStorageResponse> selectURL(DOMString name,
                                  FrozenArray<SharedStorageUrlWithMetadata> urls,
                                  optional SharedStorageRunOperationMethodOptions options = {});
+    Promise<any> run(DOMString name,
+                     optional SharedStorageRunOperationMethodOptions options = {});
+
+    Promise<SharedStorageWorklet> createWorklet(USVString moduleURL, optional WorkletOptions options = {});
 
     readonly attribute SharedStorageWorklet worklet;
+  };
+
+  dictionary SharedStorageRunOperationMethodOptions {
+    object data;
+    boolean resolveToConfig = false;
+    boolean keepAlive = false;
   };
 </xmp>
 
@@ -600,16 +1023,16 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true and the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key| is not undefined:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
             1. Abort these steps.
         1. Run [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -622,14 +1045,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |currentValue| is failure:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=/list=].
@@ -637,7 +1060,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
         1. Run [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -649,13 +1072,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Run [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key|.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -666,317 +1089,43 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |context| be |sharedStorage|'s {{Window}}'s [=Window/browsing context=].
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Run [=shared storage database/clear all entries in the database=] with |queue| and |environment|.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
-  ### {{SharedStorageUrlWithMetadata}} and Reporting ### {#reporting}
-
-  A {{SharedStorageUrlWithMetadata}} {{/object}} is a [=dictionary=] containing a [=string=] representing a [=/URL=] and, optionally, a {{reportingMetadata}} {{/object}}.
-
-  <xmp class='idl'>
-    dictionary SharedStorageUrlWithMetadata {
-      required USVString url;
-      object reportingMetadata;
-    };
-  </xmp>
-
-  If a {{SharedStorageUrlWithMetadata}} {{/object}} contains a non-[=map/empty=] {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}} in the form of a [=dictionary=] whose [=map/keys=] are [=FenceEvent/eventTypes=] and whose [=map/values=] are [=strings=] that parse to valid [=/URLs=], then these [=FenceEvent/eventType=]-[=/URL=] pairs will be [=register reporting metadata|registered=] for later access within any [=fenced frame=] that loads the {{SharedStorageResponse}} resulting from this {{WindowSharedStorage/selectURL()}} call.
-
-  Inside a [=fenced frame=] with [=FenceEvent/eventType=]-[=/URL=] pairs that have been [=register reporting metadata|registered=] through {{WindowSharedStorage/selectURL()}} with {{SharedStorageUrlWithMetadata/reportingMetadata}} {{/object}}s, if [=fence.reportEvent()=] is called on a [=FenceEvent=] with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`" and that [=FenceEvent=]'s corresponding [=FenceEvent/eventType=] is triggered, then the [=FenceEvent=]'s [=FenceEvent/eventData=] will be sent as a [=beacon=] to the registered [=/URL=] for that [=FenceEvent/eventType=].
-
-  <div algorithm>
-    To <dfn>validate reporting metadata</dfn>, given an {{/object}} |reportingMetadata|, run the following steps:
-
-    1. If |reportingMetadata| is [=map/empty=], return true.
-    1. If |reportingMetadata| is not a [=dictionary=], return false.
-    1. [=map/iterate|For each=] <var ignore="">eventType</var> -> |urlString| of |reportingMetadata|, if the result of running [=get the canonical URL string if valid=] with |urlString| is undefined, return false.
-    1. Return true.
-  </div>
-
-  <div algorithm>
-    To <dfn>get the canonical URL string if valid</dfn>, given a [=string=] |urlString|, run the following steps:
-
-    1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-    1. If |url| is not a valid [=/URL=], return undefined.
-    1. Otherwise, return the result of running a [=URL serializer=] on |url|.
-  </div>
-
-  <div algorithm>
-    To <dfn>register reporting metadata</dfn>, given an {{/object}} |reportingMetadata| and a "fenced frame config struct" |fencedFrameConfigStruct|, run the following steps:
-
-    1. If |reportingMetadata| is [=map/empty=], return.
-    1. [=Assert=] that |reportingMetadata| is a [=dictionary=].
-    1. Let |reportingUrlMap| be an [=map/empty=] [=map=].
-    1. [=map/iterate|For each=] |eventType| -> |urlString| of |reportingMetadata|:
-        1. Let |url| be the result of running a [=URL parser=] on |urlString|.
-        1. [=Assert=] that |url| is a valid [=/URL=].
-        1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
-    1. <span class=todo>Store |reportingUrlMap| inside a "fenced frame reporter" class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [=fenced frame|Fenced Frame specification=].</span>
-  </div>
-
-  ### Entropy Budgets ### {#budgets}
-
-  Because [=bits of entropy=] can leak via {{WindowSharedStorage/selectURL()}}, the [=user agent=] will need to maintain budgets to limit these leaks.
-
-  #### Navigation Entropy Budget #### {#nav-budget}
-
-  If a user activates a [=fenced frame=] whose {{FencedFrameConfig}} was generated by {{WindowSharedStorage/selectURL()}} and thereby initiates a [=top-frame=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{WindowSharedStorage/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
-
-  A <dfn>calling site</dfn> for {{WindowSharedStorage/selectURL()}} is the [=site=] resulting from running [=obtain a site=] with the [=url/origin=] of an [=environment=] that makes a {{WindowSharedStorage/selectURL()}} call.
-
-  A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-frame=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=calling site=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling site=]-agnostic.
-
-  A [=user agent=] will define a fixed predetermined [=duration=] <dfn>navigation budget lifetime</dfn>.
-
-  An <dfn>navigation budget epoch</dfn> is any interval of time whose [=duration=] is the [=navigation budget lifetime=].
-
-  To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling sites=] to [=navigation entropy ledgers=].
-
-  An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
-
-  A <dfn>bit debit</dfn> is a [=struct=] containing a {{double}} <dfn for="bit debit">bits</dfn>, indicating a value in [=entropy bits=], along with a {{DOMHighResTimeStamp}} <dfn for="bit debit">timestamp</dfn> (from the [=Unix Epoch=]).
-
-  [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=navigation budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
-
-  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling site=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage navigation budget table=].
-
-  A [=calling site=]'s <dfn for="calling site">remaining navigation budget</dfn> is the [=navigation entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=navigation budget epoch=].
-
-  {{WindowSharedStorage/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
-
-  When a [=calling site=] has insufficient [=calling site/remaining navigation budget=], {{WindowSharedStorage/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or an opaque [=/URL=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
-
-  The <dfn>default index</dfn> for a call to {{WindowSharedStorage/selectURL()}} is implementation-defined in such a way that it is independent from the result of the associated {{SharedStorageSelectURLOperation}}'s "`run`" method.
-
-  <div class="example">
-    The [=default index=] could be defined to be 0.
-
-    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], the "`run`" method would return 0, and hence {{WindowSharedStorage/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
-  </div>
-
-  <div class="example">
-    The [=default index=] could be defined to be [=selectURL/input URL list=]'s [=list/size=] minus 1.
-
-    In this case, whenever the {{SharedStorageSelectURLOperation}}'s "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], {{WindowSharedStorage/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
-  </div>
-
-  <div algorithm>
-    To <dfn>determine remaining navigation budget</dfn>, given an [=environment settings object=] |environment| and a [=calling site=] |site|, run the following steps:
-
-    1. If |site| is an [=opaque origin=], return undefined.
-    1. Let |maxBits| be the [=user agent=]'s [=navigation entropy allowance=].
-    1. If the [=user agent=]'s [=shared storage navigation budget table=] does not [=map/contain=] |site|, then return |maxBits|.
-    1. Otherwise, let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
-    1. Let |debitSum| be 0.
-    1. [=map/iterate|For each=] [=list/item=] |bitDebit| in |ledger|, do the following steps:
-        1. Let |debit| be |bitDebit|'s [=bit debit/bits=].
-        1. If the result of running [=check whether a bit debit is expired=] with |environment| and |bitDebit| is false, then increment |debitSum| by |debit|.
-    1. Return |maxBits| minus |debitSum|.
-  </div>
-
-  <div algorithm>
-    To <dfn>check whether a bit debit is expired</dfn>, given an [=environment settings object=] |environment| and a [=bit debit=] |bitDebit|, run the following steps:
-
-    1. Let |epochLength| be the [=user agent=]'s [=navigation budget lifetime=].
-    1. Let |currentTime| be |environment|'s [=environment settings object/current wall time=].
-    1. Let |threshold| be |currentTime| minus |epochLength|.
-    1. If |bitDebit|'s [=bit debit/timestamp=] is less than |threshold|, return true.
-    1. Otherwise, return false.
-  </div>
-
-  A [=bit debit=] will need to be [=charge shared storage navigation budget|charged=] to the [=shared storage navigation budget table=] for each [=top-frame=] [=navigate|navigation=] initiated by a [=fenced frame=] whose {{FencedFrameConfig}} was generated via {{WindowSharedStorage/selectURL()}}, as this can leak cross-site data. Since the [=bit debit/bits=] to charge is calculated during the call to {{WindowSharedStorage/selectURL()}} but only actually recorded in the [=shared storage navigation budget table=] if and when the resulting fenced frame initiates a [=top-frame=] [=beginning navigation|navigation=], the [=bit debit/bits=] must be stored as a <dfn>pending shared storage budget debit</dfn> in the corresponding {{FencedFrameConfig}} until this time.
-
-  Between [=beginning navigation=] and [=ending navigation=], a [=user agent=] will perform the [=charge shared storage navigation budget=] algorithm.
-
-  Issue: The "fenced frame config struct" and its boolean <dfn>has navigated</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
-
-  <div algorithm>
-    To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
-
-    1. If |navigable| is not a [=navigable/traversable navigable=], return.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. While |node| is not null:
-        1. Let |site| be the result of running [=obtain a site=] with |node|'s [=active document=]'s [=document/origin=].
-        1. If |node| has a "fenced frame config struct" and |site| is not an [=opaque origin=], perform the following steps:
-            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has navigated=] is false, run the following steps:
-                1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
-                1. Let |bitDebit| be a new [=bit debit=].
-                1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
-                1. Let |currentTime| be the [=/current wall time=].
-                1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
-                1. [=list/Append=] |bitDebit| to |ledger|.
-                1. Set |node|'s "fenced frame config struct"'s [=has navigated=] to true.
-        1. Set |node| to |node|'s [=navigable/parent=].
-  </div>
-
-  #### Reporting Entropy Budget #### {#report-budget}
-
-  Likewise, each time a call to [=fence.reportEvent()=] from a [=fenced frame=] originating via {{WindowSharedStorage/selectURL()}} whose [=FenceEvent/destination=] [=list/contains=] "`shared-storage-select-url`" and whose [=FenceEvent/eventType=] is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
-
-  A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fence.reportEvent()=] during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
-
-  Each [=top-level traversable=] will have a new {{double}} <dfn>shared storage reporting budget</dfn> associated to it which will be initialized with the value of [=user agent=]'s [=reporting entropy allowance=] upon [=top-level traversable=]'s creation. 
-
-  When [=fence.reportEvent()=] is called with a [=FenceEvent/destination=] [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
-
-  <div algorithm>
-    To <dfn>determine reporting budget to charge</dfn>, given a {{Document}} |sourceDocument|, run the following steps:
-
-    1. Let |debitSum| be 0.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. While |node| is not null:
-        1. If |node| has a "fenced frame config struct":
-            1. Let |pendingBits| be |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=].
-            1. If |pendingBits| is greater than 0 and if "fenced frame config struct"'s [=has reported=] is false, increment |debitSum| by |pendingBits|
-        1. Set |node| to |node|'s [=navigable/parent=].
-    1. Return |debitSum|.
-  </div>
-
-
-  Issue: The "fenced frame config struct" and its boolean <dfn>has reported</dfn> have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding. <span class=todo>Fix the names when they are added.</span>
-
-  <div algorithm>
-    To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
-
-    1. Let |toCharge| be the result of running [=determine reporting budget to charge=] with |sourceDocument|.
-    1. Let |node| be |sourceDocument|'s [=node navigable=].
-    1. Let |topNode| be the result of running [=get the top-level traversable=] for |node|.
-    1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
-    1. While |node| is not null:
-        1. If |node| has a "fenced frame config struct" and if |node|'s "fenced frame config struct"'s [=pending shared storage budget debit=] is greater than 0, set |node|'s "fenced frame config struct"'s [=has reported=] to true.
-        1. Set |node| to |node|'s [=navigable/parent=].
-    1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
-    1. Return true.
-  </div>
-
-  A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
-
-  <div algorithm>
-    To <dfn>purge expired bit debits from all navigation entropy ledgers</dfn>, run the following steps:
-
-    1. [=map/iterate|For each=] <var ignore="">origin</var> -> |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
-        1. [=map/iterate|For each=] |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
-  </div>
-
-  ### Run Operation Methods ### {#run-op}
-
-  <div algorithm>
-    The <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method steps are:
-
-    1. Let |promise| be a new [=promise=].
-    1. Let |worklet| be {{WindowSharedStorage}}'s {{WindowSharedStorage/worklet}}.
-    1. If |worklet|'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=Assert=] that |worklet|'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |worklet|'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |realm| be the [=current realm=].
-    1. Let |outsideSettings| be {{WindowSharedStorage/worklet}}'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed=] on |outsideSettings| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
-    1. Run the following steps in |agent|:
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
-        1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
-            1. Let |operationMap| be this {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
-            1. If |operationMap| [=map/contains=] |name|:
-                1.  Let |operation| be |operationMap|[|name|].
-                1. If |options| [=map/contains=] |data|:
-                    1. Let |argumentsList| be a new [=/list=].
-                    1. [=list/Append=] |data| to |argumentsList|.
-                    1. [=Call=] |operation| with |argumentsList|.
-                1. Otherwise, [=call=] |operation| without any arguments list.
-        1. If |options|["`keepAlive`"] is false:
-            1. Wait for |operation| to finish running, if applicable.
-            1. Run [=terminate a worklet global scope=] with {{SharedStorageWorkletGlobalScope}}.
-    1. Return |promise|.
-  </div>
-
-  <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{WindowSharedStorage/worklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
-
-    1. Let |promise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. If |environment|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |realm| be the [=current realm=].
-    1. Let |outsideSettings| be |worklet|'s [=relevant settings object=].
-    1. Let |agent| be the result of [=obtaining a worklet agent=] given |outsideSettings|.
-    1. Run the following steps in |agent|:
-        1. Let |index| be [=default index=].
-        1. If {{WindowSharedStorage/worklet}}'s [=module map=] is not [=map/empty=]:
-            1. Let |operationMap| be the associated {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
-            1. If |operationMap| [=map/contains=] |operationName|:
-                1. Let |operation| be |operationMap|[|operationName|].
-                1. Let |argumentsList| be a new [=/list=] with a single entry [=list/contain|containing=] |urlList|.
-                1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
-                1. Let |operationResult| be the result of running [=Call=] on |operation| with |argumentsList|.
-                1. If |operationResult| has any error(s), then [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-                1. Otherwise:
-                    1. Set |index| to the result of [=casting=] |operationResult| to an {{unsigned long}}.
-                    1. If this throws an exception:
-                        1. Catch it and [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-                        1. Abort these steps.
-                    1. Otherwise, if |index| is greater than |urlList|'s [=list/size=]:
-                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-                        1. Abort these steps.
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |index|.
-    1. Return |promise|.
-  </div>
+  ### Run Operation Methods on {{WindowSharedStorage}} ### {#run-op-shared-storage}
 
   <div algorithm>
     The <dfn method for="WindowSharedStorage">selectURL(|name|, |urls|, |options|)</dfn> method steps are:
 
+    1. Let |sharedStorage| be [=this=].
+    1. Return |sharedStorage|.{{WindowSharedStorage/worklet}}.{{SharedStorageWorklet/selectURL()|selectURL}}(|name|, |urls|, |options|).
+  </div>
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">run(|name|, |options|)</dfn> method steps are:
+
+    1. Let |sharedStorage| be [=this=].
+    1. Return |sharedStorage|.{{WindowSharedStorage/worklet}}.{{SharedStorageWorklet/run()|run}}(|name|, |options|).
+  </div>
+
+  ### Create a new worklet via {{WindowSharedStorage}} ### {#create-a-new-worklet-via-shared-storage}
+
+  <div algorithm>
+    The <dfn method for="WindowSharedStorage">createWorklet(|moduleURL|, |options|)</dfn> method steps are:
+
+    1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
+    1. Set |sharedStorageWorklet|'s [=cross-origin worklet allowed=] to true.
+    1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
-    1. Let |context| be {{WindowSharedStorage}}'s {{Window}}'s [=Window/browsing context=].
-    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |document| be |context|'s [=active document=].
-    1. If |document| is not [=allowed to use=] the "[=PermissionsPolicy/shared-storage-select-url=]" feature, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |worklet| be {{WindowSharedStorage}}'s {{WindowSharedStorage/worklet}}.
-    1. If |worklet|'s [=global scopes|list of global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=Assert=] that |worklet|'s [=global scopes|list of global scopes=] [=list/contains=] a single {{SharedStorageWorkletGlobalScope}}.
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |worklet|'s {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=]  with a {{TypeError}}.
-    1. If |urls| is empty or exceeds the maximum allowed length, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |urlList| be an empty {{list}}.
-    1. [=map/iterate|For each=] |urlWithMetadata| in |urls|:
-        1. If |urlWithMetadata| has no field "`url`", return a [=promise rejected=] with a {{TypeError}}.
-        1. Otherwise, let |urlString| be |urlWithMetadata|["`url`"].
-        1. Let |serializedUrl| be the result of running [=get the canonical URL string if valid=] with |urlString|.
-        1. If |serializedUrl| is undefined, return a [=promise rejected=] with a {{TypeError}}.
-        1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
-        1. If |urlWithMetadata| has field "`reportingMetadata`":
-            1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, reject |resultPromise| with a {{TypeError}} and abort these steps.
-    1. Let |fencedFrameConfigStruct| be a "fenced frame config struct". <span class=todo>Add correct struct name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-
-        Issue: The "fenced frame config struct" and the following "obtain a {{FencedFrameConfig}} from a fenced frame config struct" algorithm have not yet been added to the draft [=Fenced Frame=] specification. Some form of them will be added, although their names are subject to bikeshedding.
-
-    1. If |options|["`resolveToConfig`"] is true, resolve |resultPromise| with the result of running "obtain a {{FencedFrameConfig}} from a fenced frame config struct" with |fencedFrameConfigStruct|. <span class=todo>Add correct struct and algorithms names as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. Othewise, resolve |resultPromise| to |fencedFrameConfigStruct|'s "urn uuid". <span class=todo>Add correct struct name and urn:uuid name as well as linking when Fenced Frame API updates their draft spec to include it.</span>
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given |worklet|, |name|, |urlList|, and |options|.
-    1. [=Upon fulfillment=] of |indexPromise|, perform the following steps:
-        1. Let |resultIndex| be the numerical value of |indexPromise|.
-        1. Let |site| be the result of running [=obtain a site=] with |document|'s [=url/origin=].
-        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
-        1. [=Assert=] that |remainingBudget| is not undefined.
-        1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
-        1. Set |fencedFrameConfigStruct|'s [=pending shared storage budget debit=] to |pendingBits|.
-        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[|resultIndex|].
-        1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
-        1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
-    1. [=Upon rejection=] of |indexPromise|, perform the following steps:
-        1. Set |fencedFrameConfigStruct|'s [=/url=] to |urlList|[[=default index=]].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with the associated {{SharedStorageWorkletGlobalScope}}.
+    1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
+    1. [=Upon rejection=] of |addModulePromise|, [=reject=] |resultPromise| with a {{TypeError}}.
     1. Return |resultPromise|.
   </div>
 
@@ -993,7 +1142,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     The <dfn for="Window">{{Window/sharedStorage}} getter</dfn> steps are:
 
-    1. If |this| is [=fully active=], return |this|'s {{Window/sharedStorage}}.
+    1. If [=this=] is [=fully active=], return [=this=]'s {{Window/sharedStorage}}.
     1. Otherwise, return null.
   </div>
 
@@ -1025,21 +1174,21 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. If |options|["`ignoreIfPresent`"] is true:
             1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
             1. If |currentValue| is failure:
-                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. If |currentValue| is not undefined:
-                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
                 1. Abort these steps.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -1054,22 +1203,22 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
         1. If |currentValue| is failure:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
             1. Abort these steps.
         1. If |currentValue| is not undefined:
             1. Let |list| be a new [=/list=].
             1. [=list/Append=] |currentValue| to |list|.
             1. [=list/Append=] |value| to |list|.
             1. Set |value| to the result of running [=string/concatenate=] on |list|.
-        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -1083,13 +1232,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/delete an entry from the database=] with |queue|, |environment|, and |key| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -1102,13 +1251,13 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
-        1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
+        1. If the result of running [=shared storage database/clear all entries in the database=] with |queue| and |environment| is false, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. Return |promise|.
   </div>
 
@@ -1124,15 +1273,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |value| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-        1. If |value| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, if |value| is undefined, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with undefined.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |value|.
+        1. If |value| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, if |value| is undefined, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |value|.
     1. Return |promise|.
   </div>
 
@@ -1145,14 +1294,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |numEntries| be the result of running [=shared storage database/count entries in the database=] with |queue| and |environment|.
-        1. If |numEntries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |numEntries|.
+        1. If |numEntries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |numEntries|.
     1. Return |promise|.
   </div>
 
@@ -1165,15 +1314,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed=] on |environment| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |site| be the result of running [=obtain a site=] with |context|'s [=active document=]'s [=document/origin=].
-    1. [=Assert=] that |site| is not an [=opaque origin=].
-    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |site| be the result of running [=obtain a site=] with |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
+    1. [=Assert=]: |site| is not an [=opaque origin=].
+    1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |site|.
-        1. [=Assert=] that |remainingBudget| is not undefined.
-        1. Resolve [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |remainingBudget|.
+        1. [=Resolve=] [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |remainingBudget|.
     1. Return |promise|.
   </div>
 
@@ -1194,14 +1343,14 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
-    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] for |environment|.
+    1. Let |realm| be the [=current realm=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
-    1. Let |realm| be the [=current realm=].
     1. [=Enqueue the following steps=] on |queue|:
         1. Let |entries| be the result of running [=shared storage database/retrieve all entries from the database=] with |queue| and |environment|.
-        1. If |entries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to reject |promise| with a {{TypeError}}.
-        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entries|.
+        1. If |entries| is failure, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |entries|.
     1. [=Upon fulfillment=] of |promise|, run the following:
         1. Let |promiseEntries| be the value of |promise|.
         1. [=map/iterate|For each=] [=shared storage database/entry=] |entry| in |promiseEntries|, [=queue/enqueue=] |entry| in |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
@@ -1216,10 +1365,10 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. If |iterator|'s [=WorkletSharedStorageIterator/error=] is true, return a [=promise rejected=] with a {{TypeError}}.
         1. If |iterator|'s [=WorkletSharedStorageIterator/pending entries=] is [=list/empty=]:
             1. Create an object |doneObject|.
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |doneObject|.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |doneObject|.
             1. Abort these steps.
         1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=WorkletSharedStorageIterator/pending entries=].
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to resolve |promise| with |entry|.
+        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |entry|.
     1. Return |promise|.
   </div>
 
@@ -1390,11 +1539,10 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   <div algorithm>
     To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
-    1. Let |window| to |request|’s [=request/window=].
+    1. Let |window| to |request|'s [=request/window=].
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
-    1. If the result of running [=determine whether shared storage is allowed=] for |window| is false, return false.
-    1. Let |document| be |window|'s [=global object=]'s [=associated document=].
-    1. Return the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |document|, and |request|'s [=request/current URL=]'s [=url/origin=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
+    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
 
     Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
   </div>
@@ -1416,8 +1564,8 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
     1. Let |sharedStorageWritable| the result of running [=get a structured field value=] algorithm given [:Sec-Shared-Storage-Writable:], "`item`", and |request|'s [=request/header list=] as input.
     1. If |sharedStorageWritable| is null, or |sharedStorageWritable| is not a [=structured header/Boolean=], or the value of |sharedStorageWritable| is false, return.
-    1. Let |window| to |request|’s [=request/window=].
-    1. [=Assert=] that |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
+    1. Let |window| to |request|'s [=request/window=].
+    1. [=Assert=]: |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
     1. Let |sharedStorage| be |window|'s [=global object=]'s {{Window/sharedStorage}}.
     1. If |sharedStorage| is null, then return.
     1. Let |list| be |response|'s [=response/header list=].
@@ -1425,7 +1573,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. If |operationsToParse| is null or [=list/empty=], then return.
     1. For each tuple (|item|, |parameters|) in |operationsToParse|, perform the following steps:
         1. If |item| is an [=structured header/Inner List=], continue.
-        1. [=Assert=] that |item| is an [=structured header/Bare Item=].
+        1. [=Assert=]: |item| is an [=structured header/Bare Item=].
         1. Let |operationString| be the result of running [=get the string value=] for |item|.
         1. If |operationString| is failure, continue.
         1. Switch on |operationString|:
@@ -1475,7 +1623,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
           <dt> If |item| is a [=structured header/Token=]:
           <dt> If |item| is a [=structured header/String=]:
             <dd> Perform the following steps:
-                1. [=Assert=] that |item| is an [=ASCII string=].
+                1. [=Assert=]: |item| is an [=ASCII string=].
                 1. Return |item|.
           <dt> If |item| is a [=structured header/Byte Sequence=]:
             <dd> Perform the following steps:
@@ -1504,7 +1652,7 @@ Permissions Policy Integration {#permission}
 
 This specification defines a [=policy-controlled feature=] identified by the string "<dfn for="PermissionsPolicy">shared-storage</dfn>," along with a second [=policy-controlled feature=] identified by "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>".
 
-"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an exra permission layer to {{WindowSharedStorage/selectURL()}}. For each of these, the default allowlist is *.
+"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an exra permission layer to {{SharedStorageWorklet/selectURL()}}. For each of these, the default allowlist is *.
 
 Clear Site Data Integration {#clear}
 ====================================
@@ -1515,6 +1663,6 @@ Privacy Considerations {#privacy}
 
   The Shared Storage API attempts to provide the ability to use cross-site data for a range of use cases in a way that better protects user privacy than the use of third-party cookies. Shared Storage's main privacy safeguard is that read access of the data stored in its storage may only occur within an embedder's {{SharedStorageWorklet}}. Well-defined limits restrict output of data from the {{SharedStorageWorklet}} to a minimum.
 
-  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-frame=] [=navigate|navigation=] and/or the [=fenced frame=] calls the [=fence.reportEvent()=] API.
+  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
 
   An embedder is also able to send aggregatable reports through the [=Private Aggregation|Private Aggregation Service=], which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
