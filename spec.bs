@@ -471,7 +471,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   1. If |request|'s [=request/destination=] is "sharedstorageworklet":
       1. [=Assert=]: |request|'s [=request/client=] is not null.
-      1. If |request|'s [=request/client=]'s [=environment settings object/origin=] and |request|'s [=request/origin=] are not [=same origin=]:
+      1. If |request|'s [=request/client=]'s [=environment settings object/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
           1. Let |list| be |actualResponse|'s [=response/header list=].
           1. Let |allowed| be the result of running [=get a structured field value=] algorithm given "Shared-Storage-Cross-Origin-Worklet-Allowed", "item", and |list| as input.
           1. If |allowed| is false, then return a [=network error=].
