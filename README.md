@@ -536,8 +536,6 @@ The worklet selects from a small list of (up to 8) URLs, each in its own diction
 
 selectURL() can be called in a top-level fenced frame, but not from within a nested fenced frame. This is to prevent leaking lots of bits all at once via selectURL() chaining (i.e. a fenced frame can call selectURL() to add a few more bits to the fenced frame's current URL and render the result in a nested fenced frame). Use cases that will benefit from selectURL() being allowed from inside the top level fenced frame: [issue](https://github.com/WICG/fenced-frame/issues/44).
 
-> Fenced 
-
 #### Budgeting
 The rate of leakage of cross-site data need to be constrained. Therefore, we propose that there be a daily budget on how many bits of cross-site data can be leaked by the API per [site](https://html.spec.whatwg.org/multipage/browsers.html#site). Note that each time a Fenced Frame is clicked on and navigates the top frame, up to log2(|urls|) [bits of information](https://en.wikipedia.org/wiki/Entropy_(information_theory)) can potentially be leaked for each selectURL() involved in the creation of the Fenced Frame. Therefore, Shared Storage will deduct that log2(|urls|) bits from the Shared Storage worklet's [site](https://html.spec.whatwg.org/multipage/browsers.html#site)'s budget at that point. If the sum of the deductions from the last 24 hours exceed a threshold, then further selectURL()s will return the default value (the first url in the list) until some budget is freed up.
 
