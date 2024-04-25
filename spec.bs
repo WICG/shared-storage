@@ -468,9 +468,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <h4 id="shared-storage-cross-origin-worklet-allowed">The \`<dfn export http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></dfn>\` HTTP response header</h4>
 
-  The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, in company with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet under the module script's [=/URL=]'s [=url/origin=] url's origin, and to run subsequent operations on the worklet.
+  The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet under the module script's [=/URL=]'s [=url/origin=] url's origin, and to run subsequent operations on the worklet.
 
-  Cross-origin worklets rely CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for worklet creation. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required.
+  Cross-origin worklets rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for worklet creation. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required.
 
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
