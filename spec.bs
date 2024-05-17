@@ -277,6 +277,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), and for each method under [[#worklet-setter]] (from {{SharedStorageWorkletGlobalScope}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
+        - Note that in this scenario, a slightly modified algorithm [=determine whether using shared storage in a request is allowed by context=] is used in place of [=determine whether shared storage is allowed by context=].
   </div>
 
   <div algorithm>
@@ -1557,11 +1558,22 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 ## Shared Storage Fetch-Related Algorithms ## {#ss-fetch-algo}
 
   <div algorithm>
+    To <dfn>determine whether using shared storage in a request is allowed by context</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
+
+    1. If |environment| is not a [=secure context=], then return false.
+    1. If |origin| is an [=opaque origin=], then return false.
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. [=Assert=]: |globalObject| is a {{Window}}.
+    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |globalObject|'s [=associated document=], and |origin| returns false, then return false.
+    1. Return true.
+  </div>
+
+  <div algorithm>
     To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. Let |window| to |request|'s [=request/window=].
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
+    1. If the result of running [=determine whether using shared storage in a request is allowed by context=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
 
     Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
