@@ -251,11 +251,10 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
   </div>
 
   <div algorithm>
-    To <dfn>determine whether shared storage is allowed by context</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
+    To <dfn>determine whether shared storage is allowed by context</dfn>, given an [=environment settings object=] |environment|, an [=/origin=] |origin|, and a boolean |allowedInOpaqueOriginContext|, run these steps:
 
     1. If |environment| is not a [=secure context=], then return false.
-    1. Let |outsideSettingsOrigin| be |environment|'s [=environment settings object/origin=].
-    1. If |outsideSettingsOrigin| is an [=opaque origin=], then return false.
+    1. If |allowedInOpaqueOriginContext| is false and |environment|'s [=environment settings object/origin=] is an [=opaque origin=], then return false.
     1. If |origin| is an [=opaque origin=], then return false.
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. [=Assert=]: |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
@@ -277,7 +276,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), and for each method under [[#worklet-setter]] (from {{SharedStorageWorkletGlobalScope}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
-        - Note that in this scenario, a slightly modified algorithm [=determine whether using shared storage in a request is allowed by context=] is used in place of [=determine whether shared storage is allowed by context=].
+    - For [[#ss-fetch-algo]], for {{WindowSharedStorage/createWorklet()}} called with a cross-origin worklet script, and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a cross-origin worklet created from {{WindowSharedStorage/createWorklet()}}, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
 
   <div algorithm>
@@ -285,8 +284,11 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If |worklet|'s [=addModule initiated=] is true, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=addModule initiated=] to true.
     1. Let |workletOrigin| be |moduleURLRecord|'s [=url/origin=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToNonPreferenceError".
-    1. If |workletOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to true.
+    1. Let |isCrossOriginWorklet| be false.
+    1. If |workletOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |isCrossOriginWorklet| to true.
+    1. Let |allowedInOpaqueOriginContext| be |isCrossOriginWorklet|.
+    1. If the result of running [=determine whether shared storage is allowed by context=] given the [=current settings object=], |workletOrigin|, and |allowedInOpaqueOriginContext| is false, return "DisallowedDueToNonPreferenceError".
+    1. Set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to |isCrossOriginWorklet|.
     1. If |worklet|'s [=cross-origin worklet allowed=] is false, and if |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] is true, return "DisallowedDueToNonPreferenceError".
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
     1. Return "Allowed".
@@ -367,7 +369,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |urn| be the result of running [=fenced frame config mapping/store a pending config=] on |fencedFrameConfigMapping| with |pendingConfig|.
     1. If |urn| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |window|'s [=relevant settings object=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |workletOrigin| is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |allowedInOpaqueOriginContext| be [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |workletOrigin|, and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
@@ -405,7 +408,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |window| and |workletOrigin| is false, [=reject=] |promise| with a {{TypeError}}.
+    1. Let |allowedInOpaqueOriginContext| be [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=].
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window|, |workletOrigin|, and |allowedInOpaqueOriginContext| is false, [=reject=] |promise| with a {{TypeError}}.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, [=reject=] |promise| with a {{TypeError}}.
         1. Else, [=resolve=] |promise| with undefined.
@@ -617,7 +621,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Let |url| be the result of running a [=URL parser=] on |urlString|.
         1. [=Assert=]: |url| is a valid [=/URL=].
         1. [=map/Set=] |reportingUrlMap|[|eventType|] to |url|.
-    
+
     Issue(144): Store |reportingUrlMap| inside a [=fenced frame reporter=] class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [[Fenced-Frame]].
   </div>
 
@@ -810,7 +814,8 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
   <div algorithm>
     To <dfn>obtain a shared storage shelf</dfn>, given a [=shared storage shed=] |shed|, an [=environment settings object=] |environment|, and an [=/origin=] |origin|, run these steps:
 
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |origin| is false, then return failure.
+    1. Let |allowedInOpaqueOriginContext| be false.
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |origin|, and |allowedInOpaqueOriginContext| is false, then return failure.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |origin| is false, then return failure.
     1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
     1. Return |shed|[|origin|].
@@ -1336,7 +1341,8 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |realm| be the [=current realm=].
-    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |allowedInOpaqueOriginContext| be false.
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |realm|'s [=realm/settings object=]'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |site| be the result of running [=obtain a site=] with |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. [=Assert=]: |site| is not an [=opaque origin=].
@@ -1558,27 +1564,16 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 ## Shared Storage Fetch-Related Algorithms ## {#ss-fetch-algo}
 
   <div algorithm>
-    To <dfn>determine whether using shared storage in a request is allowed by context</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
-
-    1. If |environment| is not a [=secure context=], then return false.
-    1. If |origin| is an [=opaque origin=], then return false.
-    1. Let |globalObject| be the [=current realm=]'s [=global object=].
-    1. [=Assert=]: |globalObject| is a {{Window}}.
-    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |globalObject|'s [=associated document=], and |origin| returns false, then return false.
-    1. Return true.
-  </div>
-
-  <div algorithm>
     To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
     1. Let |window| to |request|'s [=request/window=].
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
-    1. If the result of running [=determine whether using shared storage in a request is allowed by context=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
+    1. Let |allowedInOpaqueOriginContext| be true.
+    1. If the result of running [=determine whether shared storage is allowed by context=] given |window|, |request|'s [=request/current URL=]'s [=url/origin=], and |allowedInOpaqueOriginContext| is false, return false.
     1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
 
     Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
   </div>
-
 
   <div algorithm>
     To <dfn>append or modify a Sec-Shared-Storage-Writable request header</dfn>, given a [=/request=] |request|, perform the following steps:
