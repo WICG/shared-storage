@@ -144,7 +144,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
             *   To keep the worklet alive throughout multiple calls to `run()` and/or `selectURL()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
 *   `window.sharedStorage.run(name, options)`,  \
 `window.sharedStorage.selectURL(name, urls, options)`, …
-    *   The behaivor is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
+    *   The behavior is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
 *   `window.sharedStorage.createWorklet(url, options)`
     *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
     *   The worklet uses the `url`'s origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
