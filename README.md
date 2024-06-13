@@ -463,6 +463,8 @@ register('report', ReportOperation);
 
 There are currently four (4) approaches to creating a worklet that loads cross-origin script. The partition origin for the worklet's shared storage data access depends on the approach.
 
+#### Using the context origin as data partition origin
+The first three (3) approaches use the invoking context's origin as the partition origin for shared storage data access and the invoking context's site for shared storage budget withdrawals.
 
 1. Call `addModule()` with a cross-origin script. 
 
@@ -493,6 +495,9 @@ There are currently four (4) approaches to creating a worklet that loads cross-o
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
+
+#### Using the worklet script origin as data partition origin
+The fourth approach uses the worklet script's origin as the partition origin for shared storage data access and the worklet script's site for shared storage budget withdrawals.
 
 4. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the worklet script's origin.
 
