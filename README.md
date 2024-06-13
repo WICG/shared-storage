@@ -459,9 +459,9 @@ register('select-url', URLOperation);
 register('report', ReportOperation);
 ```
 
-### Using cross-origin worklets
+### Loading cross-origin worklet scripts
 
-There are currently three (3) different approaches to creating a worklet with cross-origin script.
+There are currently four (4) approaches to creating a worklet that loads cross-origin script. The partition origin for the worklet's shared storage data access depends on the approach.
 
 
 1. Call `addModule()` with a cross-origin script. 
@@ -484,7 +484,17 @@ There are currently three (3) different approaches to creating a worklet with cr
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
 
-3. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the worklet script's origin.
+3. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the invoking context's origin.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
+
+4. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the worklet script's origin.
 
     In an "https://a.example" context in the embedder page:
 
