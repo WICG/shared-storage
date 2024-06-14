@@ -154,7 +154,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   Currently, the `dataOrigin` option, if used, is restricted to having either "script-origin" or "context-origin" as its value. "script-origin" designates the worklet script origin as the data partition origin; "context-origin" designates the invoking context origin as the data partition origin.
     *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
     *   Redirects are not allowed.
-    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and the `dataOrigin` option is different from the context origin, a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
+    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin", a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
     *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
 
 
@@ -471,7 +471,7 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    await sharedStorage.addModule("https://b.example/worklet.js");
+    await sharedStorage.worklet.addModule("https://b.example/worklet.js");
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
