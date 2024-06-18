@@ -259,18 +259,12 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. [=Assert=]: |globalObject| is a {{Window}} or a {{SharedStorageWorkletGlobalScope}}.
     1. If |globalObject| is a {{Window}}, and if the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage=]", |globalObject|'s [=associated document=], and |origin| returns false, then return false.
+    1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
     1. Return true.
   </div>
 
-  <div algorithm>
-    To <dfn>determine whether shared storage is allowed by enrollment and user preference</dfn>, given an [=environment settings object=] |environment| and an [=/origin=] |origin|, run these steps:
-
-    1. If the result of running [=obtaining a site|obtain a site=] with |origin| is not [=enrolled=], then return false.
-    1. Return the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |origin|.
-  </div>
-
   <div class="note">
-    Here are the scenarios where the algorithms [=determine whether shared storage is allowed by context=] and [=determine whether shared storage is allowed by enrollment and user preference=] are used:
+    Here are the scenarios where the algorithms [=determine whether shared storage is allowed by context=] and [=check if user preference setting allows access to shared storage=] are used:
 
     - For each method under [[#window-setter]], |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
@@ -290,7 +284,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If the result of running [=determine whether shared storage is allowed by context=] given the [=current settings object=], |workletOrigin|, and |allowedInOpaqueOriginContext| is false, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] to |isCrossOriginWorklet|.
     1. If |worklet|'s [=cross-origin worklet allowed=] is false, and if |worklet|'s [=SharedStorageWorklet/is cross-origin worklet=] is true, return "DisallowedDueToNonPreferenceError".
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given the [=current settings object=] and |workletOrigin| is false, return "DisallowedDueToPreferenceError".
     1. Return "Allowed".
   </div>
 
@@ -371,7 +365,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |environment| be |window|'s [=relevant settings object=].
     1. Let |allowedInOpaqueOriginContext| be [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=].
     1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |workletOrigin|, and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |workletOrigin| is false:
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
@@ -410,7 +404,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |workletOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. Let |allowedInOpaqueOriginContext| be [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=].
     1. If the result of running [=determine whether shared storage is allowed by context=] given |window|, |workletOrigin|, and |allowedInOpaqueOriginContext| is false, [=reject=] |promise| with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |workletOrigin| is false:
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given |window| and |workletOrigin| is false:
         1. If [=this=]'s [=SharedStorageWorklet/is cross-origin worklet=] is false, [=reject=] |promise| with a {{TypeError}}.
         1. Else, [=resolve=] |promise| with undefined.
         1. Return |promise|.
@@ -816,7 +810,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
     1. Let |allowedInOpaqueOriginContext| be false.
     1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |origin|, and |allowedInOpaqueOriginContext| is false, then return failure.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |origin| is false, then return failure.
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |origin| is false, then return failure.
     1. If |shed|[origin] does not exist, then set |shed|[origin] to the result of running [=create a shared storage shelf=] with [=storage type|type=] "`shared`".
     1. Return |shed|[|origin|].
   </div>
@@ -1343,7 +1337,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. Let |realm| be the [=current realm=].
     1. Let |allowedInOpaqueOriginContext| be false.
     1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |realm|'s [=realm/settings object=]'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |site| be the result of running [=obtain a site=] with |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. [=Assert=]: |site| is not an [=opaque origin=].
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
@@ -1570,7 +1564,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
     1. Let |allowedInOpaqueOriginContext| be true.
     1. If the result of running [=determine whether shared storage is allowed by context=] given |window|, |request|'s [=request/current URL=]'s [=url/origin=], and |allowedInOpaqueOriginContext| is false, return false.
-    1. If the result of running [=determine whether shared storage is allowed by enrollment and user preference=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
+    1. If the result of running [=check if user preference setting allows access to shared storage=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
 
     Issue: The [=determine whether a request can currently use shared storage=] algorithm needs to take into account "opt-in features", as articulated in <a href="https://github.com/w3c/webappsec-permissions-policy/pull/499">https://github.com/w3c/webappsec-permissions-policy/pull/499</a>.
   </div>
