@@ -227,7 +227,7 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
   [Exposed=(Window)]
   interface SharedStorageWorklet : Worklet {
     Promise<SharedStorageResponse> selectURL(DOMString name,
-                                 FrozenArray<SharedStorageUrlWithMetadata> urls,
+                                 sequence<SharedStorageUrlWithMetadata> urls,
                                  optional SharedStorageRunOperationMethodOptions options = {});
     Promise<any> run(DOMString name,
                      optional SharedStorageRunOperationMethodOptions options = {});
@@ -995,7 +995,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   [Exposed=(Window)]
   interface WindowSharedStorage : SharedStorage {
     Promise<SharedStorageResponse> selectURL(DOMString name,
-                                 FrozenArray<SharedStorageUrlWithMetadata> urls,
+                                 sequence<SharedStorageUrlWithMetadata> urls,
                                  optional SharedStorageRunOperationMethodOptions options = {});
     Promise<any> run(DOMString name,
                      optional SharedStorageRunOperationMethodOptions options = {});
