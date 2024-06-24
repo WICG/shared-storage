@@ -485,7 +485,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
           1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
           1. If |allowed| is false, then return a [=network error=].
 
-  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers and the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=url/origin=] used in all calls to [=obtain a shared storage bottle map=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
@@ -520,11 +520,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
 
-  The {{SharedStorageWorklet}}'s [=worklet destination type=] is "sharedstorageworklet".
+  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"sharedstorageworkletcontextorigin"`. It is set to `"sharedstorageworkletcontextorigin"` by default.
 
   ### Monkey Patch for request [=request/destination=] ### {#request-destination-monkey-patch}
 
-  The fetch request's [=request/destination=] field should additionally include "sharedstorageworklet" as a valid value.
+  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"sharedstorageworkletcontextorigin"` as valid values.
 
   <xmp class='idl'>
     callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
@@ -1150,6 +1150,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
     1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|[|dataOrigin|].
+    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"sharedstorageworklet"`.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
