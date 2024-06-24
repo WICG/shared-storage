@@ -272,7 +272,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), and for each method under [[#worklet-setter]] (from {{SharedStorageWorkletGlobalScope}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
-    - For [[#ss-fetch-algo]], for {{WindowSharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
+    - For [[#ss-fetch-algo]], for {{WindowSharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
 
   <div algorithm>
@@ -280,7 +280,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. If |worklet|'s [=addModule initiated=] is true, return "DisallowedDueToNonPreferenceError".
     1. Set |worklet|'s [=addModule initiated=] to true.
     1. Let |workletDataOrigin| be the [=current settings object=]'s [=environment settings object/origin=].
-    1. If |worklet|'s [=data origin=] is `"script-origin"`, let |workletDataOrigin| be |moduleURLRecord|'s [=url/origin=].
+    1. If |worklet|'s [=SharedStorageWorklet/data origin=] is `"script-origin"`, set |workletDataOrigin| to |moduleURLRecord|'s [=url/origin=].
     1. Let |hasCrossOriginDataOrigin| be false.
     1. If |workletDataOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |hasCrossOriginDataOrigin| to true.
     1. Let |allowedInOpaqueOriginContext| be |hasCrossOriginDataOrigin|.
@@ -1147,7 +1147,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="WindowSharedStorage">createWorklet(|moduleURL|, |options|)</dfn> method steps are:
 
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
-    1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=data origin=] to |options|(|dataOrigin|).
+    1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|(|dataOrigin|).
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
