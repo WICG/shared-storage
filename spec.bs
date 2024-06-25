@@ -479,11 +479,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
 
   1. If |request|'s [=request/destination=] is `"xoriginsharedstorageworklet"`:
-      1. [=Assert=]: |request|'s [=request/origin=] is not "<code>client</code>".
-      1. If |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
-          1. Let |headers| be |internalResponse|'s [=response/header list=].
-          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
-          1. If |allowed| is false, then return a [=network error=].
+      1. Let |headers| be |internalResponse|'s [=response/header list=].
+      1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
+      1. If |allowed| is false, then return a [=network error=].
 
   Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=url/origin=] used in all calls to [=obtain a shared storage bottle map=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
