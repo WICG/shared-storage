@@ -447,7 +447,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
           1. If |workletGlobalScope| is not {{SharedStorageWorkletGlobalScope}}, return |origin|.
           1. [=Assert=] that |worklet| is a {{SharedStorageWorklet}}.
           1. If |worklet|'s [=SharedStorageWorklet/data origin=] is `"context-origin"`, return <var ignore=''>outsideSettings</var>'s [=environment settings object/origin=].
-          1. Else let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
+          1. Let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
           1. [=Assert=]: |pendingAddedModules|'s [=list/size=] is 1.
           1. Let |moduleURL| be |pendingAddedModules|[0].
           1. Return |moduleURL|'s [=url/origin=].
