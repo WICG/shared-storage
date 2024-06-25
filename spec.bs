@@ -478,7 +478,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
 
-  1. If |request|'s [=request/destination=] is "sharedstorageworklet":
+  1. If |request|'s [=request/destination=] is `"xoriginsharedstorageworklet"`:
       1. [=Assert=]: |request|'s [=request/origin=] is not "<code>client</code>".
       1. If |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
           1. Let |headers| be |internalResponse|'s [=response/header list=].
@@ -520,11 +520,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
 
-  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"sharedstorageworkletcontextorigin"`. It is set to `"sharedstorageworkletcontextorigin"` by default.
+  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"xoriginsharedstorageworklet"`. It is set to `"sharedstorageworklet"` by default.
 
   ### Monkey Patch for request [=request/destination=] ### {#request-destination-monkey-patch}
 
-  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"sharedstorageworkletcontextorigin"` as valid values.
+  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"xoriginsharedstorageworklet"` as valid values.
 
   <xmp class='idl'>
     callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
@@ -1150,7 +1150,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
     1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|[|dataOrigin|].
-    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"sharedstorageworklet"`.
+    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"xoriginsharedstorageworklet"`.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
