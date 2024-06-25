@@ -471,19 +471,21 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <h4 id="shared-storage-cross-origin-worklet-allowed">The \`<dfn export http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></dfn>\` HTTP response header</h4>
 
-  The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet from the module script's [=/URL=]'s [=url/origin=], and to run subsequent operations on the worklet using the module script's [=/URL=]'s [=url/origin=] as the data partition origin for accessing shared storage data.
+  The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet from the module script's [=/URL=]'s [=url/origin=], and to run subsequent operations on the worklet using the module script's [=/URL=]'s [=url/origin=] as the <dfn for="SharedStorage">data partition origin</dfn> for accessing shared storage data, i.e. the [=environment settings object/origin=] set in [[#set-up-a-worklet-environment-settings-object-monkey-patch]], which becomes the [=url/origin=] used in all {{WorkletSharedStorage}} calls to [=obtain a shared storage bottle map=].
 
-  Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet whose data partition origin is cross-origin to the context origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required for worklets where the data partition origin will be cross-origin to the context origin.
+  Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet with cross-origin script whose [=data partition origin=] is the script origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional response header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required from the script origin.
 
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
 
-  1. If |request|'s [=request/destination=] is `"xoriginsharedstorageworklet"`:
-      1. Let |headers| be |internalResponse|'s [=response/header list=].
-      1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
-      1. If |allowed| is false, then return a [=network error=].
+  1. If |request|'s [=request/destination=] is `"scriptoriginsharedstorageworklet"`:
+      1. [=Assert=]: |request|'s [=request/origin=] is not "<code>client</code>".
+      1. If |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
+          1. Let |headers| be |internalResponse|'s [=response/header list=].
+          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
+          1. If |allowed| is false, then return a [=network error=].
 
-  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=url/origin=] used in all calls to [=obtain a shared storage bottle map=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
@@ -518,11 +520,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
 
-  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"xoriginsharedstorageworklet"`. It is set to `"sharedstorageworklet"` by default.
+  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"scriptoriginsharedstorageworklet"`. It is set to `"sharedstorageworklet"` by default.
 
   ### Monkey Patch for request [=request/destination=] ### {#request-destination-monkey-patch}
 
-  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"xoriginsharedstorageworklet"` as valid values.
+  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"scriptoriginsharedstorageworklet"` as valid values.
 
   <xmp class='idl'>
     callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
@@ -1146,15 +1148,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     The <dfn method for="WindowSharedStorage">createWorklet(|moduleURL|, |options|)</dfn> method steps are:
 
-    1. Let |context| be [=this=]'s {{Window}}'s [=Window/browsing context=].
-    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |parsedURL| be the result of running [=get the canonical URL string if valid=] on |moduleURL|.
-    1. If |parsedURL| is undefined, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
     1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|[|dataOrigin|].
-    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`:
-        1. Let |contextOrigin| be |context|'s [=active window=]'s [=relevant settings object=]'s [=environment settings object/origin=].
-        1. If |contextOrigin| and |parsedURL|'s [=url/origin=] are not [=same origin=], set |sharedStorageWorklet|'s [=worklet destination type=] to `"xoriginsharedstorageworklet"`.
+    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is `"script-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"scriptoriginsharedstorageworklet"`.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
