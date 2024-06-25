@@ -1148,9 +1148,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
   <div algorithm>
     The <dfn method for="WindowSharedStorage">createWorklet(|moduleURL|, |options|)</dfn> method steps are:
 
+    1. Let |context| be [=this=]'s {{Window}}'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |parsedURL| be the result of running [=get the canonical URL string if valid=] on |moduleURL|.
+    1. If |parsedURL| is undefined, return a [=promise rejected=] with a {{TypeError}}.
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
     1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|[|dataOrigin|].
-    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"xoriginsharedstorageworklet"`.
+    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`:
+        1. Let |contextOrigin| be |context|'s [=active window=]'s [=relevant settings object=]'s [=environment settings object/origin=].
+        1. If |contextOrigin| and |parsedURL|'s [=url/origin=] are not [=same origin=], set |sharedStorageWorklet|'s [=worklet destination type=] to `"xoriginsharedstorageworklet"`.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
