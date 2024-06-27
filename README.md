@@ -123,8 +123,10 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Deletes all entries.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
-    *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
-    *   `url`'s origin must match that of the context that invoked `addModule(url)`.
+    *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data (for the invoking origin) will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
+    *   `url`'s origin need not match that of the context that invoked `addModule(url)`. 
+        *   If `url` is cross-origin to the invoking context, the worklet will use the invoking context's origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
+        *   Also, for a cross-origin`url`, the CORS protocol applies. 
     *   Redirects are not allowed.
 *   `window.sharedStorage.worklet.run(name, options)`,  \
 `window.sharedStorage.worklet.selectURL(name, urls, options)`, …
@@ -147,10 +149,12 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   The behavior is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
 *   `window.sharedStorage.createWorklet(url, options)`
     *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
-    *   The worklet uses the `url`'s origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
+    *   By default, the worklet uses the invoking context's origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
+        *   To instead use the worklet script origin (i.e. `url`'s origin) as the partition origin for accessing shared storage, pass the `dataOrigin` option with "script-origin" as its value in the `options` dictionary.
+        *   Currently, the `dataOrigin` option, if used, is restricted to having either "script-origin" or "context-origin" as its value. "script-origin" designates the worklet script origin as the data partition origin; "context-origin" designates the invoking context origin as the data partition origin.
     *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
     *   Redirects are not allowed.
-    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin, a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
+    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin", a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
     *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
 
 
@@ -455,6 +459,56 @@ register('select-url', URLOperation);
 register('report', ReportOperation);
 ```
 
+### Loading cross-origin worklet scripts
+
+There are currently four (4) approaches to creating a worklet that loads cross-origin script. The partition origin for the worklet's shared storage data access depends on the approach.
+
+#### Using the context origin as data partition origin
+The first three (3) approaches use the invoking context's origin as the partition origin for shared storage data access and the invoking context's site for shared storage budget withdrawals.
+
+1. Call `addModule()` with a cross-origin script. 
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    await sharedStorage.worklet.addModule("https://b.example/worklet.js");
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
+
+2. Call `createWorklet()` with a cross-origin script.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js");
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
+
+3. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the invoking context's origin.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
+
+#### Using the worklet script origin as data partition origin
+The fourth approach uses the worklet script's origin as the partition origin for shared storage data access and the worklet script's site for shared storage budget withdrawals.
+
+4. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to the worklet script's origin.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used.
+
 ### Writing to Shared Storage via response headers
 
 For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below. 
@@ -507,7 +561,7 @@ The sharedStorage.selectURL() method can be disallowed by the "shared-storage-se
 ### Permissions Policy inside the shared storage worklet
 The permissions policy inside the shared storage worklet will inherit the permissions policy of the associated document.
 
-The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, the `privateAggregation` methods will throw an exception.
+The [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) will be controlled by the "private-aggregation" policy-controlled feature: within the shared storage worklet, if the "private-aggregation" policy-controlled feature is disabled, the `privateAggregation` methods will throw an exception.
 
 ## Data Retention Policy
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
