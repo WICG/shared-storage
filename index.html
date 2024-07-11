@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 82ce88815, updated Thu Sep 7 16:33:55 2023 -0700" name="generator">
   <link href="https://github.com/WICG/shared-storage" rel="canonical">
-  <meta content="08a4efef3557e838a7815e4b16e693ef7902e701" name="document-revision">
+  <meta content="a0c9ef9492cc7995988b0993ae83b8441ed235e0" name="document-revision">
 <style>
 /* adapted from .XXX at https://resources.whatwg.org/standard.css */
 .todo {
@@ -688,7 +688,7 @@ var.selected6 { background-color: #FFBCF2; box-shadow: 0 0 0 2px #FFBCF2; }
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Shared Storage API</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2024-06-21">21 June 2024</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2024-07-11">11 July 2024</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1361,7 +1361,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li data-md>
       <p>Let <var>runFunction</var> be <a data-link-type="dfn" href="https://tc39.es/ecma262/#sec-get-o-p" id="ref-for-sec-get-o-p">Get</a>(<var>operationClassInstance</var>, "<code>run</code>"). Rethrow any exceptions.</p>
      <li data-md>
-      <p>Let <var>runIDLFunction</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#javascript-string-convert" id="ref-for-javascript-string-convert">converting</a> <var>runFunction</var> to a Web IDL <code class="idl"><a data-link-type="idl" href="#callbackdef-runfunctionforsharedstorageselecturloperation" id="ref-for-callbackdef-runfunctionforsharedstorageselecturloperation">RunFunctionForSharedStorageSelectURLOperation</a></code> instance.</p>
+      <p>Let <var>runIDLFunction</var> be the result of <a data-link-type="dfn" href="https://webidl.spec.whatwg.org#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value">converting</a> <var>runFunction</var> to a Web IDL <code class="idl"><a data-link-type="idl" href="#callbackdef-runfunctionforsharedstorageselecturloperation" id="ref-for-callbackdef-runfunctionforsharedstorageselecturloperation">RunFunctionForSharedStorageSelectURLOperation</a></code> instance.</p>
      <li data-md>
       <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-set" id="ref-for-map-set">Set</a> the value of <var>operationMap</var>[<var>name</var>] to <var>runIDLFunction</var>.</p>
     </ol>
@@ -3298,7 +3298,6 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="ae8def21">contain <small>(for list)</small></span>
      <li><span class="dfn-paneled" id="a326add7">contain <small>(for map)</small></span>
      <li><span class="dfn-paneled" id="f937b7b6">continue</span>
-     <li><span class="dfn-paneled" id="a088e610">convert</span>
      <li><span class="dfn-paneled" id="9a9b558b">dequeue</span>
      <li><span class="dfn-paneled" id="03afaf9c">empty <small>(for list)</small></span>
      <li><span class="dfn-paneled" id="cc867b80">empty <small>(for map)</small></span>
@@ -3413,6 +3412,7 @@ register<c- p>(</c-><c- t>'select-url-for-experiment'</c-><c- p>,</c-> SelectURL
      <li><span class="dfn-paneled" id="9a7f3f6f">asynchronous iterator initialization steps</span>
      <li><span class="dfn-paneled" id="5372cca8">boolean</span>
      <li><span class="dfn-paneled" id="1fc2b625">construct</span>
+     <li><span class="dfn-paneled" id="bb638afd">convert</span>
      <li><span class="dfn-paneled" id="bec98d30">dictionary</span>
      <li><span class="dfn-paneled" id="8c800cdf">double</span>
      <li><span class="dfn-paneled" id="e7652812">get the next iteration result</span>
@@ -4021,7 +4021,6 @@ window.dfnpanelData['4a3bf5fb'] = {"dfnID": "4a3bf5fb", "url": "https://infra.sp
 window.dfnpanelData['ae8def21'] = {"dfnID": "ae8def21", "url": "https://infra.spec.whatwg.org/#list-contain", "dfnText": "contain (for list)", "refSections": [{"refs": [{"id": "ref-for-list-contain"}], "title": "2.5. SharedStorageUrlWithMetadata and Reporting"}, {"refs": [{"id": "ref-for-list-contain\u2460"}, {"id": "ref-for-list-contain\u2461"}], "title": "2.6.2. Reporting Entropy Budget"}], "external": true};
 window.dfnpanelData['a326add7'] = {"dfnID": "a326add7", "url": "https://infra.spec.whatwg.org/#map-exists", "dfnText": "contain (for map)", "refSections": [{"refs": [{"id": "ref-for-map-exists"}, {"id": "ref-for-map-exists\u2460"}, {"id": "ref-for-map-exists\u2461"}, {"id": "ref-for-map-exists\u2462"}], "title": "2.1. Run Operation Methods on SharedStorageWorklet"}, {"refs": [{"id": "ref-for-map-exists\u2463"}], "title": "2.4. SharedStorageWorkletGlobalScope algorithms"}, {"refs": [{"id": "ref-for-map-exists\u2464"}], "title": "2.6.1. Navigation Entropy Budget"}, {"refs": [{"id": "ref-for-map-exists\u2465"}], "title": "3.3. The Database Algorithms"}, {"refs": [{"id": "ref-for-map-exists\u2466"}], "title": "7.2.1. Modification to the Request Constructor Algorithm"}, {"refs": [{"id": "ref-for-map-exists\u2467"}, {"id": "ref-for-map-exists\u2468"}], "title": "7.4. Shared Storage Fetch-Related Algorithms"}], "external": true};
 window.dfnpanelData['f937b7b6'] = {"dfnID": "f937b7b6", "url": "https://infra.spec.whatwg.org/#iteration-continue", "dfnText": "continue", "refSections": [{"refs": [{"id": "ref-for-iteration-continue"}, {"id": "ref-for-iteration-continue\u2460"}], "title": "2.6.1. Navigation Entropy Budget"}, {"refs": [{"id": "ref-for-iteration-continue\u2461"}], "title": "2.6.2. Reporting Entropy Budget"}], "external": true};
-window.dfnpanelData['a088e610'] = {"dfnID": "a088e610", "url": "https://infra.spec.whatwg.org/#javascript-string-convert", "dfnText": "convert", "refSections": [{"refs": [{"id": "ref-for-javascript-string-convert"}], "title": "2.4. SharedStorageWorkletGlobalScope algorithms"}], "external": true};
 window.dfnpanelData['9a9b558b'] = {"dfnID": "9a9b558b", "url": "https://infra.spec.whatwg.org/#queue-dequeue", "dfnText": "dequeue", "refSections": [{"refs": [{"id": "ref-for-queue-dequeue"}], "title": "4.3.3. Iteration"}], "external": true};
 window.dfnpanelData['03afaf9c'] = {"dfnID": "03afaf9c", "url": "https://infra.spec.whatwg.org/#list-empty", "dfnText": "empty (for list)", "refSections": [{"refs": [{"id": "ref-for-list-empty"}, {"id": "ref-for-list-empty\u2460"}], "title": "2.1. Run Operation Methods on SharedStorageWorklet"}, {"refs": [{"id": "ref-for-list-empty\u2461"}, {"id": "ref-for-list-empty\u2462"}], "title": "4.3.3. Iteration"}, {"refs": [{"id": "ref-for-list-empty\u2463"}], "title": "7.4. Shared Storage Fetch-Related Algorithms"}], "external": true};
 window.dfnpanelData['cc867b80'] = {"dfnID": "cc867b80", "url": "https://infra.spec.whatwg.org#map-is-empty", "dfnText": "empty (for map)", "refSections": [{"refs": [{"id": "ref-for-map-is-empty"}, {"id": "ref-for-map-is-empty\u2460"}], "title": "2.1. Run Operation Methods on SharedStorageWorklet"}, {"refs": [{"id": "ref-for-map-is-empty\u2461"}, {"id": "ref-for-map-is-empty\u2462"}, {"id": "ref-for-map-is-empty\u2463"}, {"id": "ref-for-map-is-empty\u2464"}], "title": "2.5. SharedStorageUrlWithMetadata and Reporting"}], "external": true};
@@ -4100,6 +4099,7 @@ window.dfnpanelData['11f367b8'] = {"dfnID": "11f367b8", "url": "https://webidl.s
 window.dfnpanelData['9a7f3f6f'] = {"dfnID": "9a7f3f6f", "url": "https://webidl.spec.whatwg.org/#asynchronous-iterator-initialization-steps", "dfnText": "asynchronous iterator initialization steps", "refSections": [{"refs": [{"id": "ref-for-asynchronous-iterator-initialization-steps"}], "title": "4.3.3. Iteration"}], "external": true};
 window.dfnpanelData['5372cca8'] = {"dfnID": "5372cca8", "url": "https://webidl.spec.whatwg.org/#idl-boolean", "dfnText": "boolean", "refSections": [{"refs": [{"id": "ref-for-idl-boolean"}], "title": "4. The SharedStorage Interface"}, {"refs": [{"id": "ref-for-idl-boolean\u2460"}, {"id": "ref-for-idl-boolean\u2461"}], "title": "4.1. The WindowSharedStorage interface"}, {"refs": [{"id": "ref-for-idl-boolean\u2462"}], "title": "4.3.3. Iteration"}, {"refs": [{"id": "ref-for-idl-boolean\u2463"}], "title": "6.1. sharedStorageWritable & sharedstoragewritable Attributes"}, {"refs": [{"id": "ref-for-idl-boolean\u2464"}], "title": "7.1. sharedStorageWritable Key"}], "external": true};
 window.dfnpanelData['1fc2b625'] = {"dfnID": "1fc2b625", "url": "https://webidl.spec.whatwg.org/#construct-a-callback-function", "dfnText": "construct", "refSections": [{"refs": [{"id": "ref-for-construct-a-callback-function"}], "title": "2.4. SharedStorageWorkletGlobalScope algorithms"}], "external": true};
+window.dfnpanelData['bb638afd'] = {"dfnID": "bb638afd", "url": "https://webidl.spec.whatwg.org#dfn-convert-ecmascript-to-idl-value", "dfnText": "convert", "refSections": [{"refs": [{"id": "ref-for-dfn-convert-ecmascript-to-idl-value"}], "title": "2.4. SharedStorageWorkletGlobalScope algorithms"}], "external": true};
 window.dfnpanelData['bec98d30'] = {"dfnID": "bec98d30", "url": "https://webidl.spec.whatwg.org/#dfn-dictionary", "dfnText": "dictionary", "refSections": [{"refs": [{"id": "ref-for-dfn-dictionary"}, {"id": "ref-for-dfn-dictionary\u2460"}, {"id": "ref-for-dfn-dictionary\u2461"}, {"id": "ref-for-dfn-dictionary\u2462"}, {"id": "ref-for-dfn-dictionary\u2463"}], "title": "2.5. SharedStorageUrlWithMetadata and Reporting"}], "external": true};
 window.dfnpanelData['8c800cdf'] = {"dfnID": "8c800cdf", "url": "https://webidl.spec.whatwg.org/#idl-double", "dfnText": "double", "refSections": [{"refs": [{"id": "ref-for-idl-double"}], "title": "2.6.2. Reporting Entropy Budget"}, {"refs": [{"id": "ref-for-idl-double\u2460"}], "title": "4.3. The WorkletSharedStorage interface"}], "external": true};
 window.dfnpanelData['e7652812'] = {"dfnID": "e7652812", "url": "https://webidl.spec.whatwg.org/#dfn-get-the-next-iteration-result", "dfnText": "get the next iteration result", "refSections": [{"refs": [{"id": "ref-for-dfn-get-the-next-iteration-result"}], "title": "4.3.3. Iteration"}], "external": true};
