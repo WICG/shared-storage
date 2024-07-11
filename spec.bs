@@ -70,6 +70,7 @@ spec: webidl; urlPrefix: https://webidl.spec.whatwg.org
         text: async iterator; url: idl-async-iterable
         text: promise; url: idl-promise
         text: promise rejected; url: a-promise-rejected-with
+        text: convert; for: ecmascript-to-idl; url: dfn-convert-ecmascript-to-idl-value
 spec: storage; urlPrefix: https://storage.spec.whatwg.org/
     type: dfn
         text: storage model; url: model
@@ -554,7 +555,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |operationCtor| is missing, throw a {{TypeError}}.
     1. Let |operationClassInstance| be the result of [=constructing=] |operationCtor|, with no arguments.
     1. Let |runFunction| be [=Get=](|operationClassInstance|, "`run`"). Rethrow any exceptions.
-    1. Let |runIDLFunction| be the result of [=converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
+    1. Let |runIDLFunction| be the result of [=ecmascript-to-idl/converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
     1. [=map/Set=] the value of |operationMap|[|name|] to |runIDLFunction|.
   </div>
 
