@@ -54,6 +54,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: content attributes; url: dom.html#concept-element-attributes
         text: update the image data; url: images.html#update-the-image-data
         text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetchin
+        text: serialization; for: origin; url: browsers.html#ascii-serialisation-of-an-origin
 spec: url; urlPrefix: https://url.spec.whatwg.org/
     type: dfn
         text: URL; for: /; url: concept-url
@@ -70,6 +71,7 @@ spec: webidl; urlPrefix: https://webidl.spec.whatwg.org
         text: async iterator; url: idl-async-iterable
         text: promise; url: idl-promise
         text: promise rejected; url: a-promise-rejected-with
+        text: convert; for: ecmascript-to-idl; url: dfn-convert-ecmascript-to-idl-value
 spec: storage; urlPrefix: https://storage.spec.whatwg.org/
     type: dfn
         text: storage model; url: model
@@ -464,10 +466,15 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The algorithm [=fetch a worklet script graph=] calls into the <a href="https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-worklet/module-worker-script-graph">fetch a worklet/module worker script graph</a> algorithm, which takes in an algorithm parameter |processCustomFetchResponse|. The definition of that |processCustomFetchResponse| parameter will need to include the following step before the step "5. [=Fetch=] |request|, ...":
 
-    5. If <var ignore=''>fetchClient</var>'s [=environment settings object/global object=] is {{SharedStorageWorkletGlobalScope}}:
+    5. If |fetchClient|'s [=environment settings object/global object=] is {{SharedStorageWorkletGlobalScope}}:
         1. Set |request|'s [=request/redirect mode=] to "<code>error</code>".
 
             Note: For shared storage, redirects are disallowed for the module script request. With this restriction, it's possible to define and to use the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] (as described in [[#set-up-a-worklet-environment-settings-object-monkey-patch]]) as soon as the {{SharedStorageWorkletGlobalScope}} is created, as the origin won't change. This restriction may be removed in a future iteration of the design. If redirects become allowed, presumably, the algorithm that gets the |realm|'s [=realm/settings object=]'s [=environment settings object/origin=] should be updated to return the final request's [=request/URL=]'s [=url/origin=] after receiving the final request's response, and the user preference checkings shall only be done after that point.
+
+        1. If |fetchClient|'s [=environment settings object/origin=] and |settingsObject|'s [=environment settings object/origin=] are not [=same origin=]:
+            1. Let |dataOriginValue| be the [=origin/serialization=] of |settingsObject|'s [=environment settings object/origin=].
+            1. [=Assert=] that |dataOriginValue| is not null.
+            1. [=header list/Append=] the [=header=] (`"Sec-Shared-Storage-Data-Origin"`, |dataOriginValue|) to |request|'s [=request/header list=].
 
   <h4 id="shared-storage-cross-origin-worklet-allowed">The \`<dfn export http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></dfn>\` HTTP response header</h4>
 
@@ -478,12 +485,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
 
-  1. If |request|'s [=request/destination=] is `"sosharedstorageworklet"`:
+  6. If |request|'s [=request/destination=] is "sharedstorageworklet":
       1. [=Assert=]: |request|'s [=request/origin=] is not "<code>client</code>".
       1. If |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
-          1. Let |headers| be |internalResponse|'s [=response/header list=].
-          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |headers| as input.
-          1. If |allowed| is false, then return a [=network error=].
+          1. Let |dataOriginValue| be the result of [=header list/getting=] `"Sec-Shared-Storage-Data-Origin"` from |request|'s [=request/header list=].
+          1. If |dataOriginValue| is not null, then:
+              1. Let |dataOriginUrl| be the result of running a [=URL parser=] on |dataOriginValue|.
+              1. [=Assert=] that |dataOriginUrl| is not failure.
+              1. If |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=]:
+                  1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
+                  1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |responseHeaders| as input.
+                  1. If |allowed| is false, then return a [=network error=].
 
   Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
@@ -520,11 +532,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{SharedStorageWorklet}}'s [=worklet global scope type=] is {{SharedStorageWorkletGlobalScope}}.
 
-  The {{SharedStorageWorklet}}'s [=worklet destination type=] is either `"sharedstorageworklet"` or `"sosharedstorageworklet"`. It is set to `"sharedstorageworklet"` by default.
+  The {{SharedStorageWorklet}}'s [=worklet destination type=] is "sharedstorageworklet".
 
   ### Monkey Patch for request [=request/destination=] ### {#request-destination-monkey-patch}
 
-  The fetch request's [=request/destination=] field should additionally include `"sharedstorageworklet"` and `"sosharedstorageworklet"` as valid values.
+  The fetch request's [=request/destination=] field should additionally include "sharedstorageworklet" as a valid value.
 
   <xmp class='idl'>
     callback RunFunctionForSharedStorageSelectURLOperation = Promise<unsigned long>(sequence<USVString> urls, optional any data);
@@ -558,7 +570,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |operationCtor| is missing, throw a {{TypeError}}.
     1. Let |operationClassInstance| be the result of [=constructing=] |operationCtor|, with no arguments.
     1. Let |runFunction| be [=Get=](|operationClassInstance|, "`run`"). Rethrow any exceptions.
-    1. Let |runIDLFunction| be the result of [=converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
+    1. Let |runIDLFunction| be the result of [=ecmascript-to-idl/converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
     1. [=map/Set=] the value of |operationMap|[|name|] to |runIDLFunction|.
   </div>
 
@@ -1150,7 +1162,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     1. Let |sharedStorageWorklet| be a new {{SharedStorageWorklet}}.
     1. If |options| [=map/contains=] |dataOrigin|, set |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] to |options|[|dataOrigin|].
-    1. If |sharedStorageWorklet|'s [=SharedStorageWorklet/data origin=] is `"script-origin"`, set |sharedStorageWorklet|'s [=worklet destination type=] to `"sosharedstorageworklet"`.
     1. Let |addModulePromise| be the result of invoking sharedStorageWorklet.{{Worklet/addModule()|addModule}}(|moduleURL|, |options|).
     1. Let |resultPromise| be a new [=promise=].
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
