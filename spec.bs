@@ -44,6 +44,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
         text: fetch a worklet/module worker script graph; url: webappapis.html#fetch-a-worklet/module-worker-script-graph
         text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
+        text: fetch a single module script; url: webappapis.html#fetch-a-single-module-script
         text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
@@ -481,6 +482,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet from the module script's [=/URL=]'s [=url/origin=], and to run subsequent operations on the worklet using the module script's [=/URL=]'s [=url/origin=] as the <dfn for="SharedStorage">data partition origin</dfn> for accessing shared storage data, i.e. the [=environment settings object/origin=] set in [[#set-up-a-worklet-environment-settings-object-monkey-patch]], which becomes the [=url/origin=] used in all {{WorkletSharedStorage}} calls to [=obtain a shared storage bottle map=].
 
   Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet with cross-origin script whose [=data partition origin=] is the script origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional response header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required from the script origin.
+
+  ### Monkey Patch for [=fetch a single module script=] ### {#fetch-a-single-module-script-monkey-patch}
+  The following step will be added to the [=fetch a single module script=] steps, after setting the request's destination (i.e. "9. Set |request|'s [=request/destination=] to the result..."):
+
+  10. If <var ignore=''>destination</var> is "sharedstorageworklet" and <var ignore=''>settingsObject</var>'s [=environment settings object/origin=] is [=opaque origin|opaque=], then [=map/set=] <var ignore=''>moduleMap</var>[(<var ignore=''>url</var>, <var ignore=''>moduleType</var>)] to null, run <var ignore=''>onComplete</var> given null, and abort these steps.
 
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
