@@ -44,7 +44,6 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: set up a worklet environment settings object; url: worklets.html#set-up-a-worklet-environment-settings-object
         text: fetch a worklet/module worker script graph; url: webappapis.html#fetch-a-worklet/module-worker-script-graph
         text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
-        text: fetch a single module script; url: webappapis.html#fetch-a-single-module-script
         text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
@@ -483,25 +482,20 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet with cross-origin script whose [=data partition origin=] is the script origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional response header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required from the script origin.
 
-  ### Monkey Patch for [=fetch a single module script=] ### {#fetch-a-single-module-script-monkey-patch}
-  The following step will be added to the [=fetch a single module script=] steps, after setting the request's destination (i.e. "9. Set |request|'s [=request/destination=] to the result..."):
-
-  10. If <var ignore=''>destination</var> is "sharedstorageworklet" and <var ignore=''>settingsObject</var>'s [=environment settings object/origin=] is [=opaque origin|opaque=], then [=map/set=] <var ignore=''>moduleMap</var>[(<var ignore=''>url</var>, <var ignore=''>moduleType</var>)] to null, run <var ignore=''>onComplete</var> given null, and abort these steps.
-
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
   The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
 
   6. If |request|'s [=request/destination=] is "sharedstorageworklet":
-      1. [=Assert=]: |request|'s [=request/origin=] is not "<code>client</code>".
-      1. If |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=]:
-          1. Let |dataOriginValue| be the result of [=header list/getting=] `"Sec-Shared-Storage-Data-Origin"` from |request|'s [=request/header list=].
-          1. If |dataOriginValue| is not null, then:
-              1. Let |dataOriginUrl| be the result of running a [=URL parser=] on |dataOriginValue|.
-              1. [=Assert=] that |dataOriginUrl| is not failure.
-              1. If |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=]:
-                  1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
-                  1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |responseHeaders| as input.
-                  1. If |allowed| is false, then return a [=network error=].
+      1. Let |dataOriginValue| be the result of [=header list/getting=] `"Sec-Shared-Storage-Data-Origin"` from |request|'s [=request/header list=].
+      1. If |dataOriginValue| is not null, then:
+          1. Let |dataOriginUrl| be the result of running a [=URL parser=] on |dataOriginValue|.
+          1. [=Assert=] that |dataOriginUrl| is not failure.
+          1. [=Assert=] that |request|'s [=request/origin=] is not "<code>client</code>".
+          1. [=Assert=] that |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=].
+          1. [=Assert=] that |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=].
+          1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
+          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |responseHeaders| as input.
+          1. If |allowed| is false, then return a [=network error=].
 
   Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
