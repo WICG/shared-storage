@@ -61,7 +61,7 @@ Worklet script (i.e. `experiment.js`):
 class SelectURLOperation {
   hash(experimentName, seed) { … }
 
-  async run(data, urls) {
+  async run(urls, data) {
     const seed = await this.sharedStorage.get('seed');
     return hash(data.name, seed) % urls.length;
   }
@@ -315,7 +315,7 @@ In the worklet script (`creative-selection-by-frequency.js`):
 
 ```js
 class CreativeSelectionByFrequencyOperation {
-  async run(data, urls) {
+  async run(urls, data) {
     // By default, return the default url (0th index).
     let index = 0;
 
