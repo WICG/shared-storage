@@ -62,7 +62,7 @@ class SelectURLOperation {
   hash(experimentName, seed) { … }
 
   async run(urls, data) {
-    const seed = await this.sharedStorage.get('seed');
+    const seed = await sharedStorage.get('seed');
     return hash(data.name, seed) % urls.length;
   }
 }
@@ -266,7 +266,7 @@ class SendReachReportOperation {
     // Compute reach only for users who haven't previously had a report sent for this campaign.
     // Users who had a report for this campaign triggered by a site other than the current one will
     // be skipped.
-    if (await this.sharedStorage.get(reportSentForCampaign) === 'yes') {
+    if (await sharedStorage.get(reportSentForCampaign) === 'yes') {
       return; // Don't send a report.
     }
 
@@ -276,7 +276,7 @@ class SendReachReportOperation {
       value: 128, // A predetermined fixed value; see Private Aggregation API explainer: Scaling values.
     });
 
-    await this.sharedStorage.set(reportSentForCampaign, 'yes');
+    await sharedStorage.set(reportSentForCampaign, 'yes');
   }
 }
 register('send-reach-report', SendReachReportOperation);
@@ -319,13 +319,13 @@ class CreativeSelectionByFrequencyOperation {
     // By default, return the default url (0th index).
     let index = 0;
 
-    let count = await this.sharedStorage.get(data.campaignId);
+    let count = await sharedStorage.get(data.campaignId);
     count = count ? parseInt(count) : 0;
 
     // If under cap, return the desired ad.
     if (count < 3) {
       index = 1;
-      this.sharedStorage.set(data.campaignId, (count + 1).toString());
+      sharedStorage.set(data.campaignId, (count + 1).toString());
     }
 
     return index;
