@@ -71,7 +71,6 @@ spec: webidl; urlPrefix: https://webidl.spec.whatwg.org
         text: async iterator; url: idl-async-iterable
         text: promise; url: idl-promise
         text: promise rejected; url: a-promise-rejected-with
-        text: convert; for: ecmascript-to-idl; url: dfn-convert-ecmascript-to-idl-value
 spec: storage; urlPrefix: https://storage.spec.whatwg.org/
     type: dfn
         text: storage model; url: model
@@ -313,20 +312,26 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
             Note: This could happen if {{SharedStorageWorkletGlobalScope/register()}} was never called with |operationName|.
 
-        1. Let |operation| be |operationMap|[|operationName|].
-        1. [=Assert=]: |operation|'s [=associated realm=] is [=this=]'s [=relevant realm=].
+        1. [=Assert=]: |operationMap|[|operationName|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
+        1. Let |operation| be |operationMap|[|operationName|], [=converted to an IDL value|converted=] to {{RunFunctionForSharedStorageSelectURLOperation}}.
         1. Let |argumentsList| be the [=/list=] « |urlList| ».
-        1. If |options| [=map/contains=] |data|, [=list/append=] |data| to |argumentsList|.
-        1. Let |index| be the result of [=invoking=] |operation| with |argumentsList|.
-        1. If [=an exception was thrown=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+        1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
+        1. Let |indexPromise| be the result of [=invoking=] |operation| with |argumentsList|.
+        1. [=promise/React=] to |indexPromise|:
 
-            Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
+            <dl class="switch">
+                :   If it was fulfilled with value |index|:
+                ::  1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
-        1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+                        Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
-            Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
 
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                :   If it was rejected:
+                ::  1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+
+                        Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
+            </dl>
   </div>
 
   <div algorithm>
@@ -420,13 +425,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be [=this=]'s {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |name|:
-                1.  Let |operation| be |operationMap|[|name|].
-                1. [=Assert=]: |operation|'s [=associated realm=] is [=this=]'s [=relevant realm=].
-                1. If |options| [=map/contains=] |data|:
-                    1. Let |argumentsList| be a new [=/list=].
-                    1. [=list/Append=] |data| to |argumentsList|.
-                    1. [=Invoke=] |operation| with |argumentsList|.
-                1. Otherwise, [=invoke=] |operation| without any arguments list.
+                1. [=Assert=]: |operationMap|[|name|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
+                1. Let |operation| be |operationMap|[|name|], [=converted to an IDL value|converted=] to {{Function}}.
+                1. Let |argumentsList| be a new [=/list=].
+                1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
+                1. [=Invoke=] |operation| with |argumentsList| and "`report`".
         1. If |options|["`keepAlive`"] is false:
             1. Wait for |operation| to finish running, if applicable.
             1. Run [=terminate a worklet global scope=] with [=this=].
@@ -556,7 +559,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} has an associated [=/boolean=] <dfn for=SharedStorageWorkletGlobalScope>addModule success</dfn>, which is initialized to false.
 
-  Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=functions=].
+  Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=function objects=].
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated {{SharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
 
@@ -570,8 +573,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |operationCtor| is missing, throw a {{TypeError}}.
     1. Let |operationClassInstance| be the result of [=constructing=] |operationCtor|, with no arguments.
     1. Let |runFunction| be [=Get=](|operationClassInstance|, "`run`"). Rethrow any exceptions.
-    1. Let |runIDLFunction| be the result of [=ecmascript-to-idl/converting=] |runFunction| to a Web IDL {{RunFunctionForSharedStorageSelectURLOperation}} instance.
-    1. [=map/Set=] the value of |operationMap|[|name|] to |runIDLFunction|.
+    1. If <a abstract-op>IsCallable</a>(|runFunction|) is false, throw a {{TypeError}}.
+    1. [=map/Set=] the value of |operationMap|[|name|] to |runFunction|.
   </div>
 
   Issue(151): The "name" and "operationCtor" cannot be missing here given WebIDL. Should just check for default/empty values.
