@@ -1547,7 +1547,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
             <dl class=switch>
               <dt> If |operationString| is "`clear`":
                  <dd> Perform the following steps:
-                     1. Run run |sharedStorage|.{{SharedStorage/clear()|clear}}().
+                     1. Run |sharedStorage|.{{SharedStorage/clear()|clear}}().
                      1. Continue.
               <dt> If |operationString| is "`delete`":
                 <dd> Perform the following steps:
