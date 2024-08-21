@@ -982,7 +982,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
 Extension to the {{Window}} interface {#window-extension}
 =====================================================
-Each {{Window}} object has an associated {{SharedStorage}} instance {{Window/sharedStorage}}, which is created alongside the .{{Window}} if [=Shared Storage=] is enabled, with the [=Window/sharedStorage getter|getter=] below.
+Each {{Window}} object has an associated {{SharedStorage}} instance {{Window/sharedStorage}}, which is created alongside the {{Window}} if [=Shared Storage=] is enabled, with the [=Window/sharedStorage getter|getter=] below.
 
 <xmp class='idl'>
   partial interface Window {
