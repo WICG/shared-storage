@@ -369,7 +369,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Let |argumentsList| be the [=/list=] « |urlList| ».
         1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
         1. Let |indexPromise| be the result of [=invoking=] |operation| with |argumentsList|.
-        1. Run |privateAggregationCompletionTask|.
         1. [=promise/React=] to |indexPromise|:
 
             <dl class="switch">
@@ -379,11 +378,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                    1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
                 ::  1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
+                    1. Run |privateAggregationCompletionTask|.
             </dl>
   </div>
 
@@ -529,8 +530,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                 1. Let |argumentsList| be a new [=/list=].
                 1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
                 1. [=Invoke=] |operation| with |argumentsList| and "`report`".
-                1. When the above [=invoke|invocation=] returns, perform the following steps:
-                    1. Run |privateAggregationCompletionTask|.
+                1. Wait for |operation| to finish running, if applicable.
+                1. Run |privateAggregationCompletionTask|.
         1. If |options|["`keepAlive`"] is false:
             1. Wait for |operation| to finish running, if applicable.
             1. Run [=terminate a worklet global scope=] with [=this=].
@@ -590,10 +591,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         :: |filteringIdMaxBytes|
   </div>
 
-  <dfn>Deterministic operation timeout duration</dfn> is a non-negative
-  [=duration=] that controls how long a Shared Storage operation may make Private
-  Aggregation contributions if it is triggering a deterministic report and,
-  equivalently, when that report should be sent after the operation begins.
+  <dfn>Deterministic operation timeout duration</dfn> is an
+  [=implementation-defined=] non-negative [=duration=] that controls how long a
+  Shared Storage operation may make Private Aggregation contributions if it is
+  triggering a deterministic report and, equivalently, when that report should
+  be sent after the operation begins.
 
   ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
 
@@ -702,8 +704,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             object=]'s [=associated document=] is [=/allowed to use=] the
             "<code>[=private-aggregation=]</code>" [=policy-controlled feature=].
 
-            Issue: Consider adding an early return here (and equivalently for
-                Protected Audience) if the permissions policy check is made first.
+            Issue: Consider adding an early return here if the permissions
+                policy check is made first.
         1. Set |privateAggregationObj|'s [=PrivateAggregation/scoping details=] to a
                 new [=/scoping details=] with the items:
             : [=scoping details/get batching scope steps=]
