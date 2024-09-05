@@ -341,7 +341,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
         1. [=Assert=]: |operationMap|[|operationName|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
         1. Let |operation| be |operationMap|[|operationName|], [=converted to an IDL value|converted=] to {{RunFunctionForSharedStorageSelectURLOperation}}.
-        2. Let |batchingScope| be a new [=batching scope=].
+        1. Let |batchingScope| be a new [=batching scope=].
         1. Let |debugScope| be a new [=debug scope=].
         1. Let |privateAggregationTimeout| be null.
         1. Let |hasRunPrivateAggregationCompletionTask| be false.
