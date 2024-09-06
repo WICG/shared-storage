@@ -112,9 +112,36 @@ spec: permissions-policy; urlPrefix: https://www.w3.org/TR/permissions-policy/
 spec: attestation; urlPrefix: https://github.com/privacysandbox/attestation
     type: dfn
         text: enrolled
-spec: private-aggregation-api; urlPrefix: https://github.com/patcg-individual-drafts/private-aggregation-api/blob/main/README.md
+spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github.io/private-aggregation-api/
     type: dfn
-        text: private aggregation
+        text: Private Aggregation; url:
+        text: get the privateAggregation
+        text: determine if an origin is an aggregation coordinator
+        text: pre-specified report parameters
+        for: pre-specified report parameters
+            text: context ID
+            text: filtering ID max bytes
+        text: batching scope
+        text: debug scope
+        text: process contributions for a batching scope
+        text: set the aggregation coordinator for a batching scope
+        text: determine if a report should be sent deterministically
+        text: mark a debug scope complete
+        text: set the pre-specified report parameters for a batching scope
+        text: aggregation coordinator
+        text: default filtering id max bytes
+        text: valid filtering id max bytes range
+        text: context id
+        text: scoping details
+        for: scoping details
+            text: get batching scope steps
+            text: get debug scope steps
+        text: private-aggregation
+        for: PrivateAggregation
+            text: allowed to use
+            text: scoping details; url: #privateaggregation-scoping-details
+    type: interface
+        text: PrivateAggregation
 spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
@@ -175,7 +202,7 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=private aggregation|private aggregation report=]. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional ouput gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -218,7 +245,7 @@ This document introduces a new storage API that is intentionally not partitioned
 
 The {{SharedStorageWorklet}} Interface {#worklet}
 =================================================
-The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=private aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
+The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=Private Aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
 
 <xmp class='idl'>
   typedef (USVString or FencedFrameConfig) SharedStorageResponse;
@@ -296,7 +323,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, and {{SharedStorageRunOperationMethodOptions}} |options|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
@@ -314,6 +341,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
         1. [=Assert=]: |operationMap|[|operationName|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
         1. Let |operation| be |operationMap|[|operationName|], [=converted to an IDL value|converted=] to {{RunFunctionForSharedStorageSelectURLOperation}}.
+        1. Let |privateAggregationCompletionTask| be the result of [=setting up the Private Aggregation scopes=] given |workletDataOrigin|, |preSpecifiedParams| and |aggregationCoordinator|.
         1. Let |argumentsList| be the [=/list=] « |urlList| ».
         1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
         1. Let |indexPromise| be the result of [=invoking=] |operation| with |argumentsList|.
@@ -326,11 +354,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                    1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
                 ::  1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
+                    1. Run |privateAggregationCompletionTask|.
             </dl>
   </div>
 
@@ -343,6 +373,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. [=Assert=]: |window| is a {{Window}}.
     1. Let |context| be |window|'s [=Window/browsing context=].
     1. If |context| is null, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |preSpecifiedParams| be the result of [=obtaining the pre-specified
+        report parameters=] given |options| and |context|.
+    1. If |preSpecifiedParams| is a {{DOMException}}, return [=a promise rejected
+        with=] |preSpecifiedParams|.
+    1. Let |aggregationCoordinator| be the result of [=obtaining the aggregation
+        coordinator=] given |options|.
+    1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
+        rejected with=] |aggregationCoordinator|.
     1. Let |document| be |context|'s [=active document=].
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
@@ -378,7 +416,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, and |options|.
+    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
     1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
@@ -406,6 +444,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If [=this=]'s [=addModule initiated=] is false, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |window| be [=this=]'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
+    1. Let |context| be |window|'s [=Window/browsing context=].
+    1. If |context| is null, then return [=a promise rejected with=] a
+        {{TypeError}}.
+    1. Let |preSpecifiedParams| be the result of [=obtaining the pre-specified
+        report parameters=] given |options| and |context|.
+    1. If |preSpecifiedParams| is a {{DOMException}}, return [=a promise rejected
+        with=] |preSpecifiedParams|.
+    1. Let |aggregationCoordinator| be the result of [=obtaining the aggregation
+        coordinator=] given |options|.
+    1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
+        rejected with=] |aggregationCoordinator|.
     1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
@@ -427,13 +476,114 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             1. If |operationMap| [=map/contains=] |name|:
                 1. [=Assert=]: |operationMap|[|name|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
                 1. Let |operation| be |operationMap|[|name|], [=converted to an IDL value|converted=] to {{Function}}.
+                1. Let |privateAggregationCompletionTask| be the result of [=setting up the Private Aggregation scopes=] given |workletDataOrigin|, |preSpecifiedParams| and |aggregationCoordinator|.
                 1. Let |argumentsList| be a new [=/list=].
                 1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
                 1. [=Invoke=] |operation| with |argumentsList| and "`report`".
+                1. Wait for |operation| to finish running, if applicable.
+                1. Run |privateAggregationCompletionTask|.
         1. If |options|["`keepAlive`"] is false:
             1. Wait for |operation| to finish running, if applicable.
             1. Run [=terminate a worklet global scope=] with [=this=].
   </div>
+
+  <div algorithm>
+    To <dfn>obtain the aggregation coordinator</dfn> given a
+    {{SharedStorageRunOperationMethodOptions}} |options|, perform the following
+    steps. They return an [=aggregation coordinator=], null or a {{DOMException}}:
+
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
+        does not [=map/exist=], return null.
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"]
+        does not [=map/exist=], return null.
+    1. Let |url| be the result of running the [=URL parser=] on
+        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"].
+    1. If |url| is failure or null, return a new {{DOMException}} with name
+        "`SyntaxError`".
+
+        Issue: Consider throwing an error if the path is not empty.
+    1. Let |origin| be |url|'s [=url/origin=].
+    1. If the result of [=determining if an origin is an aggregation coordinator=]
+        given |origin| is false, return a new {{DOMException}} with name
+        "`DataError`".
+    1. Return |origin|.
+  </div>
+
+  <div algorithm>
+    To <dfn>obtain the pre-specified report parameters</dfn> given a
+    {{SharedStorageRunOperationMethodOptions}} |options| and a [=/browsing
+    context=] |context|, perform the following steps. They return a
+    [=pre-specified report parameters=], null, or a {{DOMException}}:
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
+        does not [=map/exist=], return null.
+    1. Let |privateAggregationConfig| be
+        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"].
+    1. Let |contextId| be null.
+    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"]
+        [=map/exists=], set |contextId| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"].
+    1. If |contextId|'s [=string/length=] is greater than 64, return a new
+        {{DOMException}} with name "`DataError`".
+    1. Let |filteringIdMaxBytes| be the [=default filtering ID max bytes=].
+    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"]
+        [=map/exists=], set |filteringIdMaxBytes| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"].
+    1. If |filteringIdMaxBytes| is not [=set/contained=] in the [=valid filtering ID
+        max bytes range=], return a new {{DOMException}} with name "`DataError`".
+    1. If |context|'s [=browsing context/fenced frame config instance=] is not null:
+        1. If |filteringIdMaxBytes| is not the [=default filtering ID max bytes=] or
+            |contextId| is not null, return a new {{DOMException}} with name
+            "`DataError`".
+    1. Return a new [=pre-specified report parameters=] with the items:
+        : <a spec="private-aggregation-api" for="pre-specified report parameters">context ID</a>
+        :: |contextId|
+        : [=pre-specified report parameters/filtering ID max bytes=]
+        :: |filteringIdMaxBytes|
+  </div>
+
+  <div algorithm>
+    To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
+    |workletDataOrigin|, a [=pre-specified report parameters=] or null
+    |preSpecifiedParams| and an [=aggregation coordinator=] or null
+    |aggregationCoordinator|, peform the following steps. They return an
+    algorithm.
+
+    Note: The returned algorithm should be run when the associated operation is
+        complete.
+
+    1. Let |batchingScope| be a new [=batching scope=].
+    1. Let |debugScope| be a new [=debug scope=].
+    1. Let |privateAggregationTimeout| be null.
+    1. Let |hasRunPrivateAggregationCompletionTask| be false.
+    1. Let |privateAggregationCompletionTask| be an algorithm to perform the
+        following steps:
+        1. If |hasRunPrivateAggregationCompletionTask|, return.
+        1. Set |hasRunPrivateAggregationCompletionTask| to true.
+        1. [=Mark a debug scope complete=] given |debugScope|.
+        1. [=Process contributions for a batching scope=] given
+            |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
+            and |privateAggregationTimeout|.
+    1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
+        for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
+    1. If |preSpecifiedParams| is not null:
+        1. Let |isDeterministicReport| be the result of [=determining if a report
+            should be sent deterministically=] given |preSpecifiedParams|.
+        1. If |isDeterministicReport|:
+            1. Set |privateAggregationTimeout| to the [=/current wall time=] plus
+                the [=deterministic operation timeout duration=].
+        1. [=Set the pre-specified report parameters for a batching scope=] given
+            |preSpecifiedParams| and |batchingScope|.
+        1. If |isDeterministicReport|, run the following steps [=in parallel=]:
+            1. Wait until |privateAggregationTimeout|.
+            1. Run |privateAggregationCompletionTask|.
+    1. Return |privateAggregationCompletionTask|.
+  </div>
+
+  The <dfn>deterministic operation timeout duration</dfn> is an
+  [=implementation-defined=] non-negative [=duration=] that controls how long a
+  Shared Storage operation may make Private Aggregation contributions if it is
+  triggering a deterministic report and, equivalently, when that report should
+  be sent after the operation begins.
 
   ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
 
@@ -529,6 +679,36 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |workletGlobalScope| has an associated boolean [=addModule success=], set |workletGlobalScope|'s [=addModule success=] to true.
         2. [=Resolve=] |promise|.
 
+  Just before the final step, currently "Return <var ignore>promise</var>.", add the following step:
+
+    7. If |this| is a {{SharedStorageWorklet}}, [=upon fulfillment=] of |promise| or
+        [=upon rejection=] of |promise|, run the following steps:
+        1. Let |globalScopes| be |this|'s [=Worklet/global scopes=].
+        1. [=Assert=]: |globalScopes|' [=list/size=] equals 1.
+        1. Let |privateAggregationObj| be |globalScopes|[0]'s
+            {{SharedStorageWorkletGlobalScope/privateAggregation}}.
+        1. Set |privateAggregationObj|'s [=PrivateAggregation/allowed to use=] to
+            the result of determining whether [=this=]'s [=relevant global
+            object=]'s [=associated document=] is [=/allowed to use=] the
+            "<code>[=private-aggregation=]</code>" [=policy-controlled feature=].
+
+            Issue: Consider adding an early return here if the permissions
+                policy check is made first.
+        1. Set |privateAggregationObj|'s [=PrivateAggregation/scoping details=] to a
+                new [=/scoping details=] with the items:
+            : [=scoping details/get batching scope steps=]
+            :: An algorithm that returns the [=batching scope=] that is scheduled to
+                be passed to [=process contributions for a batching scope=] when the
+                call currently executing in |scope| returns.
+            : [=scoping details/get debug scope steps=]
+            :: An algorithm that returns the [=debug scope=] that is scheduled to be
+                passed to [=mark a debug scope complete=] when the call currently
+                executing in |scope| returns.
+
+            Note: Multiple operation invocations can be in-progress at the same
+            time, each with a different batching scope and debug scope. However,
+            only one can be currently executing.
+
   <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
 
   ## The {{SharedStorageWorkletGlobalScope}} ## {#global-scope}
@@ -552,6 +732,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                          Function operationCtor);
 
       readonly attribute SharedStorage sharedStorage;
+      readonly attribute PrivateAggregation privateAggregation;
     };
   </xmp>
 
@@ -584,6 +765,12 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     1. If [=this=]'s [=addModule success=] is true, return [=this=]'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
     1. Otherwise, throw a {{TypeError}}.
+  </div>
+
+  <div algorithm="privateAggregation getter">
+    The {{SharedStorageWorkletGlobalScope/privateAggregation}} [=getter steps=] are to:
+
+    1. [=Get the privateAggregation=] given [=this=].
   </div>
 
   <div algorithm>
@@ -1051,10 +1238,17 @@ On the other hand, methods for getting data from the [=shared storage database=]
     boolean ignoreIfPresent = false;
   };
 
+  dictionary SharedStoragePrivateAggregationConfig {
+    USVString aggregationCoordinatorOrigin;
+    USVString contextId;
+    [EnforceRange] unsigned long long filteringIdMaxBytes;
+  };
+
   dictionary SharedStorageRunOperationMethodOptions {
     object data;
     boolean resolveToConfig = false;
     boolean keepAlive = false;
+    SharedStoragePrivateAggregationConfig privateAggregationConfig;
   };
 
   dictionary SharedStorageWorkletOptions : WorkletOptions {
@@ -1632,4 +1826,4 @@ Privacy Considerations {#privacy}
 
   In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
 
-  An embedder is also able to send aggregatable reports through the [=Private Aggregation|Private Aggregation Service=], which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
+  An embedder is also able to send aggregatable reports via the [=Private Aggregation=] API, which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
