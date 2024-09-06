@@ -323,7 +323,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin| and {{SharedStorageRunOperationMethodOptions}} |options|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
@@ -440,7 +440,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin| and |options|.
+    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
     1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
@@ -591,7 +591,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         :: |filteringIdMaxBytes|
   </div>
 
-  <dfn>Deterministic operation timeout duration</dfn> is an
+  The <dfn>deterministic operation timeout duration</dfn> is an
   [=implementation-defined=] non-negative [=duration=] that controls how long a
   Shared Storage operation may make Private Aggregation contributions if it is
   triggering a deterministic report and, equivalently, when that report should
@@ -780,9 +780,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   <div algorithm="privateAggregation getter">
-    The {{SharedStorageWorkletGlobalScope/
-    privateAggregation}} [=getter steps=] are to [=get the
-    privateAggregation=] given [=this=].
+    The {{SharedStorageWorkletGlobalScope/privateAggregation}} [=getter steps=] are to:
+
+    1. [=Get the privateAggregation=] given [=this=].
   </div>
 
   <div algorithm>
