@@ -43,10 +43,10 @@ And your `writerWorklet.js` script would look like this:
 ```js
 class Writer {
   async run(data) {
-    const existingGroup = this.sharedStorage.get('group');
+    const existingGroup = sharedStorage.get('group');
     if (!existingGroup) {
         cibst newGroup = data['group'];
-        this.sharedStorage.set('group', newGroup);
+        sharedStorage.set('group', newGroup);
     }
   }
 }

@@ -51,8 +51,8 @@ Worklet script (i.e. `experiment.js`):
 class SelectURLOperation {
   hash(experimentName, seed) { … }
 
-  async run(data, urls) {
-    const seed = await this.sharedStorage.get('seed');
+  async run(urls, data) {
+    const seed = await sharedStorage.get('seed');
     return hash(data.name, seed) % urls.length;
   }
 }
@@ -95,7 +95,7 @@ document.getElementById('my-iframe').src = opaqueURN;
 
 *    There will be a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) (the site of the Shared Storage worklet) budget for `selectURL`. This is to limit the rate of leakage of cross-site data learned from the selectURL to the destination pages that the resulting Fenced Frames navigate to. Each time a Fenced Frame navigates the top frame, for each `selectURL()` involved in the creation of the Fenced Frame, log(|`urls`|) bits will be deducted from the corresponding [site](https://html.spec.whatwg.org/multipage/browsers.html#site)’s budget. At any point in time, the current budget remaining will be calculated as `max_budget - sum(deductions_from_last_24hr)`
 
-* The promise resolves to a fenced frame config only when `resolveToConfig` property is set to `true`. If the property is set to `false` or not set, the promise resolves to an opaque URN that can be rendered by an iframe.
+* The promise resolves to a [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) only when the `resolveToConfig` property is set to `true`. If the property is set to `false` or not set, the promise resolves to an opaque URN that can be rendered by an iframe.
 
 * For the associated operation in the worklet to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
@@ -133,17 +133,17 @@ In the worklet script (`creative-selection-by-frequency.js`):
 
 ```js
 class CreativeSelectionByFrequencyOperation {
-  async run(data, urls) {
+  async run(urls, data) {
     // By default, return the default url (0th index).
     let index = 0;
 
-    let count = await this.sharedStorage.get(data.campaignId);
+    let count = await sharedStorage.get(data.campaignId);
     count = count ? parseInt(count) : 0;
 
     // If under cap, return the desired ad.
     if (count < 3) {
       index = 1;
-      this.sharedStorage.set(data.campaignId, (count + 1).toString());
+      sharedStorage.set(data.campaignId, (count + 1).toString());
     }
 
     return index;
