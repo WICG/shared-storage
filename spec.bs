@@ -341,31 +341,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
         1. [=Assert=]: |operationMap|[|operationName|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
         1. Let |operation| be |operationMap|[|operationName|], [=converted to an IDL value|converted=] to {{RunFunctionForSharedStorageSelectURLOperation}}.
-        1. Let |batchingScope| be a new [=batching scope=].
-        1. Let |debugScope| be a new [=debug scope=].
-        1. Let |privateAggregationTimeout| be null.
-        1. Let |hasRunPrivateAggregationCompletionTask| be false.
-        1. Let |privateAggregationCompletionTask| be an algorithm to perform the
-            following steps:
-            1. If |hasRunPrivateAggregationCompletionTask|, return.
-            1. Set |hasRunPrivateAggregationCompletionTask| to true.
-            1. [=Mark a debug scope complete=] given |debugScope|.
-            1. [=Process contributions for a batching scope=] given
-                |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
-                and |privateAggregationTimeout|.
-        1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
-            for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
-        1. If |preSpecifiedParams| is not null:
-            1. Let |isDeterministicReport| be the result of [=determining if a report
-                should be sent deterministically=] given |preSpecifiedParams|.
-            1. If |isDeterministicReport|:
-                1. Set |privateAggregationTimeout| to the [=/current wall time=] plus the
-                    [=deterministic operation timeout duration=].
-            1. [=Set the pre-specified report parameters for a batching scope=] given
-                |preSpecifiedParams| and |batchingScope|.
-            1. If |isDeterministicReport|, run the following steps [=in parallel=]:
-                1. Wait until |privateAggregationTimeout|.
-                1. Run |privateAggregationCompletionTask|.
+        1. Let |privateAggregationCompletionTask| be the result of [=setting up the Private Aggregation scopes=] given |workletDataOrigin|, |preSpecifiedParams| and |aggregationCoordinator|.
         1. Let |argumentsList| be the [=/list=] « |urlList| ».
         1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
         1. Let |indexPromise| be the result of [=invoking=] |operation| with |argumentsList|.
@@ -500,33 +476,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             1. If |operationMap| [=map/contains=] |name|:
                 1. [=Assert=]: |operationMap|[|name|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
                 1. Let |operation| be |operationMap|[|name|], [=converted to an IDL value|converted=] to {{Function}}.
-                1. Let |batchingScope| be a new [=batching scope=].
-                1. Let |debugScope| be a new [=debug scope=].
-                1. Let |privateAggregationTimeout| be null.
-                1. Let |isDeterministicReport| be false.
-                1. If |preSpecifiedParams| is not null:
-                    1. Set |isDeterministicReport| to the result of [=determining if a report
-                        should be sent deterministically=] given |preSpecifiedParams|.
-                    1. If |isDeterministicReport|:
-                        1. Set |privateAggregationTimeout| to the [=/current wall time=] plus the
-                            [=deterministic operation timeout duration=].
-                    1. [=Set the pre-specified report parameters for a batching scope=] given
-                        |preSpecifiedParams| and |batchingScope|.
-                1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
-                    for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
-                1. Let |hasRunPrivateAggregationCompletionTask| be false.
-                1. Let |privateAggregationCompletionTask| be an algorithm to perform the
-                    following steps:
-                    1. If |hasRunPrivateAggregationCompletionTask|, return.
-                    1. Set |hasRunPrivateAggregationCompletionTask| to true.
-                    1. [=Mark a debug scope complete=] given |debugScope|.
-                    1. [=Process contributions for a batching scope=] given
-                        |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
-                        and |privateAggregationTimeout|.
-                1. If |isDeterministicReport|, run the following steps [=in
-                    parallel=]:
-                    1. Wait until |privateAggregationTimeout|.
-                    1. Run |privateAggregationCompletionTask|.
+                1. Let |privateAggregationCompletionTask| be the result of [=setting up the Private Aggregation scopes=] given |workletDataOrigin|, |preSpecifiedParams| and |aggregationCoordinator|.
                 1. Let |argumentsList| be a new [=/list=].
                 1. If |options|["{{SharedStorageRunOperationMethodOptions/data}}"] [=map/exists=], [=list/append=] it to |argumentsList|.
                 1. [=Invoke=] |operation| with |argumentsList| and "`report`".
@@ -589,6 +539,44 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         :: |contextId|
         : [=pre-specified report parameters/filtering ID max bytes=]
         :: |filteringIdMaxBytes|
+  </div>
+
+  <div algorithm>
+    To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
+    |workletDataOrigin|, a [=pre-specified report parameters=] or null
+    |preSpecifiedParams| and an [=aggregation coordinator=] or null
+    |aggregationCoordinator|, peform the following steps. They return an
+    algorithm.
+
+    Note: The returned algorithm should be run when the associated operation is
+        complete.
+
+    1. Let |batchingScope| be a new [=batching scope=].
+    1. Let |debugScope| be a new [=debug scope=].
+    1. Let |privateAggregationTimeout| be null.
+    1. Let |hasRunPrivateAggregationCompletionTask| be false.
+    1. Let |privateAggregationCompletionTask| be an algorithm to perform the
+        following steps:
+        1. If |hasRunPrivateAggregationCompletionTask|, return.
+        1. Set |hasRunPrivateAggregationCompletionTask| to true.
+        1. [=Mark a debug scope complete=] given |debugScope|.
+        1. [=Process contributions for a batching scope=] given
+            |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
+            and |privateAggregationTimeout|.
+    1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
+        for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
+    1. If |preSpecifiedParams| is not null:
+        1. Let |isDeterministicReport| be the result of [=determining if a report
+            should be sent deterministically=] given |preSpecifiedParams|.
+        1. If |isDeterministicReport|:
+            1. Set |privateAggregationTimeout| to the [=/current wall time=] plus
+                the [=deterministic operation timeout duration=].
+        1. [=Set the pre-specified report parameters for a batching scope=] given
+            |preSpecifiedParams| and |batchingScope|.
+        1. If |isDeterministicReport|, run the following steps [=in parallel=]:
+            1. Wait until |privateAggregationTimeout|.
+            1. Run |privateAggregationCompletionTask|.
+    1. Return |privateAggregationCompletionTask|.
   </div>
 
   The <dfn>deterministic operation timeout duration</dfn> is an
