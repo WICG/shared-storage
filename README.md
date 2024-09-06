@@ -7,7 +7,7 @@ Authors: Alex Turner, Camillia Smith Barnes, Josh Karlin, Yao Xiao
 
 In order to prevent cross-site user tracking, browsers are [partitioning](https://blog.chromium.org/2020/01/building-more-private-web-path-towards.html) all forms of storage (cookies, localStorage, caches, etc) by top-frame site. But, there are many legitimate use cases currently relying on unpartitioned storage that will vanish without the help of new web APIs. We’ve seen a number of APIs proposed to fill in these gaps (e.g., [Conversion Measurement API](https://github.com/WICG/conversion-measurement-api), [Private Click Measurement](https://github.com/privacycg/private-click-measurement), [Storage Access](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API), [Private State Tokens](https://github.com/WICG/trust-token-api), [TURTLEDOVE](https://github.com/WICG/turtledove), [FLoC](https://github.com/WICG/floc)) and some remain (including cross-origin A/B experiments and user measurement). We propose a general-purpose storage API that can help to serve as common infrastructure for privacy preserving cross-site use cases.
 
-Shared Storage is a key/value store that is partitioned by calling origin (but not top-frame site). The keys and values are strings. While it's possible to write to Shared Storage from nearly anywhere (including response headers!), it is only possible to read from Shared Storage in tightly controlled environments, such as a JavaScript worklet environment which is provided by Shared Storage. These worklets have no capability of communicating with the outside world. They have no network communication and no `postMessage`. The only way data can leave these worklets, is via privacy preserving APIs.
+Shared Storage is a key/value store that is partitioned by calling origin (but not top-frame site). The keys and values are strings. While it's possible to write to Shared Storage from nearly anywhere (including response headers!), it is only possible to read from Shared Storage in tightly controlled environments, such as a JavaScript worklet environment which is provided by Shared Storage. These worklets have no capability of communicating with the outside world. They have no network communication and no `postMessage`. The only way data can leave these worklets, is via privacy-preserving APIs.
 
 ### Specification
 
@@ -20,7 +20,7 @@ You can [try out](https://shared-storage-demo.web.app/) Shared Storage along wit
 
 ### Example 1: Writing an experiment id to Shared Storage from a document
 
-Since Shared Storage is meant for writing from anywhere, but reading is tightly constrained, it's not actually possible to know what you might have written to your storage from other sites. Is this the first time you've seen this user? Who knows! As such, `Shared Storage` provides some useful functions beyond juset `set` to write to keys only if they're not already present, and to append to a value rather than overwrite it.
+Since Shared Storage is meant for writing from anywhere, but reading is tightly constrained, it's not actually possible to know what you might have written to your storage from other sites. Is this the first time you've seen this user? Who knows! As such, `Shared Storage` provides some useful functions beyond just `set` to write to keys only if they're not already present, and to append to a value rather than overwrite it.
 
 For example, let's say that you wanted to add a user to an experiment group, with a random assignment. But you want that group assignment to be sticky for the user across all of the sites that they visit that your third-party script is on. You may not know if you've ever written this key from this site before, but you certainly don't know if you've set it from another site. To solve this issue, utilize the  `ignoreIfPresent` option.
 
@@ -31,10 +31,10 @@ And `Shared Storage` will only write the value if the key is not already present
 
 ### Example 2: Writing to Shared Storage via a worklet
 
-In the event that `ignoreIfPresent` is not sufficient, and you need to read your exisitng `Shared Storage` data before adding new data, consider passing the information that you want to record to a worklet, and letting the worklet read the existing data and perform the write. Like so:
+In the event that `ignoreIfPresent` is not sufficient, and you need to read your existing `Shared Storage` data before adding new data, consider passing the information that you want to record to a worklet, and letting the worklet read the existing data and perform the write. Like so:
 
 ```js
-let worklet = sharedStorage.createWorklet('https://site.example/writerWorklet.js');
+const worklet = sharedStorage.createWorklet('https://site.example/writerWorklet.js');
 worklet.run('write', {data: {group: Math.floor(Math.random() * 1000)}});
 ```
 
@@ -43,20 +43,20 @@ And your `writerWorklet.js` script would look like this:
 ```js
 class Writer {
   async run(data) {
-    let newGroup = data['group'];
-    let existingGroup = this.sharedStorage.get('group');
+    const existingGroup = this.sharedStorage.get('group');
     if (!existingGroup) {
-      this.sharedStorage.set('group', newGroup);
+        cibst newGroup = data['group'];
+        this.sharedStorage.set('group', newGroup);
     }
   }
 }
 register('write', Writer);
 ```
 
-### Example 3: Writing to Shared Storage via response headers
-It may be faster and more convenient to write to Shared Storage directly from resposne headers than from JavaScript. This is encouraged in cases where data is coming from a server anyway as it's faster and less intensive than JavaScript methods if you're writing to an origin other than the current document's origin. 
+### Example 3: Writing to Shared Storage with response headers
+It may be faster and more convenient to write to Shared Storage directly from response headers than from JavaScript. This is encouraged in cases where data is coming from a server anyway as it's faster and less intensive than JavaScript methods if you're writing to an origin other than the current document's origin. 
 
-Response headers can used on document, image, and fetch requests. 
+Response headers can be used on document, image, and fetch requests. 
 
 e.g.,:
 ```html
@@ -76,12 +76,12 @@ e.g.,:
 window.sharedStorage.append('count', '1');
 ```
 
-Then, sometime later in your worklet you can get the total count:
+Then, sometime later in your worklet, you can get the total count:
 ```js
 class Counter {
   async run(data) {
-    let countLog = data['count']; // e.g.,: '111111111'
-    let count = countLog.length;
+    const countLog = data['count']; // e.g.,: '111111111'
+    const count = countLog.length;
     // do something useful with this data (such as recording an aggregate histogram) here...
   }
 }
@@ -95,7 +95,7 @@ This API intends to support the storage and access needs for a wide array of cro
 
 ## Related work
 
-There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll/privacy/blob/main/SPURFOWL.md), [SWAN](https://github.com/1plusX/swan), [Aggregated Reporting](https://github.com/csharrison/aggregate-reporting-api)) that have a notion of write-only storage with limited output. Shared Storage allows for each of those use cases, with only one storage API which is easier to developers to learn and requires less browser code. We’d also like to acknowledge the [KV Storage](https://github.com/WICG/kv-storage) explainer, to which we turned for API-shape inspiration.
+There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll/privacy/blob/main/SPURFOWL.md), [SWAN](https://github.com/1plusX/swan), [Aggregated Reporting](https://github.com/csharrison/aggregate-reporting-api)) that have a notion of write-only storage with limited output. Shared Storage allows for each of those use cases, with only one storage API which is easier for developers to learn and requires less browser code. We’d also like to acknowledge the [KV Storage](https://github.com/WICG/kv-storage) explainer, to which we turned for API-shape inspiration.
 
 
 ## Proposed API surface
@@ -210,6 +210,68 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   If there are redirects, the origin of the redirect URL that is accompanied by the `Shared-Storage-Write` response header(s) will be used.
 *  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
+
+### Reporting embedder context
+
+In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, we might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
+
+In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [Protected Audience auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
+
+Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below. 
+
+Subsequently, anything we've written to `fencedFrameConfig` through `setSharedStorageContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
+
+In the embedder page:
+
+```js
+// See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
+const auctionConfig = { ... };
+
+// Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
+auctionConfig.resolveToConfig = true;
+const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
+
+// Write to the config any desired embedder contextual information as a string.
+fencedFrameConfig.setSharedStorageContext("My Event ID 123");
+
+// Navigate the fenced frame to the config.
+document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+```
+
+In the fenced frame (`my-fenced-frame`):
+
+```js
+// Save some information we want to report that's only available inside the fenced frame.
+const frameInfo = { ... };
+
+// Send a report using shared storage and private aggregation.
+await window.sharedStorage.worklet.addModule('report.js');
+await window.sharedStorage.run('send-report', {
+  data: { info: frameInfo },
+});
+```
+
+In the worklet script (`report.js`):
+
+```js
+class ReportingOperation {
+  async run(data) {
+    // Helper functions that map the embedder context to a predetermined bucket and the 
+    // frame info to an appropriately-scaled value. 
+    // See also https://github.com/patcg-individual-drafts/private-aggregation-api#examples
+    function convertEmbedderContextToBucketId(context) { ... }
+    function convertFrameInfoToValue(info) { ... }
+    
+    // The user agent sends the report to the reporting endpoint of the script's
+    // origin (that is, the caller of `sharedStorage.run()`) after a delay.
+    privateAggregation.contributeToHistogram({
+      bucket: convertEmbedderContextToBucketId(sharedStorage.context) ,
+      value: convertFrameInfoToValue(data.info)
+    });
+  }
+}
+register('send-report', ReportingOperation);
+```
 
 ### Keeping a worklet alive for multiple operations
 
@@ -333,10 +395,13 @@ The privacy properties of shared storage are enforced through limited output. So
 
 The [Private Aggregation]([https://github.com/](https://github.com/patcg-individual-drafts/private-aggregation-api) allows for data read from Shared Storage worklets to be sent as aggregated histogram reports with differential privacy protecting the payload.
 
-### Content selection
+### Select URL
 
-The [selectURL](https://github.com/WICG/shared-storage/selectURL.md) API allows for content selection. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
+The [selectURL](https://github.com/WICG/shared-storage/selectURL.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
 
+### Content personalization in fenced frames
+
+Fenced frames have a [mode](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frames_with_local_unpartitioned_data_access.md) in which they are able to read shared storage, much like a shared storage worklet, when their untrusted network access has been removed. Thsi is useful for creating personalized and consistent cross-site content.
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
