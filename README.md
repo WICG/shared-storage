@@ -399,10 +399,6 @@ The [Private Aggregation]([https://github.com/](https://github.com/patcg-individ
 
 The [selectURL](https://github.com/WICG/shared-storage/selectURL.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
 
-### Content personalization in fenced frames
-
-Fenced frames have a [mode](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frames_with_local_unpartitioned_data_access.md) in which they are able to read shared storage, much like a shared storage worklet, when their untrusted network access has been removed. Thsi is useful for creating personalized and consistent cross-site content.
-
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
 
