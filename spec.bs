@@ -825,6 +825,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     Issue(144): Store |reportingUrlMap| inside a [=fenced frame reporter=] class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [[Fenced-Frame]].
   </div>
 
+
   ## Entropy Budgets ## {#budgets}
 
   Because [=bits of entropy=] can leak via {{SharedStorageWorklet/selectURL()}}, the [=user agent=] will need to maintain budgets to limit these leaks.
@@ -913,8 +914,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Issue(138): Need to find a better way to specify timing of the navigation budget charging.
 
-  Issue(149): The boolean <dfn>shared storage navigation budget charged</dfn> has not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of it will be added, although its name is subject to bikeshedding. Fix the name when it is added.
-
   <div algorithm>
     To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
 
@@ -926,14 +925,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
         1. If |instance| is null or |site| is an [=opaque origin=], then [=iteration/continue=].
         1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
-        1. If |pendingBits| is not greater than 0, or if |instance|'s [=shared storage navigation budget charged=] is true, then [=iteration/continue=].
+        1. If |pendingBits| is not greater than 0, then [=iteration/continue=].
         1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
         1. Let |bitDebit| be a new [=bit debit=].
         1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
         1. Let |currentTime| be the [=/current wall time=].
         1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
         1. [=list/Append=] |bitDebit| to |ledger|.
-        1. Set |instance|'s [=shared storage navigation budget charged=] to true.
+        1. Set |pendingBits| to 0.
   </div>
 
   A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
