@@ -834,7 +834,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   <div algorithm>
     To <dfn>get the default selectURL index</dfn>, given {{sequence}}<{{USVString}}> |urls|, run the following steps:
 
-    1. Return an {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive in [=implementation-defined=] way so that the returned index is independent from the registered operation class's "`run`" method..
+    1. Return 0.
+
+        Note: We could have chosen to return any {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive, as long as the returned index was independent from the registered operation class's "`run`" method.
   </div>
 
   The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> |urls|.
