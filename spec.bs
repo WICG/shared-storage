@@ -55,6 +55,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: update the image data; url: images.html#update-the-image-data
         text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetchin
         text: serialization; for: origin; url: browsers.html#ascii-serialisation-of-an-origin
+        text: initialize the navigable; url: document-sequences.html#initialize-the-navigable
 spec: url; urlPrefix: https://url.spec.whatwg.org/
     type: dfn
         text: URL; for: /; url: concept-url
@@ -403,8 +404,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Otherwise, [=list/append=] |serializedUrl| to |urlList|.
         1. If |urlWithMetadata| has field "`reportingMetadata`":
             1. Let |reportingMetadata| be |urlWithMetadata|["`reportingMetadata`"].
-            1. If the result of running [=validate reporting metadata=]  with |reportingMetadata| is false, [=reject=] |resultPromise| with a {{TypeError}} and abort these steps.
-    1. Let |fencedFrameConfigMapping| be |window|'s [=associated document=]'s [=node navigable=]'s [=navigable/traversable navigable=]'s [=traversable navigable/fenced frame config mapping=].
+            1. If the result of running [=validate reporting metadata=] with |reportingMetadata| is false, [=reject=] |resultPromise| with a {{TypeError}} and abort these steps.
+    1. Let |navigable| be |window|'s [=associated document=]'s [=node navigable=].
+    1. Let |fencedFrameConfigMapping| be |navigable|'s [=navigable/traversable navigable=]'s [=traversable navigable/fenced frame config mapping=].
     1. Let |pendingConfig| be a new [=fenced frame config=].
     1. Let |urn| be the result of running [=fenced frame config mapping/store a pending config=] on |fencedFrameConfigMapping| with |pendingConfig|.
     1. If |urn| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -420,7 +422,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
+        1. let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
+        1. If |pageBudgetResult| is false, or if |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
         1. Let |finalConfig| be a new [=fenced frame config=].
         1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
         1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
@@ -921,6 +924,59 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
     1. [=map/iterate|For each=] <var ignore="">origin</var> → |ledger| of [=user agent=]'s [=shared storage navigation budget table=]:
         1. [=map/iterate|For each=] |bitDebit| in |ledger|, if the result of running [=check whether a bit debit is expired=] with |bitDebit| is true, [=list/remove=] |bitDebit| from |ledger|.
+  </div>
+
+  ### [=Top-Level Traversable=] Entropy Budgets ### {#top-budgets}
+
+  In the short term, while we have less-restrictive [=fenced frames=], it is necessary to impose additional limits as follows.
+
+  Each [=user agent=] will specify a maximum <dfn>overall page entropy allowance</dfn> and a maximum <dfn>site page entropy allowance</dfn>, where the former is the total number of bits allowed to leak for {{SharedStorageWorklet/selectURL()}} per [=top-level traversable=], where the latter is the total number of bits allowed to leak for {{SharedStorageWorklet/selectURL()}} per [=site=] per [=top-level traversable=]
+
+  The <dfn for="traversable navigable">shared storage page budget</dfn> is a [=struct=] with the following [=struct/items=]:
+
+  <dl dfn-for="shared storage page budget">
+    : <dfn>overall budget</dfn>
+    :: a double
+
+    : <dfn>site budget map</dfn>
+    :: a [=map=] of [=sites=] to doubles
+  </dl>
+
+
+  #### Monkey patch for [=navigable/Traversable Navigables=] #### {#patch-trav-nav}
+
+  In [[HTML]]'s <a
+href=https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigable>Traversable
+navigables</a> section, add the following:
+
+  In addition to the properties of a [=/navigable=], a [=navigable/traversable navigable=] has:
+
+   * An <dfn for="traversable navigable">page budget</dfn>, a [=shared storage page budget=] or null, initially null.
+
+
+  #### Monkey patch for [=/Navigables=] #### {#patch-navigables}
+
+  Modify the [=initialize the navigable=] algorithm by adding the following steps at the end:
+
+    1. If <var ignore=''>parent</var> is null and |navigable| is a [=navigable/traversable navigable=], then:
+        1. Let |newPageBudget| be a [=shared storage page budget=] with an empty [=shared storage page budget/site budget map=].
+        1. Set |newPageBudget|'s [=overall budget=] to [=overall page entropy allowance=].
+        1. Set |navigable|'s [=page budget=] to |newPageBudget|.
+
+  #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
+
+ <div algorithm>
+    To <dfn>charge shared storage top-level traversable budgets</dfn> given a [=/navigable=] |navigable|, [=site=] |site|, and double |pendingBits|, run the following steps:
+
+    1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
+    1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
+    1. If |pendingBits| is greater than |topLevelTraversable|'s [=page budget=]'s [=overall budget=], then return false and abort these steps.
+    1. If |topLevelTraversable|'s [=page budget=]'s [=site budget map=] does not [=map/contain=] |site|, then [=map/set=] |topLevelTraversable|'s [=page budget=]'s [=site budget map=] [|site|] to [=site page entropy allowance=].
+    1. If |pendingBits| is greater than |topLevelTraversable|'s [=page budget=]'s [=site budget map=] [|site|], then return false and abort these steps.
+    1. Decrement |topLevelTraversable|'s [=page budget=]'s [=site budget map=] [|site|] by |pendingBits|.
+    1. Decrement |topLevelTraversable|'s [=page budget=]'s [=overall budget=] by |pendingBits|.
+    1. Return true.
+
   </div>
 
 Shared Storage's Backend {#backend}
