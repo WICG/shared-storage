@@ -627,30 +627,18 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |fetchClient|'s [=environment settings object/origin=] and |settingsObject|'s [=environment settings object/origin=] are not [=same origin=]:
             1. Let |dataOriginValue| be the [=origin/serialization=] of |settingsObject|'s [=environment settings object/origin=].
             1. [=Assert=] that |dataOriginValue| is not null.
-            1. [=header list/Append=] the [=header=] (`"Sec-Shared-Storage-Data-Origin"`, |dataOriginValue|) to |request|'s [=request/header list=].
+            1. [=header list/Append=] the [=header=] ([:Sec-Shared-Storage-Data-Origin:], |dataOriginValue|) to |request|'s [=request/header list=].
 
-  <h4 id="shared-storage-cross-origin-worklet-allowed">The \`<dfn export http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></dfn>\` HTTP response header</h4>
+  ### The [:Shared-Storage-Cross-Origin-Worklet-Allowed:] HTTP response header ### {#worklet-allowed-header}
 
-  The \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet from the module script's [=/URL=]'s [=url/origin=], and to run subsequent operations on the worklet using the module script's [=/URL=]'s [=url/origin=] as the <dfn for="SharedStorage">data partition origin</dfn> for accessing shared storage data, i.e. the [=environment settings object/origin=] set in [[#set-up-a-worklet-environment-settings-object-monkey-patch]], which becomes the [=url/origin=] used in all {{SharedStorage}} calls to [=obtain a shared storage bottle map=].
+  The [:Shared-Storage-Cross-Origin-Worklet-Allowed:] HTTP response header, along with the traditional CORS headers, can be used to grant a cross-origin site the permission to create a worklet from the module script's [=/URL=]'s [=url/origin=], and to run subsequent operations on the worklet using the module script's [=/URL=]'s [=url/origin=] as the <dfn for="SharedStorage">data partition origin</dfn> for accessing shared storage data, i.e. the [=environment settings object/origin=] set in [[#set-up-a-worklet-environment-settings-object-monkey-patch]], which becomes the [=url/origin=] used in all {{SharedStorage}} calls to [=obtain a shared storage bottle map=].
 
-  Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet with cross-origin script whose [=data partition origin=] is the script origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional response header, \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, is required from the script origin.
+  Worklets that load cross-origin scripts rely on CORS as a baseline permission mechanism to indicate trusted external origins. However, CORS alone is insufficient for creation of a worklet with cross-origin script whose [=data partition origin=] is the script origin. Unlike simple resource sharing, worklets allow the creator site to execute JavaScript within the context of the target origin. To ensure security, an additional response header, [:Shared-Storage-Cross-Origin-Worklet-Allowed:], is required from the script origin.
 
   ### Monkey Patch for [=HTTP fetch=] ### {#http-fetch-monkey-patch}
-  The following step will be added to the [=HTTP fetch=] steps, before checking the redirect status (i.e. "6. If |internalResponse|'s status is a redirect status, ..."):
+  [Steps](#mod-http-fetch) will need to be added to the [=HTTP fetch=] algorithm.
 
-  6. If |request|'s [=request/destination=] is "sharedstorageworklet":
-      1. Let |dataOriginValue| be the result of [=header list/getting=] `"Sec-Shared-Storage-Data-Origin"` from |request|'s [=request/header list=].
-      1. If |dataOriginValue| is not null, then:
-          1. Let |dataOriginUrl| be the result of running a [=URL parser=] on |dataOriginValue|.
-          1. [=Assert=] that |dataOriginUrl| is not failure.
-          1. [=Assert=] that |request|'s [=request/origin=] is not "<code>client</code>".
-          1. [=Assert=] that |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=].
-          1. [=Assert=] that |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=].
-          1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
-          1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |responseHeaders| as input.
-          1. If |allowed| is false, then return a [=network error=].
-
-  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=/site=]'s [=site/remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the [:Shared-Storage-Cross-Origin-Worklet-Allowed:] header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=/site=]'s [=site/remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
@@ -1604,14 +1592,41 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
     > If |internalResponse|'s [=response/status=] is a [=redirect status=]: ...
 
-    add the step
+    add the steps
 
+    1. If |request|'s [=request/destination=] is "sharedstorageworklet":
+        1. Let |dataOriginValue| be the result of [=header list/getting=] [:Sec-Shared-Storage-Data-Origin:] from |request|'s [=request/header list=].
+        1. If |dataOriginValue| is not null, then:
+            1. Let |dataOriginUrl| be the result of running a [=URL parser=] on |dataOriginValue|.
+            1. [=Assert=] that |dataOriginUrl| is not failure.
+            1. [=Assert=] that |request|'s [=request/origin=] is not "<code>client</code>".
+            1. [=Assert=] that |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=].
+            1. [=Assert=] that |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=].
+            1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
+            1. Let |allowed| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Cross-Origin-Worklet-Allowed:], "item", and |responseHeaders| as input.
+            1. If |allowed| is false, then return a [=network error=].
     1. [=Handle a Shared-Storage-Write response=], given [=/response=] |internalResponse| and [=/request=] <var ignore=''>request</var> as input.
   </div>
 
 ## Shared Storage HTTP Headers ## {#headers}
 
-### [:Sec-Shared-Storage-Writable:] Request Header ### {#request-header}
+### [:Sec-Shared-Storage-Data-Origin:] Request Header ### {#data-origin-request-header}
+
+  This specification defines a <dfn http-header>Sec-Shared-Storage-Data-Origin</dfn> HTTP [=/request=] [=header=].
+
+  The [:Sec-Shared-Storage-Data-Origin:] [=/request=] [=header=] whose [=header/value=] is a [=string=].
+
+  When the [:Sec-Shared-Storage-Data-Origin:] is sent during the [fetch a worklet/module worker script graph](#fetch-a-worklet-script-graph-monkey-patch) algorithm, its [=header/value=] is set to the serialized [=url/origin=] that owns the worklet's shared storage data.
+
+### [:Shared-Storage-Cross-Origin-Worklet-Allowed:] Response Header ### {#cross-origin-response-header}
+
+  This specification defines a <dfn http-header>Shared-Storage-Cross-Origin-Worklet-Allowed</dfn> HTTP [=/response=] [=header=].
+
+  The [:Shared-Storage-Cross-Origin-Worklet-Allowed:] [=/response=] [=header=] is a [=Structured Header=] whose value must be a [=structured header/Boolean=].
+
+  When a [=/response=] has [:Shared-Storage-Cross-Origin-Worklet-Allowed:] with value true, the worklet script's server has given permission for a cross-origin site to create a worklet using shared storage data from the worklet script's [=url/origin=].
+
+### [:Sec-Shared-Storage-Writable:] Request Header ### {#writable-request-header}
 
   This specification defines a <dfn http-header>Sec-Shared-Storage-Writable</dfn> HTTP [=/request=] [=header=].
 
@@ -1619,7 +1634,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
   When a [=/request=] sets [:Sec-Shared-Storage-Writable:] to true its [=/response=] will be able to write to [=shared storage=].
 
-### [:Shared-Storage-Write:] Response Header ### {#response-header}
+### [:Shared-Storage-Write:] Response Header ### {#write-response-header}
 
   This specification defines a <dfn http-header>Shared-Storage-Write</dfn> HTTP [=/response=] [=header=].
 
