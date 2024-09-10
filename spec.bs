@@ -839,19 +839,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         Note: We could have chosen to return any {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive, as long as the returned index was independent from the registered operation class's "`run`" method.
   </div>
 
-  The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> |urls|.
-
-  <div class="example">
-    The [=default selectURL index=] could be defined to be 0.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=site/remaining navigation budget=], the "`run`" method would return 0, and hence {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its list.
-  </div>
-
-  <div class="example">
-    The [=default selectURL index=] could be defined to be |urls|'s [=list/size=] &minus; 1.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its list.
-  </div>
+  The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> <var ignore=''>urls</var>.
 
   ### Navigation Entropy Budget ### {#nav-budget}
 
