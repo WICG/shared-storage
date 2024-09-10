@@ -872,7 +872,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <dl dfn-for="bit debit">
     : <dfn>bits</dfn>
-    :: a double
+    :: a {{double}}
 
     : <dfn>timestamp</dfn>
     :: a {{DOMHighResTimeStamp}} (from the [=Unix Epoch=])
@@ -958,7 +958,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <dl dfn-for="shared storage page budget">
     : <dfn>overall budget</dfn>
-    :: a double
+    :: a {{double}}
 
     : <dfn>site budget map</dfn>
     :: a [=map=] of [=site=] to {{double}}
