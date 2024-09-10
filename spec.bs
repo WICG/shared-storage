@@ -146,7 +146,6 @@ spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
-        text: initiator fenced frame config instance; for: source snapshot params; url: source-snapshot-params-initiator-fenced-frame-config-instance
         text: fence.reportEvent(); url: dom-fence-reportevent
         text: FenceEvent; url: dictdef-fenceevent
         text: destination; for: FenceEvent; url: dom-fenceevent-destination
@@ -421,7 +420,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to [=default index=].
+        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
         1. Let |finalConfig| be a new [=fenced frame config=].
         1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
         1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
@@ -431,7 +430,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. [=Upon rejection=] of |indexPromise|, perform the following steps:
         1. Let |finalConfig| be a new [=fenced frame config=].
-        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default index=]].
+        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default selectURL index=]].
         1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. Return |resultPromise|.
@@ -650,7 +649,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
           1. Let |allowed| be the result of running [=get a structured field value=] algorithm given \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\`, "item", and |responseHeaders| as input.
           1. If |allowed| is false, then return a [=network error=].
 
-  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+  Note: It is the responsibility of the site serving the module script to carefully consider the security implications: when the module script's [=/URL=]'s [=url/origin=] and the worklet's creator {{Window}} origin are not [=same origin=], by sending permissive CORS headers the \`<a http-header><code>Shared-Storage-Cross-Origin-Worklet-Allowed</code></a>\` header on the module script response, the server will be granting the worklet's creation and subsequent operations on the worklet, while allowing the worklet to use the worklet's script's [=url/origin=] as the [=url/origin=] for accessing the shared storage data, i.e. the [=data partition origin=]. For example, the worklet's creator {{Window}} could poison and use up the worklet origin's [=/site=]'s [=site/remaining navigation budget=] by calling {{SharedStorageWorklet/selectURL()}} or {{SharedStorageWorklet/run()}}, where the worklet origin is the global scope's [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
 
   ### Monkey Patch for {{Worklet/addModule()}} ### {#add-module-monkey-patch}
 
@@ -825,23 +824,34 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     Issue(144): Store |reportingUrlMap| inside a [=fenced frame reporter=] class associated with |fencedFrameConfigStruct|. Both of these still need to be added to the draft [[Fenced-Frame]].
   </div>
 
+
   ## Entropy Budgets ## {#budgets}
 
   Because [=bits of entropy=] can leak via {{SharedStorageWorklet/selectURL()}}, the [=user agent=] will need to maintain budgets to limit these leaks.
 
+  On a call to {{SharedStorageWorklet/selectURL()}}, when any of these budgets are exhausted, the [=default selectURL index=] will be used to determine which URL to select.
+
+  <div algorithm>
+    To <dfn>get the default selectURL index</dfn>, given {{sequence}}<{{USVString}}> |urls|, run the following steps:
+
+    1. Return 0.
+
+        Note: We could have chosen to return any {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive, as long as the returned index was independent from the registered operation class's "`run`" method.
+  </div>
+
+  The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> <var ignore=''>urls</var>.
+
   ### Navigation Entropy Budget ### {#nav-budget}
 
-  If a user [=user activation|activates=] a [=fenced frame=] whose [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=] was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=calling site=] [=navigation entropy allowance=].
+  If a user [=user activation|activates=] a [=fenced frame=] whose [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=] was generated by {{SharedStorageWorklet/selectURL()}} and thereby initiates a [=top-level traversable=] [=navigate|navigation=], this will reveal to the landing page that its [=/URL=] was selected, which is a leak in [=entropy bits=] of up to logarithm base 2 of the number of input [=/URLs=] for the call to {{SharedStorageWorklet/selectURL()}}. To mitigate this, a [=user agent=] will set a per-[=/site=] [=navigation entropy allowance=].
 
-  A <dfn>calling site</dfn> for {{SharedStorageWorklet/selectURL()}} is a [=site=].
-
-  A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-level traversable=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=calling site=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=calling site=]-agnostic.
+  A <dfn>navigation entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via [=fenced frames=] initiating [=top-level traversable=] [=navigate|navigations=] during a given [=navigation budget epoch=] for a given calling [=/site=]. This [=navigation entropy allowance|allowance=] is defined by the [=user agent=] and is [=/site=]-agnostic.
 
   A [=user agent=] will define a fixed predetermined [=duration=] <dfn>navigation budget lifetime</dfn>.
 
   An <dfn>navigation budget epoch</dfn> is any interval of time whose [=duration=] is the [=navigation budget lifetime=].
 
-  To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=calling sites=] to [=navigation entropy ledgers=].
+  To keep track of how this [=navigation entropy allowance=] is used, the [=user agent=] uses a <dfn>shared storage navigation budget table</dfn>, which is a [=map=] of [=/sites=] to [=navigation entropy ledgers=].
 
   An <dfn>navigation entropy ledger</dfn> is a [=/list=] of [=bit debits=].
 
@@ -857,32 +867,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   [=Bit debits=] whose [=bit debit/timestamps=] precede the start of the current [=navigation budget epoch=] are said to be <dfn for="bit debit">expired</dfn>.
 
-  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=calling site=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage navigation budget table=].
+  When a leak occurs, its value in [=entropy bits=] is calculated and stored for that [=/site=], along with the current time as a [=bit debit/timestamp=], together as a [=bit debit=] in the [=shared storage navigation budget table=].
 
-  A [=calling site=]'s <dfn for="calling site">remaining navigation budget</dfn> is the [=navigation entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=navigation budget epoch=].
+ Each [=/site=] has an associated double <dfn for="site">remaining navigation budget</dfn>, whose value is the [=navigation entropy allowance=] minus any [=bit debits=] whose [=bit debit/timestamps=] are within the current [=navigation budget epoch=].
 
-  {{SharedStorageWorklet/selectURL()}}'s argument "`urls`" is its <dfn for=selectURL>input URL list</dfn>.
-
-  When a [=calling site=] has insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or a [=urn uuid=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default index=] in its [=selectURL/input URL list=].
-
-  The <dfn>default index</dfn> for a call to {{SharedStorageWorklet/selectURL()}} is [=implementation-defined=] in such a way that it is independent from the result of the registered operation class's "`run`" method.
-
-  Issue(147): Methods can't have state attached to them. Many definitions in this section needs improving.
-
-  <div class="example">
-    The [=default index=] could be defined to be 0.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], the "`run`" method would return 0, and hence {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
-  </div>
-
-  <div class="example">
-    The [=default index=] could be defined to be [=selectURL/input URL list=]'s [=list/size=] &minus; 1.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=calling site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its [=selectURL/input URL list=].
-  </div>
+  When a [=/site=] has insufficient [=site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} will return a {{SharedStorageResponse}} (i.e. either a {{FencedFrameConfig}} or a [=urn uuid=]) for the {{SharedStorageUrlWithMetadata/url}} in the {{SharedStorageUrlWithMetadata}} at the [=default selectURL index=].
 
   <div algorithm>
-    To <dfn>determine remaining navigation budget</dfn>, given an [=environment settings object=] |environment| and a [=calling site=] |site|, run the following steps:
+    To <dfn>determine remaining navigation budget</dfn>, given an [=environment settings object=] |environment| and a [=/site=] |site|, run the following steps:
 
     1. [=Assert=]: |site| is not an [=opaque origin=].
     1. Let |maxBits| be the [=user agent=]'s [=navigation entropy allowance=].
@@ -913,8 +905,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Issue(138): Need to find a better way to specify timing of the navigation budget charging.
 
-  Issue(149): The boolean <dfn>shared storage navigation budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. Fix the names when they are added.
-
   <div algorithm>
     To <dfn>charge shared storage navigation budget</dfn> during a [=beginning navigation|navigation=] with [=/navigable=] |navigable| and {{Document}} |sourceDocument|, run the following steps:
 
@@ -926,58 +916,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
         1. If |instance| is null or |site| is an [=opaque origin=], then [=iteration/continue=].
         1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
-        1. If |pendingBits| is not greater than 0, or if |instance|'s [=shared storage navigation budget charged=] is true, then [=iteration/continue=].
+        1. If |pendingBits| is not greater than 0, then [=iteration/continue=].
         1. Let |ledger| be [=user agent=]'s [=shared storage navigation budget table=][|site|].
         1. Let |bitDebit| be a new [=bit debit=].
         1. Set |bitDebit|'s [=bit debit/bits=] to |pendingBits|.
         1. Let |currentTime| be the [=/current wall time=].
         1. Set |bitDebit|'s [=bit debit/timestamp=] to |currentTime|.
         1. [=list/Append=] |bitDebit| to |ledger|.
-        1. Set |instance|'s [=shared storage navigation budget charged=] to true.
-  </div>
-
-  ### Reporting Entropy Budget ### {#report-budget}
-
-  Likewise, each time a call to {{reportEvent()}} from a [=fenced frame=] originating via {{SharedStorageWorklet/selectURL()}} whose {{FenceEvent/destination}} [=list/contains=] "`shared-storage-select-url`" and whose {{FenceEvent/eventType}} is triggered, there is a leak of up to logarithm base 2 of the number of main input [=/URLs=] [=entropy bits=]. The [=user agent=] will need to set a per-[=page load=] [=reporting entropy allowance=] to restrict the information leaked, with <dfn>page load</dfn> referring to a [=top-level traversable=]'s (i.e. primary main frame's) lifecycle.
-
-  A <dfn>reporting entropy allowance</dfn> is a maximum allowance of [=entropy bits=] that are permitted to leak via {{reportEvent()}} during a given page load. This [=reporting entropy allowance|allowance=] is defined by the [=user agent=].
-
-  Each [=top-level traversable=] will have a new {{double}} <dfn>shared storage reporting budget</dfn> associated to it which will be initialized with the value of [=user agent=]'s [=reporting entropy allowance=] upon [=top-level traversable=]'s creation.
-
-  When {{reportEvent()}} is called with a {{FenceEvent/destination}} [=list/containing=] "`shared-storage-select-url`", it will be necessary to [=charge shared storage reporting budget=] as below.
-
-  Issue(150): Move this to {{reportEvent()}} in [[Fenced-Frame]].
-
-  <div algorithm>
-    To <dfn>determine reporting budget to charge</dfn>, given a {{Document}} |sourceDocument|, run the following steps:
-
-    1. Let |debitSum| be 0.
-    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
-    1. While |currentNavigable| is not null:
-        1. Let |instance| be |currentNavigable|'s [=source snapshot params/initiator fenced frame config instance=].
-        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
-        1. If |instance| is null, then [=iteration/continue=].
-        1. Let |pendingBits| be |instance|'s [=pending shared storage budget debit=].
-        1. If |pendingBits| is greater than 0 and if |instance|'s [=shared storage reporting budget charged=] is false, increment |debitSum| by |pendingBits|.
-    1. Return |debitSum|.
-  </div>
-
-
-  Issue(149): The boolean <dfn>shared storage reporting budget charged</dfn> have not yet been added to [=fenced frame config instance=] in the draft [[Fenced-Frame]] specification. Some form of them will be added, although their names are subject to bikeshedding. Fix the names when they are added.
-
-  <div algorithm>
-    To <dfn>charge shared storage reporting budget</dfn> given a {{Document}} |sourceDocument|, run the following steps:
-
-    1. Let |toCharge| be the result of running [=determine reporting budget to charge=] with |sourceDocument|.
-    1. Let |currentNavigable| be |sourceDocument|'s [=node navigable=].
-    1. Let |topNode| be the result of running [=get the top-level traversable=] for |currentNavigable|.
-    1. If |topNode|'s [=shared storage reporting budget=] is less than |toCharge|, return false.
-    1. While |currentNavigable| is not null:
-        1. Let |instance| be |currentNavigable|'s [=Node/node document=]'s [=Document/browsing context=]'s [=browsing context/fenced frame config instance=].
-        1. If |instance| is not null and if |instance|'s [=pending shared storage budget debit=] is greater than 0, set |instance|'s [=shared storage reporting budget charged=] to true.
-        1. Set |currentNavigable| to |currentNavigable|'s [=navigable/parent=].
-    1. Decrement |topNode|'s [=shared storage reporting budget=] by |toCharge|.
-    1. Return true.
+        1. Set |pendingBits| to 0.
   </div>
 
   A [=user agent=] may wish to set a timer to periodically [=purge expired bit debits from all navigation entropy ledgers=], as the [=bit debit/expired=] [=bit debits=] will no longer be needed.
