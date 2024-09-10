@@ -146,7 +146,6 @@ spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
-        text: initiator fenced frame config instance; for: source snapshot params; url: source-snapshot-params-initiator-fenced-frame-config-instance
         text: fence.reportEvent(); url: dom-fence-reportevent
         text: FenceEvent; url: dictdef-fenceevent
         text: destination; for: FenceEvent; url: dom-fenceevent-destination
