@@ -29,28 +29,33 @@ In an `a.example` document:
 
 ```js
 function generateSeed() { … }
-await window.sharedStorage.worklet.addModule('experiment.js');
 
-// Only write a cross-site seed to a.example's storage if there isn't one yet.
-window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
+try {
+  await window.sharedStorage.worklet.addModule('experiment.js');
 
-// Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
-// privileged code to avoid leaking the chosen input URL back to the document.
+  // Only write a cross-site seed to a.example's storage if there isn't one yet.
+  window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
-const fencedFrameConfig = await window.sharedStorage.selectURL(
-  'select-url-for-experiment',
-  [
-    {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
-    {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
-    {url: "blob:https://c.example/789…"}
-  ],
-  { 
-    data: { name: 'experimentA' }, 
-    resolveToConfig: true
-  }
-);
+  // Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
+  // privileged code to avoid leaking the chosen input URL back to the document.
 
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+  const fencedFrameConfig = await window.sharedStorage.selectURL(
+    'select-url-for-experiment',
+    [
+      {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
+      {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
+      {url: "blob:https://c.example/789…"}
+    ],
+    { 
+      data: { name: 'experimentA' }, 
+      resolveToConfig: true
+    }
+  );
+
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 
@@ -91,14 +96,18 @@ The usage of fenced frames with the URL Selection operation will not be required
 To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe. 
 
 ```js
-const opaqueURN = await window.sharedStorage.selectURL(
-  'select-url-for-experiment',
-  { 
-    data: { ... } 
-  }
-);
+try {
+  const opaqueURN = await window.sharedStorage.selectURL(
+    'select-url-for-experiment',
+    { 
+      data: { ... } 
+    }
+  );
 
-document.getElementById('my-iframe').src = opaqueURN;
+  document.getElementById('my-iframe').src = opaqueURN;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 ## Proposed API surface
@@ -237,7 +246,11 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
 
+## Error handling
 
+Note that the shared storage APIs may throw for several possible reasons. The following list of situations is not exhaustive, but, for example, the APIs may throw if the site invoking the API is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and/or [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), if the user has disabled shared storage in site settings, if the "shared-storage" or "shared-storage-select-url" permissions policy denies access, or if one of its arguments is invalid.
+
+We encourage always wrapping calls to shared storage JS methods in `try...catch` blocks.
 
 ## Example scenarios
 
@@ -252,11 +265,15 @@ In the ad’s iframe:
 
 
 ```js
-await window.sharedStorage.worklet.addModule('reach.js');
-await window.sharedStorage.run('send-reach-report', {
-  // optional one-time context
-  data: { campaignId: '1234' },
-});
+try {
+  await window.sharedStorage.worklet.addModule('reach.js');
+  await window.sharedStorage.run('send-reach-report', {
+    // optional one-time context
+    data: { campaignId: '1234' },
+  });
+} catch (error) {
+  // Handle error.
+}
 ```
 
 Worklet script (i.e. `reach.js`):
@@ -293,26 +310,30 @@ If an ad creative has been shown to the user too many times, a different ad shou
 In the advertiser's iframe:
 
 ```js
-// Fetches two ads in a list. The second is the proposed ad to display, and the first 
-// is the fallback in case the second has been shown to this user too many times.
-const ads = await advertiser.getAds();
+try {
+  // Fetches two ads in a list. The second is the proposed ad to display, and the first 
+  // is the fallback in case the second has been shown to this user too many times.
+  const ads = await advertiser.getAds();
 
-// Register the worklet module
-await window.sharedStorage.worklet.addModule('creative-selection-by-frequency.js');
+  // Register the worklet module
+  await window.sharedStorage.worklet.addModule('creative-selection-by-frequency.js');
 
-// Run the URL selection operation
-const frameConfig = await window.sharedStorage.selectURL(
-  'creative-selection-by-frequency', 
-  ads.urls, 
-  { 
-    data: { 
-      campaignId: ads.campaignId 
-    },
-    resolveToConfig: true,
-  });
+  // Run the URL selection operation
+  const frameConfig = await window.sharedStorage.selectURL(
+    'creative-selection-by-frequency', 
+    ads.urls, 
+    { 
+      data: { 
+        campaignId: ads.campaignId 
+      },
+      resolveToConfig: true,
+    });
 
-// Render the frame
-document.getElementById('my-fenced-frame').config = frameConfig;
+  // Render the frame
+  document.getElementById('my-fenced-frame').config = frameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 In the worklet script (`creative-selection-by-frequency.js`):
@@ -357,18 +378,22 @@ Subsequently, anything we've written to `fencedFrameConfig` through `setSharedSt
 In the embedder page:
 
 ```js
-// See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
-const auctionConfig = { ... };
+try {
+  // See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
+  const auctionConfig = { ... };
 
-// Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
-auctionConfig.resolveToConfig = true;
-const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
+  // Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
+  auctionConfig.resolveToConfig = true;
+  const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
-// Write to the config any desired embedder contextual information as a string.
-fencedFrameConfig.setSharedStorageContext("My Event ID 123");
+  // Write to the config any desired embedder contextual information as a string.
+  fencedFrameConfig.setSharedStorageContext("My Event ID 123");
 
-// Navigate the fenced frame to the config.
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+  // Navigate the fenced frame to the config.
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 In the fenced frame (`my-fenced-frame`):
@@ -413,35 +438,39 @@ Callers may wish to run multiple worklet operations from the same context, e.g. 
 As an example, in the embedder page:
 
 ```js
-// Load the worklet module.
-await window.sharedStorage.worklet.addModule('worklet.js');
+try {
+  // Load the worklet module.
+  await window.sharedStorage.worklet.addModule('worklet.js');
 
-// Select a URL, keeping the worklet alive.
-const fencedFrameConfig = await window.selectURL(
-  [
-    {url: "blob:https://a.example/123…"},
-    {url: "blob:https://b.example/abc…"}
-  ],
-  {
+  // Select a URL, keeping the worklet alive.
+  const fencedFrameConfig = await window.selectURL(
+    [
+      {url: "blob:https://a.example/123…"},
+      {url: "blob:https://b.example/abc…"}
+    ],
+    {
+      data: { ... },
+      keepAlive: true,
+      resolveToConfig: true
+    }
+  );
+
+  // Navigate a fenced frame to the resulting config.
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+
+  // Send some report, keeping the worklet alive.
+  await window.sharedStorage.run('report', {
     data: { ... },
     keepAlive: true,
-    resolveToConfig: true
-  }
-);
+  });
 
-// Navigate a fenced frame to the resulting config.
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
-
-// Send some report, keeping the worklet alive.
-await window.sharedStorage.run('report', {
-  data: { ... },
-  keepAlive: true,
-});
-
-// Send another report, allowing the worklet to close afterwards.
-await window.sharedStorage.run('report', {
-  data: { ... },
-});
+  // Send another report, allowing the worklet to close afterwards.
+  await window.sharedStorage.run('report', {
+    data: { ... },
+  });
+} catch (error) {
+  // Handle error.
+}
 
 // From this point on, if we make any additional worklet calls, they will fail.
 ```
@@ -475,7 +504,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    await sharedStorage.worklet.addModule("https://b.example/worklet.js");
+    try {
+      await sharedStorage.worklet.addModule("https://b.example/worklet.js");
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -485,7 +518,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js");
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js");
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -495,7 +532,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -508,7 +549,11 @@ The fourth approach uses the worklet script's origin as the partition origin for
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used.
@@ -628,12 +673,16 @@ In the long term we'd like all reporting via Shared Storage to happen via the Pr
 
 Event level reports work in a way similar to how they work in Protected AUdience. First, when calling selectURL, the caller adds a `reportingMetadata` optional dict to the URLs that they wish to send reports for, such as:
 ```javascript
-sharedStorage.selectURL(
-    "test-url-selection-operation",
-    [{url: "fenced_frames/title0.html"},
-     {url: "fenced_frames/title1.html",
-         reportingMetadata: {'click': "fenced_frames/report1.html",
-             'visible': "fenced_frames/report2.html"}}]);
+try {
+  sharedStorage.selectURL(
+      "test-url-selection-operation",
+      [{url: "fenced_frames/title0.html"},
+       {url: "fenced_frames/title1.html",
+           reportingMetadata: {'click': "fenced_frames/report1.html",
+               'visible': "fenced_frames/report2.html"}}]);
+} catch (error) {
+  // Handle error.
+}
 ```
 In this case, when in the fenced frame, event types are defined for `click` and `visibility`. Once the fenced frame is ready to send a report, it can call something like:
 
