@@ -1285,7 +1285,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     boolean resolveToConfig = false;
     boolean keepAlive = false;
     SharedStoragePrivateAggregationConfig privateAggregationConfig;
-    DOMString savedQuery = "";
+    DOMString savedQuery;
   };
 
   dictionary SharedStorageWorkletOptions : WorkletOptions {
