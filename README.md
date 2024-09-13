@@ -250,7 +250,25 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 
 Note that the shared storage APIs may throw for several possible reasons. The following list of situations is not exhaustive, but, for example, the APIs may throw if the site invoking the API is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and/or [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), if the user has disabled shared storage in site settings, if the "shared-storage" or "shared-storage-select-url" permissions policy denies access, or if one of its arguments is invalid.
 
-We encourage always wrapping calls to shared storage JS methods in `try...catch` blocks.
+We recommend handling exceptions. This can be done by wrapping `async..await` calls to shared storage JS methods in `try...catch` blocks, or by following calls that are not awaited with `.catch`: 
+
+*
+  ```js
+  try {
+    await window.sharedStorage.worklet.addModule('worklet.js');
+  } catch (error) {
+    // Handle error.
+  }
+  ```
+
+*
+  ```js
+  window.sharedStorage.worklet.addModule('worklet.js')
+    .catch((error) => {
+    // Handle error.
+  });
+  ```
+
 
 ## Example scenarios
 
