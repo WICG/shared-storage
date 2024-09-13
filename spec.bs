@@ -333,7 +333,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
     1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |savedQueryName| be |options|["`savedQuery`"].
-    1. If |savedQueryName| is nonempty, then:
+    1. If |savedQueryName| is a [=string=] that is not the empty string, then:
         1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, and |savedQueryName|.
 
             Note: We intentionally ignore |operationName| when running [=get the index for a saved query=], in order to allow the names of saved queries to be independent from the names of operations.
@@ -366,7 +366,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                    1. If |savedQueryName| is nonempty, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |savedQueryName|, and |index|.
+                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |savedQueryName|, and |index|.
 
                         Note: We intentionally ignore |operationName| when running [=store the index for a saved query=], in order to allow the names of saved queries to be independent from the names of operations.
                     1. Run |privateAggregationCompletionTask|.
