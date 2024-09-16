@@ -334,9 +334,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |savedQueryName| be |options|["`savedQuery`"].
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
-        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, and |savedQueryName|.
-
-            Note: We intentionally ignore |operationName| when running [=get the index for a saved query=], in order to allow the names of saved queries to be independent from the names of operations.
+        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |operationName|, and |savedQueryName|.
         1. If |savedIndex| is not null, then:
             1. If |savedIndex| is greater than |urlList|'s [=list/size=], return a [=promise rejected=] with a {{TypeError}}.
 
@@ -366,9 +364,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |savedQueryName|, and |index|.
-
-                        Note: We intentionally ignore |operationName| when running [=store the index for a saved query=], in order to allow the names of saved queries to be independent from the names of operations.
+                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |operationName|, |savedQueryName|, and |index|.
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
@@ -967,7 +963,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a [=map=] of [=site=] to {{double}}
 
     : <dfn>saved query map</dfn>
-    :: a [=map=] of [=url/origin=] to [=map=] of [=string=] to {{unsigned long}}
+    :: a [=map=] of [=url/origin=] to [=map=] of [=string=] to [=map=] of [=string=] to {{unsigned long}}
   </dl>
 
 
@@ -994,25 +990,25 @@ navigables</a> section, add the following:
   #### Saved queries #### {#saved-queries}
 
   <div algorithm>
-    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, and [=string=] |savedQueryName|:
+    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=string=] |operationName|, and [=string=] |savedQueryName|:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
     1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] |origin|, then return null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] does not [=map/contain=] |savedQueryName|, then return null.
-    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|savedQueryName|].
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] does not [=map/contain=] |operationName|, then return null.
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|] does not [=map/contain=] |savedQueryName|, then return null.
+    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|][|savedQueryName|].
   </div>
 
   <div algorithm>
-    To <dfn>store the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
+    To <dfn>store the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
     1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] |origin|, then [=map/set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] to an [=map/empty=] [=map=].
-    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|savedQueryName|] to |index|.
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] does not [=map/contain=] |operationName|, then [=map/set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|] to an [=map/empty=] [=map=].
+    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|][|savedQueryName|] to |index|.
   </div>
-
-  Note: We intentionally ignore the associated operation name when [=getting the index for a saved query=] or [=storing the index for a saved query=], in order to allow the names of saved queries to be independent from the names of operations.
 
   #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
 
