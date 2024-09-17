@@ -151,7 +151,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `savedQuery` (defaults to the empty string), a string naming the query to be saved or reused.
             *   If the value of `savedQuery` is nonempty and has not previously been associated with a [result index](#result-index) for call to `selectURL()` on the same page, and if the call to `selectURL()` succeeds:
                 *    The pair of (`savedQuery`, [`index`](#result-index)) will be stored for the lifetime of the page.
-                *    The shared storage data-owning origin's site can reuse the query from anywhere within the page.
+                *    The shared storage data origin's site can reuse the query from anywhere within the page.
             *   If the value of `savedQuery` is nonempty and has previously been associated with a [result index](#result-index) for a call to `selectURL()` on the same page, then: 
                 *    Instead of running the registered JavaScript operation, `selectURL()` will use the stored [result index](#result-index) associated with the value of `savedQuery` to choose the selected URL.
                 *    The [short-term per-page budgets](#Short-Term-Budgets) will not be charged.    
