@@ -195,7 +195,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Returns a promise that resolves into an array of `StorageInterestGroup`. A `StorageInterestGroup` is a dictionary that extends the [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup) dictionary with the following attributes:
         *   unsigned long long `joinCount`
         *   unsigned long long `bidCount`
-        *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `previousWins`
+        *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `prevWinsMs`
         *   USVString `joiningOrigin`
         *   double `timeSinceGroupJoinedMs`
         *   double `lifetimeRemainingMs`
