@@ -148,6 +148,13 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `resolveToConfig` (defaults to false), a boolean denoting whether the returned promise resolves to a fenced frame config.
             *   If `resolveToConfig` is false or not specified, the returned promise resolves to an opaque URN that can be rendered by an iframe.
             *   If `resolveToConfig` is true, the returned promise resolves to a [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md).
+        *   `savedQuery` (defaults to the empty string), a string naming the query to be saved or reused.
+            *   If the value of `savedQuery` is nonempty and has not previously been associated with a [result index](#result-index) for call to `selectURL()` on the same page, and if the call to `selectURL()` succeeds:
+                *    The pair of (`savedQuery`, [`index`](#result-index)) will be stored for the lifetime of the page.
+                *    The shared storage data origin's site can reuse the query from anywhere within the page.
+            *   If the value of `savedQuery` is nonempty and has previously been associated with a [result index](#result-index) for a call to `selectURL()` on the same page, then: 
+                *    Instead of running the registered JavaScript operation, `selectURL()` will use the stored [result index](#result-index) associated with the value of `savedQuery` to choose the selected URL.
+                *    The [short-term per-page budgets](#Short-Term-Budgets) will not be charged.    
 *   `window.sharedStorage.run(name, options)`,  \
 `window.sharedStorage.selectURL(name, urls, options)`, …
     *   The behavior is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
@@ -171,7 +178,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Registers a shared storage worklet operation with the provided `name`.
     *   `operation` should be a class with an async `run()` method.
         *   For the operation to work with `sharedStorage.run()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
-        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
+        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the <a name="result-index">index</a> of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
 
 ### In the worklet, during an operation
@@ -615,8 +622,21 @@ In the long term, `selectURL()` will leak bits of entropy on top-level navigatio
 
 In the short term, we have event-level reporting and less-restrictive [fenced frames](https://github.com/WICG/fenced-frame), which allow further leakage; thus it is necessary to impose additional limits. On top of the navigation bit budget described above, there will be two more budgets, each maintained on a per top-level navigation basis. The bit values for each call to `selectURL()` are calculated in the same way as detailed for the navigation bit budget.
 
-* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
-* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates.
+* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh. Saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
+* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates, and saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
+
+```javascript
+// Assuming that this call to `selectURL()` is the first to use 
+// `savedQuery: "control_or_experiment"` on this page, this call 
+// will be charged to both of the per-page budgets.
+const config1 = await sharedStorage.selectURL("experiment", urls1, {savedQuery: "control_or_experiment", keepAlive: true, resolveToConfig: true});
+document.getElementById("my-fenced-frame1").config = config1;
+
+// This next call will not be charged to either of the 
+// per-page budgets.
+const config2 = await sharedStorage.selectURL("experiment", urls2, {savedQuery: "control_or_experiment", resolveToConfig: true});
+document.getElementById("my-fenced-frame2").config = config2;
+```
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
