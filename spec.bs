@@ -734,7 +734,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated {{SharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
 
-  ## {{SharedStorageWorkletGlobalScope}} algorithms ## {#scope-algo}
+  ### {{SharedStorageWorkletGlobalScope}} algorithms ### {#scope-algo}
   <div algorithm>
     The <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method steps are:
 
