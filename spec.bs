@@ -963,7 +963,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a [=map=] of [=site=] to {{double}}
 
     : <dfn>saved query map</dfn>
-    :: a [=map=] of [=url/origin=] to [=map=] of [=string=] to [=map=] of [=string=] to {{unsigned long}}
+    :: a [=map=] of [=tuples=] ([=url/origin=], [=string=], [=string=]) to {{unsigned long}}
   </dl>
 
 
@@ -994,10 +994,8 @@ navigables</a> section, add the following:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] |origin|, then return null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] does not [=map/contain=] |operationName|, then return null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|] does not [=map/contain=] |savedQueryName|, then return null.
-    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|][|savedQueryName|].
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |operationName|, |savedQueryName|), then return null.
+    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |operationName|, |savedQueryName|)].
   </div>
 
   <div algorithm>
@@ -1005,9 +1003,7 @@ navigables</a> section, add the following:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] |origin|, then [=map/set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] to an [=map/empty=] [=map=].
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|] does not [=map/contain=] |operationName|, then [=map/set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|] to an [=map/empty=] [=map=].
-    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][|origin|][|operationName|][|savedQueryName|] to |index|.
+    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |operationName|, |savedQueryName|)] to |index|.
   </div>
 
   #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
