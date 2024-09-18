@@ -207,6 +207,20 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
+*   `interestGroups()`
+    *   Returns a promise that resolves into an array of `StorageInterestGroup`. A `StorageInterestGroup` is a dictionary that extends the [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup) dictionary with the following attributes:
+        *   unsigned long long `joinCount`
+        *   unsigned long long `bidCount`
+        *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `prevWinsMs`
+        *   USVString `joiningOrigin`
+        *   double `timeSinceGroupJoinedMs`
+        *   double `lifetimeRemainingMs`
+        *   double `timeSinceLastUpdateMs`
+        *   double `timeUntilNextUpdateMs`
+        *   unsigned long long `estimatedSize`
+            *   The approximate size of the contents of this interest group, in bytes.
+    *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
+    *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
