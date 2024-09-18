@@ -382,14 +382,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
         rejected with=] |aggregationCoordinator|.
     1. Let |document| be |context|'s [=active document=].
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: This can happen if {{SharedStorageWorklet/selectURL()}} is called before {{addModule()}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. Let |workletDataOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and |workletDataOrigin| returns false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-
-        Note: This can happen if either {{SharedStorage/selectURL()}} or {{SharedStorageWorklet/selectURL()}} is called before {{addModule()}}.
-
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |urls| is empty or if |urls|'s [=list/size=] is greater than 8, return a [=promise rejected=] with a {{TypeError}}.
 
@@ -458,6 +457,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
         rejected with=] |aggregationCoordinator|.
     1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: This can happen if {{SharedStorageWorklet/run()}} is called before {{addModule()}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
