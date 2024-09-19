@@ -332,8 +332,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
-        1. [=Assert=]: |worklet|'s [=module map=] is not [=map/empty=].
-        1. Let |globalScope| be [=this=]'s [=global scopes=][0].
+        1. Let |globalScope| be |worklet|'s [=global scopes=][0].
+        1. [=Assert=]: |globalScope|'s [=relevant settings object=]'s [=module map=] is not [=map/empty=].
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
@@ -474,7 +474,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         Note: The |promise|'s resolution should be before and not depend on the execution inside {{SharedStorageWorkletGlobalScope}}. This is because shared storage is a type of unpartitioned storage, and a {{SharedStorageWorkletGlobalScope}} can have access to cross-site data, which shouldn't be leaked via {{SharedStorageWorklet/run()}} (via its success/error result).
 
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with undefined.
-        1. If [=this=]'s [=module map=] is not [=map/empty=]:
+        1. If |globalScope|'s [=relevant settings object=]'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be [=this=]'s {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |name|:
                 1. [=Assert=]: |operationMap|[|name|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
