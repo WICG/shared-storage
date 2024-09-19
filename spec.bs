@@ -148,7 +148,6 @@ spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
         text: url; for: FencedFrameConfig; url: dom-fencedframeconfig-url
-        text: initiator fenced frame config instance; for: source snapshot params; url: source-snapshot-params-initiator-fenced-frame-config-instance
         text: fence.reportEvent(); url: dom-fence-reportevent
         text: FenceEvent; url: dictdef-fenceevent
         text: destination; for: FenceEvent; url: dom-fenceevent-destination
@@ -395,13 +394,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
         rejected with=] |aggregationCoordinator|.
     1. Let |document| be |context|'s [=active document=].
+    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: This can happen if {{SharedStorageWorklet/selectURL()}} is called before {{addModule()}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. Let |workletDataOrigin| be |globalScope|'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/shared-storage-select-url=]", |document|, and |workletDataOrigin| returns false, return a [=promise rejected=] with a {{TypeError}}.
-    1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
-
-        Note: This can happen if either {{SharedStorage/selectURL()}} or {{SharedStorageWorklet/selectURL()}} is called before {{addModule()}}.
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |urls| is empty or if |urls|'s [=list/size=] is greater than 8, return a [=promise rejected=] with a {{TypeError}}.
 
@@ -470,6 +469,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |aggregationCoordinator| is a {{DOMException}}, return [=a promise
         rejected with=] |aggregationCoordinator|.
     1. If [=this=]'s [=global scopes=] is [=list/empty=], then return a [=promise rejected=] with a {{TypeError}}.
+
+        Note: This can happen if {{SharedStorageWorklet/run()}} is called before {{addModule()}}.
     1. [=Assert=]: [=this=]'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be [=this=]'s [=global scopes=][0].
     1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for |globalScope| is false, return a [=promise rejected=] with a {{TypeError}}.
@@ -485,7 +486,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         Note: The |promise|'s resolution should be before and not depend on the execution inside {{SharedStorageWorkletGlobalScope}}. This is because shared storage is a type of unpartitioned storage, and a {{SharedStorageWorkletGlobalScope}} can have access to cross-site data, which shouldn't be leaked via {{SharedStorageWorklet/run()}} (via its success/error result).
 
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with undefined.
-        1. If [=this=]'s [=module map=] is not [=map/empty=]:
+        1. If |globalScope|'s [=relevant settings object=]'s [=module map=] is not [=map/empty=]:
             1. Let |operationMap| be [=this=]'s {{SharedStorageWorkletGlobalScope}}'s [=SharedStorageWorkletGlobalScope/operation map=].
             1. If |operationMap| [=map/contains=] |name|:
                 1. [=Assert=]: |operationMap|[|name|]'s [=associated realm=] is [=this=]'s [=relevant realm=].
@@ -746,7 +747,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated {{SharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
 
-  ## {{SharedStorageWorkletGlobalScope}} algorithms ## {#scope-algo}
+  ### {{SharedStorageWorkletGlobalScope}} algorithms ### {#scope-algo}
   <div algorithm>
     The <dfn method for="SharedStorageWorkletGlobalScope">register(|name|, |operationCtor|)</dfn> method steps are:
 
@@ -837,22 +838,12 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   <div algorithm>
     To <dfn>get the default selectURL index</dfn>, given {{sequence}}<{{USVString}}> |urls|, run the following steps:
 
-    1. Return an {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive in [=implementation-defined=] way so that the returned index is independent from the registered operation class's "`run`" method..
+    1. Return 0.
+
+        Note: We could have chosen to return any {{unsigned long}} from the [=the exclusive range|range=] from 0 to |urls|’s [=list/size=], exclusive, as long as the returned index was independent from the registered operation class's "`run`" method.
   </div>
 
-  The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> |urls|.
-
-  <div class="example">
-    The [=default selectURL index=] could be defined to be 0.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=site/remaining navigation budget=], the "`run`" method would return 0, and hence {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the first {{SharedStorageUrlWithMetadata/url}} in its list.
-  </div>
-
-  <div class="example">
-    The [=default selectURL index=] could be defined to be |urls|'s [=list/size=] &minus; 1.
-
-    In this case, whenever the registered operation class's "`run`" method encounters an error, or whenever there is insufficient [=site/remaining navigation budget=], {{SharedStorageWorklet/selectURL()}} would return a {{SharedStorageResponse}} for the last {{SharedStorageUrlWithMetadata/url}} in its list.
-  </div>
+  The <dfn>default selectURL index</dfn> is the index obtained by running [=get the default selectURL index=], given {{sequence}}<{{USVString}}> <var ignore=''>urls</var>.
 
   ### Navigation Entropy Budget ### {#nav-budget}
 

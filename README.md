@@ -29,28 +29,33 @@ In an `a.example` document:
 
 ```js
 function generateSeed() { … }
-await window.sharedStorage.worklet.addModule('experiment.js');
 
-// Only write a cross-site seed to a.example's storage if there isn't one yet.
-window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
+try {
+  await window.sharedStorage.worklet.addModule('experiment.js');
 
-// Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
-// privileged code to avoid leaking the chosen input URL back to the document.
+  // Only write a cross-site seed to a.example's storage if there isn't one yet.
+  window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
-const fencedFrameConfig = await window.sharedStorage.selectURL(
-  'select-url-for-experiment',
-  [
-    {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
-    {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
-    {url: "blob:https://c.example/789…"}
-  ],
-  { 
-    data: { name: 'experimentA' }, 
-    resolveToConfig: true
-  }
-);
+  // Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
+  // privileged code to avoid leaking the chosen input URL back to the document.
 
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+  const fencedFrameConfig = await window.sharedStorage.selectURL(
+    'select-url-for-experiment',
+    [
+      {url: "blob:https://a.example/123…", reportingMetadata: {"click": "https://report.example/1..."}},
+      {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
+      {url: "blob:https://c.example/789…"}
+    ],
+    { 
+      data: { name: 'experimentA' }, 
+      resolveToConfig: true
+    }
+  );
+
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 
@@ -91,14 +96,18 @@ The usage of fenced frames with the URL Selection operation will not be required
 To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe. 
 
 ```js
-const opaqueURN = await window.sharedStorage.selectURL(
-  'select-url-for-experiment',
-  { 
-    data: { ... } 
-  }
-);
+try {
+  const opaqueURN = await window.sharedStorage.selectURL(
+    'select-url-for-experiment',
+    { 
+      data: { ... } 
+    }
+  );
 
-document.getElementById('my-iframe').src = opaqueURN;
+  document.getElementById('my-iframe').src = opaqueURN;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 ## Proposed API surface
@@ -148,6 +157,13 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   `resolveToConfig` (defaults to false), a boolean denoting whether the returned promise resolves to a fenced frame config.
             *   If `resolveToConfig` is false or not specified, the returned promise resolves to an opaque URN that can be rendered by an iframe.
             *   If `resolveToConfig` is true, the returned promise resolves to a [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md).
+        *   `savedQuery` (defaults to the empty string), a string naming the query to be saved or reused.
+            *   If the value of `savedQuery` is nonempty and has not previously been associated with a [result index](#result-index) for call to `selectURL()` on the same page, and if the call to `selectURL()` succeeds:
+                *    The pair of (`savedQuery`, [`index`](#result-index)) will be stored for the lifetime of the page.
+                *    The shared storage data origin's site can reuse the query from anywhere within the page.
+            *   If the value of `savedQuery` is nonempty and has previously been associated with a [result index](#result-index) for a call to `selectURL()` on the same page, then: 
+                *    Instead of running the registered JavaScript operation, `selectURL()` will use the stored [result index](#result-index) associated with the value of `savedQuery` to choose the selected URL.
+                *    The [short-term per-page budgets](#Short-Term-Budgets) will not be charged.    
 *   `window.sharedStorage.run(name, options)`,  \
 `window.sharedStorage.selectURL(name, urls, options)`, …
     *   The behavior is identical to `window.sharedStorage.worklet.run(name, options)` and `window.sharedStorage.worklet.selectURL(name, urls, options)`.
@@ -171,7 +187,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
     *   Registers a shared storage worklet operation with the provided `name`.
     *   `operation` should be a class with an async `run()` method.
         *   For the operation to work with `sharedStorage.run()`, `run()` should take `data` as an argument and return nothing. Any return value is [ignored](#default).
-        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the index of the selected URL. Any invalid return value is replaced with a [default return value](#default).
+        *   For the operation to work with `sharedStorage.selectURL()`, `run()` should take `data` and `urls` as arguments and return the <a name="result-index">index</a> of the selected URL. Any invalid return value is replaced with a [default return value](#default).
 
 
 ### In the worklet, during an operation
@@ -191,6 +207,20 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
+*   `interestGroups()`
+    *   Returns a promise that resolves into an array of `StorageInterestGroup`. A `StorageInterestGroup` is a dictionary that extends the [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup) dictionary with the following attributes:
+        *   unsigned long long `joinCount`
+        *   unsigned long long `bidCount`
+        *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `prevWinsMs`
+        *   USVString `joiningOrigin`
+        *   double `timeSinceGroupJoinedMs`
+        *   double `lifetimeRemainingMs`
+        *   double `timeSinceLastUpdateMs`
+        *   double `timeUntilNextUpdateMs`
+        *   unsigned long long `estimatedSize`
+            *   The approximate size of the contents of this interest group, in bytes.
+    *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
+    *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
 *   Functions exposed by the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -237,6 +267,28 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
 *  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
 
+## Error handling
+
+Note that the shared storage APIs may throw for several possible reasons. The following list of situations is not exhaustive, but, for example, the APIs may throw if the site invoking the API is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and/or [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), if the user has disabled shared storage in site settings, if the "shared-storage" or "shared-storage-select-url" permissions policy denies access, or if one of its arguments is invalid.
+
+We recommend handling exceptions. This can be done by wrapping `async..await` calls to shared storage JS methods in `try...catch` blocks, or by following calls that are not awaited with `.catch`: 
+
+*
+  ```js
+  try {
+    await window.sharedStorage.worklet.addModule('worklet.js');
+  } catch (error) {
+    // Handle error.
+  }
+  ```
+
+*
+  ```js
+  window.sharedStorage.worklet.addModule('worklet.js')
+    .catch((error) => {
+    // Handle error.
+  });
+  ```
 
 
 ## Example scenarios
@@ -252,11 +304,15 @@ In the ad’s iframe:
 
 
 ```js
-await window.sharedStorage.worklet.addModule('reach.js');
-await window.sharedStorage.run('send-reach-report', {
-  // optional one-time context
-  data: { campaignId: '1234' },
-});
+try {
+  await window.sharedStorage.worklet.addModule('reach.js');
+  await window.sharedStorage.run('send-reach-report', {
+    // optional one-time context
+    data: { campaignId: '1234' },
+  });
+} catch (error) {
+  // Handle error.
+}
 ```
 
 Worklet script (i.e. `reach.js`):
@@ -293,26 +349,30 @@ If an ad creative has been shown to the user too many times, a different ad shou
 In the advertiser's iframe:
 
 ```js
-// Fetches two ads in a list. The second is the proposed ad to display, and the first 
-// is the fallback in case the second has been shown to this user too many times.
-const ads = await advertiser.getAds();
+try {
+  // Fetches two ads in a list. The second is the proposed ad to display, and the first 
+  // is the fallback in case the second has been shown to this user too many times.
+  const ads = await advertiser.getAds();
 
-// Register the worklet module
-await window.sharedStorage.worklet.addModule('creative-selection-by-frequency.js');
+  // Register the worklet module
+  await window.sharedStorage.worklet.addModule('creative-selection-by-frequency.js');
 
-// Run the URL selection operation
-const frameConfig = await window.sharedStorage.selectURL(
-  'creative-selection-by-frequency', 
-  ads.urls, 
-  { 
-    data: { 
-      campaignId: ads.campaignId 
-    },
-    resolveToConfig: true,
-  });
+  // Run the URL selection operation
+  const frameConfig = await window.sharedStorage.selectURL(
+    'creative-selection-by-frequency', 
+    ads.urls, 
+    { 
+      data: { 
+        campaignId: ads.campaignId 
+      },
+      resolveToConfig: true,
+    });
 
-// Render the frame
-document.getElementById('my-fenced-frame').config = frameConfig;
+  // Render the frame
+  document.getElementById('my-fenced-frame').config = frameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 In the worklet script (`creative-selection-by-frequency.js`):
@@ -357,18 +417,22 @@ Subsequently, anything we've written to `fencedFrameConfig` through `setSharedSt
 In the embedder page:
 
 ```js
-// See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
-const auctionConfig = { ... };
+try {
+  // See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
+  const auctionConfig = { ... };
 
-// Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
-auctionConfig.resolveToConfig = true;
-const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
+  // Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
+  auctionConfig.resolveToConfig = true;
+  const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
-// Write to the config any desired embedder contextual information as a string.
-fencedFrameConfig.setSharedStorageContext("My Event ID 123");
+  // Write to the config any desired embedder contextual information as a string.
+  fencedFrameConfig.setSharedStorageContext("My Event ID 123");
 
-// Navigate the fenced frame to the config.
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+  // Navigate the fenced frame to the config.
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+} catch (error) {
+  // Handle error.
+}
 ```
 
 In the fenced frame (`my-fenced-frame`):
@@ -413,35 +477,39 @@ Callers may wish to run multiple worklet operations from the same context, e.g. 
 As an example, in the embedder page:
 
 ```js
-// Load the worklet module.
-await window.sharedStorage.worklet.addModule('worklet.js');
+try {
+  // Load the worklet module.
+  await window.sharedStorage.worklet.addModule('worklet.js');
 
-// Select a URL, keeping the worklet alive.
-const fencedFrameConfig = await window.selectURL(
-  [
-    {url: "blob:https://a.example/123…"},
-    {url: "blob:https://b.example/abc…"}
-  ],
-  {
+  // Select a URL, keeping the worklet alive.
+  const fencedFrameConfig = await window.selectURL(
+    [
+      {url: "blob:https://a.example/123…"},
+      {url: "blob:https://b.example/abc…"}
+    ],
+    {
+      data: { ... },
+      keepAlive: true,
+      resolveToConfig: true
+    }
+  );
+
+  // Navigate a fenced frame to the resulting config.
+  document.getElementById('my-fenced-frame').config = fencedFrameConfig;
+
+  // Send some report, keeping the worklet alive.
+  await window.sharedStorage.run('report', {
     data: { ... },
     keepAlive: true,
-    resolveToConfig: true
-  }
-);
+  });
 
-// Navigate a fenced frame to the resulting config.
-document.getElementById('my-fenced-frame').config = fencedFrameConfig;
-
-// Send some report, keeping the worklet alive.
-await window.sharedStorage.run('report', {
-  data: { ... },
-  keepAlive: true,
-});
-
-// Send another report, allowing the worklet to close afterwards.
-await window.sharedStorage.run('report', {
-  data: { ... },
-});
+  // Send another report, allowing the worklet to close afterwards.
+  await window.sharedStorage.run('report', {
+    data: { ... },
+  });
+} catch (error) {
+  // Handle error.
+}
 
 // From this point on, if we make any additional worklet calls, they will fail.
 ```
@@ -475,7 +543,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    await sharedStorage.worklet.addModule("https://b.example/worklet.js");
+    try {
+      await sharedStorage.worklet.addModule("https://b.example/worklet.js");
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -485,7 +557,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js");
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js");
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -495,7 +571,11 @@ The first three (3) approaches use the invoking context's origin as the partitio
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "context-origin"});
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://a.example" (i.e. the context origin) will be used.
@@ -508,7 +588,11 @@ The fourth approach uses the worklet script's origin as the partition origin for
     In an "https://a.example" context in the embedder page:
 
     ```
-    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
+    try {
+      const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
+    } catch (error) {
+      // Handle error.
+    }
     ```
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used.
@@ -615,8 +699,21 @@ In the long term, `selectURL()` will leak bits of entropy on top-level navigatio
 
 In the short term, we have event-level reporting and less-restrictive [fenced frames](https://github.com/WICG/fenced-frame), which allow further leakage; thus it is necessary to impose additional limits. On top of the navigation bit budget described above, there will be two more budgets, each maintained on a per top-level navigation basis. The bit values for each call to `selectURL()` are calculated in the same way as detailed for the navigation bit budget.
 
-* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh.
-* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates.
+* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh. Saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
+* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates, and saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
+
+```javascript
+// Assuming that this call to `selectURL()` is the first to use 
+// `savedQuery: "control_or_experiment"` on this page, this call 
+// will be charged to both of the per-page budgets.
+const config1 = await sharedStorage.selectURL("experiment", urls1, {savedQuery: "control_or_experiment", keepAlive: true, resolveToConfig: true});
+document.getElementById("my-fenced-frame1").config = config1;
+
+// This next call will not be charged to either of the 
+// per-page budgets.
+const config2 = await sharedStorage.selectURL("experiment", urls2, {savedQuery: "control_or_experiment", resolveToConfig: true});
+document.getElementById("my-fenced-frame2").config = config2;
+```
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
@@ -628,12 +725,16 @@ In the long term we'd like all reporting via Shared Storage to happen via the Pr
 
 Event level reports work in a way similar to how they work in Protected AUdience. First, when calling selectURL, the caller adds a `reportingMetadata` optional dict to the URLs that they wish to send reports for, such as:
 ```javascript
-sharedStorage.selectURL(
-    "test-url-selection-operation",
-    [{url: "fenced_frames/title0.html"},
-     {url: "fenced_frames/title1.html",
-         reportingMetadata: {'click': "fenced_frames/report1.html",
-             'visible': "fenced_frames/report2.html"}}]);
+try {
+  sharedStorage.selectURL(
+      "test-url-selection-operation",
+      [{url: "fenced_frames/title0.html"},
+       {url: "fenced_frames/title1.html",
+           reportingMetadata: {'click': "fenced_frames/report1.html",
+               'visible': "fenced_frames/report2.html"}}]);
+} catch (error) {
+  // Handle error.
+}
 ```
 In this case, when in the fenced frame, event types are defined for `click` and `visibility`. Once the fenced frame is ready to send a report, it can call something like:
 
