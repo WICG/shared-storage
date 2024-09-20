@@ -72,6 +72,7 @@ spec: webidl; urlPrefix: https://webidl.spec.whatwg.org
         text: async iterator; url: idl-async-iterable
         text: promise; url: idl-promise
         text: promise rejected; url: a-promise-rejected-with
+        text: promise resolved; url: a-promise-resolved-with
 spec: storage; urlPrefix: https://storage.spec.whatwg.org/
     type: dfn
         text: storage model; url: model
@@ -323,17 +324,27 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
     1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
     1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
+    1. Let |globalScope| be |worklet|'s [=global scopes=][0].
+    1. Let |moduleMapKeyTuples| be the result of running [=map/get the keys=] on |globalScope|'s [=relevant settings object=]'s [=module map=].
+    1. [=Assert=]: |moduleMapKeyTuples| has [=map/size=] 1.
+    1. Let |moduleURLRecord| be |moduleMapKeyTuples|[0][0].
+    1. Let |savedQueryName| be |options|["`savedQuery`"].
+    1. If |savedQueryName| is a [=string=] that is not the empty string, then:
+        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, and |savedQueryName|.
+        1. If |savedIndex| is not null, then:
+            1. If |savedIndex| is greater than |urlList|'s [=list/size=], return a [=promise rejected=] with a {{TypeError}}.
+
+                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+            1. Return a [=promise resolved=] with |savedIndex|.
     1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
-        1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
-        1. Let |globalScope| be |worklet|'s [=global scopes=][0].
-        1. [=Assert=]: |globalScope|'s [=relevant settings object=]'s [=module map=] is not [=map/empty=].
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
@@ -354,6 +365,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
@@ -416,7 +428,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
+    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
     1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
@@ -851,7 +863,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <dl dfn-for="bit debit">
     : <dfn>bits</dfn>
-    :: a double
+    :: a {{double}}
 
     : <dfn>timestamp</dfn>
     :: a {{DOMHighResTimeStamp}} (from the [=Unix Epoch=])
@@ -937,10 +949,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <dl dfn-for="shared storage page budget">
     : <dfn>overall budget</dfn>
-    :: a double
+    :: a {{double}}
 
     : <dfn>site budget map</dfn>
-    :: a [=map=] of [=sites=] to doubles
+    :: a [=map=] of [=site=] to {{double}}
+
+    : <dfn>saved query map</dfn>
+    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to {{unsigned long}}
   </dl>
 
 
@@ -963,6 +978,25 @@ navigables</a> section, add the following:
         1. Let |newPageBudget| be a [=shared storage page budget=] with an empty [=shared storage page budget/site budget map=].
         1. Set |newPageBudget|'s [=overall budget=] to [=overall page entropy allowance=].
         1. Set |navigable|'s [=page budget=] to |newPageBudget|.
+
+  #### Saved queries #### {#saved-queries}
+
+  <div algorithm>
+    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, and [=string=] |savedQueryName|:
+
+    1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
+    1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then return null.
+    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)].
+  </div>
+
+  <div algorithm>
+    To <dfn>store the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
+
+    1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
+    1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
+    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to |index|.
+  </div>
 
   #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
 
@@ -1240,6 +1274,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     boolean resolveToConfig = false;
     boolean keepAlive = false;
     SharedStoragePrivateAggregationConfig privateAggregationConfig;
+    DOMString savedQuery;
   };
 
   dictionary SharedStorageWorkletOptions : WorkletOptions {
