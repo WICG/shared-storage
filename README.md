@@ -635,8 +635,8 @@ The fifth through eighth approaches use a custom origin as the partition origin 
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://custom.example" will be used, assuming that the [/.well-known/](#well-known) JSON file at  "https://custom.example/.well-known/shared-storage/trusted-origins" contains an array of dictionaries, where one of its dictionaries has
 
-* the `scriptOrigin` key's value matches "https://a.example" (i.e. value is "https://a.example", "*", or an array of strings containing "https://a.example")
-* the `contextOrigin` key's value matches "https://a.example" (i.e. value is "https://a.example", "*", or an array of strings containing "https://a.example")
+* the `scriptOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
+* the `contextOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
    
     
 6. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to a string whose value is the serialization of the custom origin.
@@ -649,8 +649,8 @@ The fifth through eighth approaches use a custom origin as the partition origin 
 
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://custom.example" will be used, assuming that the [/.well-known/](#well-known) JSON file at  "https://custom.example/.well-known/shared-storage/trusted-origins" contains an array of dictionaries, where one of its dictionaries has
 
-* the `scriptOrigin` key's value matches "https://b.example" (i.e. value is "https://b.example", "*", or an array of strings containing "https://b.example")
-* the `contextOrigin` key's value matches "https://a.example" (i.e. value is "https://a.example", "*", or an array of strings containing "https://a.example")
+* the `scriptOrigin` key's value matches "https://b.example" (i.e. its value is "https://b.example", `"*"`, or an array of strings containing "https://b.example")
+* the `contextOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
 
 
 ### Writing to Shared Storage via response headers
