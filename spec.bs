@@ -955,7 +955,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a [=map=] of [=site=] to {{double}}
 
     : <dfn>saved query map</dfn>
-    :: a [=map=] of [=tuples=] ([=url/origin=], [=/URL=], [=string=], [=string=]) to {{unsigned long}}
+    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to {{unsigned long}}
   </dl>
 
 
