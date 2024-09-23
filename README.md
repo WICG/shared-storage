@@ -175,10 +175,7 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
         *   Supported values for the `dataOrigin` option, if used, are the keywords "script-origin" and "context-origin", as well as any valid serialized HTTPS origin, e.g. "https://custom-data-origin.example". 
             *   "script-origin" designates the worklet script origin as the data partition origin.
             *   "context-origin" (default) designates the invoking context origin as the data partition origin.
-            *   If a valid serialized HTTPS URL is passed as the value for `dataOrigin`, then the origin of the URL parsed from the `dataOrigin` string will be used as the worklet's data partition origin, as long as the URL's origin has opted-in via a [/.well-known/](#well-known) to specify that the worklet script's origin and context origin are trusted.
-    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
-    *   Redirects are not allowed.
-    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin" (or is a valid serialized HTTPS URL that is same-origin to the worklet's script's origin), a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
+            *   A serialized HTTPS origin designates itself as the data partition origin.
     *   When a valid serialized HTTPS URL is passed as the value for `dataOrigin` and the parsed URL's origin is cross-origin to both the invoking context's origin and the worklet script's origin, the parsed URL's origin must host a JSON file at the <a name="well-known">/.well-known/</a> path "/.well-known/shared-storage/trusted-origins" with an array of dictionaries, each with keys `scriptOrigin` and `contextOrigin`. The values for these keys should be either a string or an array of strings.
         *   A string value should be either a serialized origin or "*", where "*" matches all origins.
         *   A value that is an array of strings should be a list of serialized origins. 
@@ -199,6 +196,9 @@ The shared storage worklet invocation methods (`addModule`, `run`, and `selectUR
                 }
               ]
             ```
+    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
+    *   Redirects are not allowed.
+    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin" (or is a valid serialized HTTPS URL that is same-origin to the worklet's script's origin), a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
     *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
         *   Note that for the script server's infomation, the request header "Sec-Shared-Storage-Data-Origin" will be included with the value of the serialized data partition origin to be used if the data partition origin is cross-origin to the invoking context's origin.
 
