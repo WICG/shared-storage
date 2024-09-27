@@ -446,7 +446,7 @@ The [Private Aggregation](https://github.com/patcg-individual-drafts/private-agg
 
 ### Select URL
 
-The [selectURL](https://github.com/WICG/shared-storage/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
+The [selectURL](https://github.com/WICG/shared-storage/blob/main/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
