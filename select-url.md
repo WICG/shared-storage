@@ -1,8 +1,8 @@
 # selectURL API Explainer
 
-For browser users that have third-party cookies disabled, third parties on the page might still want to select content to show those users based on cross-site data in a privacy-positive way.  For instance, they may want to a/b test their third-party embed consistently for a user across sites. Or, they may want to show a different login button for users that are known to have an account vs those that don’t. 
+For browser users that have third-party cookies disabled, third parties on the page might still want to select content to show those users based on cross-site data in a privacy-positive way.  For instance, they may want to a/b test their third-party embed consistently for a user across sites. Or, they may want to show a different login button for users that are known to have an account vs those that don’t.
 
-The `selectURL` API is designed for such use cases. It allows the caller to choose between a set of URLs based on third-party data. The API is built on top of [shared storage](https://github.com/WICG/shared-storage) and uses a shared storage worklet to read the available cross-site data and select one of the given URLs. The selected URL is returned to the caller in an opaque fashion, such that it can’t be read except within a [fenced frame](https://github.com/WICG/fenced-frame/tree/master/explainer). 
+The `selectURL` API is designed for such use cases. It allows the caller to choose between a set of URLs based on third-party data. The API is built on top of [shared storage](https://github.com/WICG/shared-storage) and uses a shared storage worklet to read the available cross-site data and select one of the given URLs. The selected URL is returned to the caller in an opaque fashion, such that it can’t be read except within a [fenced frame](https://github.com/WICG/fenced-frame/tree/master/explainer).
 
 This means that the selected URL needs to be fenced frame compatible, and not communicate with the page it’s embedded on, save for say a click notification.
 
@@ -14,7 +14,7 @@ A third-party, `a.example`, wants to randomly assign users to different groups (
 
 To do so, `a.example` writes a seed to its shared storage (which is not added if already present). `a.example` then registers and runs an operation in the shared storage [worklet](https://developer.mozilla.org/en-US/docs/Web/API/Worklet) that assigns the user to a group based on the seed and the experiment name and chooses the appropriate ad for that group.
 
-In an `a.example` document: 
+In an `a.example` document:
 
 
 ```js
@@ -25,7 +25,7 @@ try {
   // Only write a cross-site seed to a.example's storage if there isn't one yet.
   window.sharedStorage.set('seed', generateSeed(), { ignoreIfPresent: true });
 
-  // Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by 
+  // Fenced frame config contains an opaque form of the URL (urn:uuid) that is created by
   // privileged code to avoid leaking the chosen input URL back to the document.
 
   const fencedFrameConfig = await window.sharedStorage.selectURL(
@@ -35,14 +35,14 @@ try {
       {url: "blob:https://b.example/abc…", reportingMetadata: {"click": "https://report.example/a..."}},
       {url: "blob:https://c.example/789…"}
     ],
-    { 
-      data: { name: 'experimentA' }, 
+    {
+      data: { name: 'experimentA' },
       resolveToConfig: true
     }
   );
 
   document.getElementById('my-fenced-frame').config = fencedFrameConfig;
-} catch (error) { 
+} catch (error) {
     // Error handling
 }
 ```
@@ -63,7 +63,7 @@ class SelectURLOperation {
 register('select-url-for-experiment', SelectURLOperation);
 ```
 
-## Demonstration 
+## Demonstration
 
 You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (currently in canary and dev channels as of June 7th 2022).
 
@@ -71,21 +71,21 @@ You can [try it out](https://shared-storage-demo.web.app/) using Chrome 104+ (cu
 
 ## Fenced frame enforcement
 
-The usage of fenced frames with the URL Selection operation will not be required until at least 2026. We will provide significant advanced notice before the fenced frame usage is required. Until 2026, you are free to use an iframe with URL Selection instead of a fenced frame. 
+The usage of fenced frames with the URL Selection operation will not be required until at least 2026. We will provide significant advanced notice before the fenced frame usage is required. Until 2026, you are free to use an iframe with URL Selection instead of a fenced frame.
 
-To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe. 
+To use an iframe, omit passing in the `resolveToConfig` flag or set it to `false`, and set the returned opaque URN to the `src` attribute of the iframe.
 
 ```js
 try {
   const opaqueURN = await window.sharedStorage.selectURL(
     'select-url-for-experiment',
-    { 
-      data: { ... } 
+    {
+      data: { ... }
     }
   );
 
   document.getElementById('my-iframe').src = opaqueURN;
-} catch (error) { 
+} catch (error) {
     // Error handling
 }
 ```
@@ -96,16 +96,16 @@ try {
 
 * The `name` and `options` parameters are similar to those found in `window.sharedStorage.worklet.run`. The primary difference is the urls input parameter which lists the URLs to select from, and the fact that the worklet operation must choose one of them by returning an integer index.
 * `urls` is a list of dictionaries, each containing a candidate URL `url` and optional reporting metadata (a dictionary, with the key being the event type and the value being the reporting URL; identical to Protected Audience's [registerAdBeacon()](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md#registeradbeacon) parameter), with a max length of 8.
-  
+
   * The `url` of the first dictionary in the list is the `default URL`. This is selected if there is a script error, or if there is not enough budget remaining.
 
 *  `savedQuery` (a string) is the name of a query to be saved or reused on the same page load. The first time `selectURL` is run with a `savedQuery` name on a page, the returned index will be remembered and associated with that name. Subsequent calls with the same name will return the same index (but it can be for a different set of URLs). Note, saved queries are stored per-page-load but work across frames on the same page.
     *   If the value of `savedQuery` is nonempty and has not previously been associated with a [result index](#result-index) for call to `selectURL()` on the same page, and if the call to `selectURL()` succeeds:
         *    The pair of (`savedQuery`, [`index`](#result-index)) will be stored for the lifetime of the page.
         *    The shared storage data origin's site can reuse the query from anywhere within the page.
-    *   If the value of `savedQuery` is nonempty and has previously been associated with a [result index](#result-index) for a call to `selectURL()` on the same page, then: 
+    *   If the value of `savedQuery` is nonempty and has previously been associated with a [result index](#result-index) for a call to `selectURL()` on the same page, then:
         *    Instead of running the registered JavaScript operation, `selectURL()` will use the stored [result index](#result-index) associated with the value of `savedQuery` to choose the selected URL.
-        *    The [short-term per-page budgets](#Short-Term-Budgets) will not be charged.    
+        *    The [short-term per-page budgets](#Short-Term-Budgets) will not be charged.
 
   * The reporting metadata will be used in the short-term to allow event-level reporting via `window.fence.reportEvent()` as described in the [Protected Audience explainer](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md).
 
@@ -124,7 +124,7 @@ If an ad creative has been shown to the user too many times, a different ad shou
 In the advertiser's iframe:
 
 ```js
-// Fetches two ads in a list. The second is the proposed ad to display, and the first 
+// Fetches two ads in a list. The second is the proposed ad to display, and the first
 // is the fallback in case the second has been shown to this user too many times.
 const ads = await advertiser.getAds();
 
@@ -134,18 +134,18 @@ try {
 
   // Run the URL selection operation
   const frameConfig = await window.sharedStorage.selectURL(
-    'creative-selection-by-frequency', 
-    ads.urls, 
-    { 
-      data: { 
-        campaignId: ads.campaignId 
+    'creative-selection-by-frequency',
+    ads.urls,
+    {
+      data: {
+        campaignId: ads.campaignId
       },
       resolveToConfig: true,
     });
 
   // Render the frame
   document.getElementById('my-fenced-frame').config = frameConfig;
-} catch (error) { 
+} catch (error) {
   // Error handling
 }
 ```
@@ -158,14 +158,16 @@ class CreativeSelectionByFrequencyOperation {
     // By default, return the default url (0th index).
     let index = 0;
 
-    let count = await sharedStorage.get(data.campaignId);
-    count = count ? parseInt(count) : 0;
+    await navigator.locks.request("creation-selection-by-frequency-lock", async (lock) => {
+      let count = await sharedStorage.get(data.campaignId);
+      count = count ? parseInt(count) : 0;
 
-    // If under cap, return the desired ad.
-    if (count < 3) {
-      index = 1;
-      sharedStorage.set(data.campaignId, (count + 1).toString());
-    }
+      // If under cap, return the desired ad.
+      if (count < 3) {
+        index = 1;
+        sharedStorage.set(data.campaignId, (count + 1).toString());
+      }
+    });
 
     return index;
   }
@@ -216,17 +218,17 @@ In the long term, `selectURL()` will leak bits of entropy on top-level navigatio
 
 In the short term, we have event-level reporting and less-restrictive [fenced frames](https://github.com/WICG/fenced-frame), which allow further leakage; thus it is necessary to impose additional limits. On top of the navigation bit budget described above, there will be two more budgets, each maintained on a per top-level navigation basis. The bit values for each call to `selectURL()` are calculated in the same way as detailed for the navigation bit budget.
 
-* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh. Saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
-* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates, and saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load. 
+* Each page load will have a per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) bit budget of 6 bits for `selectURL()` calls. At the start of a new top-level navigation, this budget will refresh. Saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load.
+* Each page load will also have an overall bit budget of 12 bits for `selectURL()`. This budget will be contributed to by all sites on the page. As with the per-[site](https://html.spec.whatwg.org/multipage/browsers.html#site) per-page load bit budget, this budget will refresh when the top frame navigates, and saved queries named with the `savedQuery` option will only be charged against the budget on their initial use, not on any subsequent re-uses within the same page load.
 
 ```js
 try {
-  // Assuming that this call to `selectURL()` is the first to use 
-  // `savedQuery: "control_or_experiment"` on this page, this call 
+  // Assuming that this call to `selectURL()` is the first to use
+  // `savedQuery: "control_or_experiment"` on this page, this call
   // will be charged to both of the per-page budgets.
   const config1 = await sharedStorage.selectURL("experiment", urls1, {savedQuery: "control_or_experiment", keepAlive: true, resolveToConfig: true});
   document.getElementById("my-fenced-frame1").config = config1;
-  // This next call will not be charged to either of the 
+  // This next call will not be charged to either of the
   // per-page budgets.
   const config2 = await sharedStorage.selectURL("experiment", urls2, {savedQuery: "control_or_experiment", resolveToConfig: true});
   document.getElementById("my-fenced-frame2").config = config2;
@@ -257,7 +259,7 @@ In this case, when in the fenced frame, event types are defined for `click` and 
 
 ```javascript
 window.fence.reportEvent({eventType: 'visible',
-    eventData: JSON.stringify({'duration': duration}), 
+    eventData: JSON.stringify({'duration': duration}),
     destination: ['shared-storage-select-url']});
 ```
 and it will send a POST message with the eventData. See the [fenced frame reporting document](https://github.com/WICG/turtledove/blob/main/Fenced_Frames_Ads_Reporting.md) for more details.
@@ -269,4 +271,3 @@ When `sharedStorage.selectURL()` doesn’t return a valid output (including thro
 ## Preventing timing attacks
 
 Revealing the time an operation takes to run could also leak information. We avoid this by having `sharedStorage.selectURL()` immediately return the promise which later resolves into an [fenced frame config](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) that contains the opaque URL that is mapped to the selected URL once the operation completes. A Fenced Frame can be created with the returned fenced frame config even before the selectURL operation has completed. The frame will wait for it to complete first.  Similarly, outside a worklet, `set()`, `remove()`, etc. return promises that resolve after queueing the writes. Inside a worklet, these writes join the same queue but their promises only resolve after completion.
-

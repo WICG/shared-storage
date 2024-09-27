@@ -24,10 +24,10 @@ The [Private Aggregation](https://github.com/patcg-individual-drafts/private-agg
 
 ### Select URL
 
-The [selectURL](https://github.com/WICG/shared-storage/blob/main/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
+The [selectURL](https://github.com/WICG/shared-storage/blob/main/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information.
 
 
-## Demonstration 
+## Demonstration
 
 You can [try out](https://shared-storage-demo.web.app/) Shared Storage along with some APIs built for it using Chrome 104+.
 
@@ -45,7 +45,7 @@ try {
     // Error handling
 }
 ```
-And `Shared Storage` will only write the value if the key is not already present. 
+And `Shared Storage` will only write the value if the key is not already present.
 
 ### Example 2: Writing to Shared Storage via a worklet
 
@@ -55,7 +55,7 @@ In the event that `ignoreIfPresent` is not sufficient, and you need to read your
 try {
     const worklet = sharedStorage.createWorklet('https://site.example/writerWorklet.js');
     worklet.run('write', {data: {group: Math.floor(Math.random() * 1000)}});
-} catch (error) { 
+} catch (error) {
     // Error handling
 }
 ```
@@ -76,9 +76,9 @@ register('write', Writer);
 ```
 
 ### Example 3: Writing to Shared Storage with response headers
-It may be faster and more convenient to write to Shared Storage directly from response headers than from JavaScript. This is encouraged in cases where data is coming from a server anyway as it's faster and less intensive than JavaScript methods if you're writing to an origin other than the current document's origin. 
+It may be faster and more convenient to write to Shared Storage directly from response headers than from JavaScript. This is encouraged in cases where data is coming from a server anyway as it's faster and less intensive than JavaScript methods if you're writing to an origin other than the current document's origin.
 
-Response headers can be used on document, image, and fetch requests. 
+Response headers can be used on document, image, and fetch requests.
 
 e.g.,:
 ```html
@@ -97,7 +97,7 @@ e.g.,:
 ```js
 try {
     window.sharedStorage.append('count', '1');
-} catch (error) { 
+} catch (error) {
     // Error handling
 }
 ```
@@ -116,7 +116,7 @@ register('count', Counter);
 
 ## Goals
 
-This API intends to support the storage and access needs for a wide array of cross-site data use cases. This prevents each API from having to create its own bespoke storage APIs. 
+This API intends to support the storage and access needs for a wide array of cross-site data use cases. This prevents each API from having to create its own bespoke storage APIs.
 
 
 ## Related work
@@ -138,24 +138,31 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   `key` and `value` are both strings.
     *   Options include:
         *   `ignoreIfPresent` (defaults to false): if true, a `key`’s entry is not updated if the `key` already exists. The embedder is not notified which occurred.
-*   `window.sharedStorage.append(key, value)`
+        * `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.append(key, value, options)`
     *   Appends `value` to the entry for `key`. Equivalent to `set` if the `key` is not present.
-*   `window.sharedStorage.delete(key)`
+    *   Options include:
+        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.delete(key, options)`
     *   Deletes the entry at the given `key`.
-*   `window.sharedStorage.clear()`
+    *   Options include:
+        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.clear(options)`
     *   Deletes all entries.
+    *   Options include:
+        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
     *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data (for the invoking origin) will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
-    *   `url`'s origin need not match that of the context that invoked `addModule(url)`. 
+    *   `url`'s origin need not match that of the context that invoked `addModule(url)`.
         *   If `url` is cross-origin to the invoking context, the worklet will use the invoking context's origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
-        *   Also, for a cross-origin`url`, the CORS protocol applies. 
+        *   Also, for a cross-origin`url`, the CORS protocol applies.
     *   Redirects are not allowed.
 *   `window.sharedStorage.worklet.run(name, options)`
     *   Runs the operation previously registered by `register()` with matching `name`. Does nothing if there’s no matching operation.
     *   Returns a promise that resolves to `undefined` when the operation is queued:
     *   Options can include:
-        *   `data`, an arbitrary serializable object passed to the worklet. 
+        *   `data`, an arbitrary serializable object passed to the worklet.
         *   `keepAlive` (defaults to false), a boolean denoting whether the worklet should be retained after it completes work for this call.
             *   If `keepAlive` is false or not specified, the worklet will shutdown as soon as the operation finishes and subsequent calls to it will fail.
             *   To keep the worklet alive throughout multiple calls to `run()`, each of those calls must include `keepAlive: true` in the `options` dictionary.
@@ -187,7 +194,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Returns a promise that resolves into the number of keys.
 *   `sharedStorage.keys()` and `sharedStorage.entries()`
     *   Returns an async iterator for all the stored keys or [key, value] pairs, sorted in the underlying key order.
-*   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
+*   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value, options)`, `sharedStorage.delete(key, options)`, and `sharedStorage.clear(options)`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
@@ -206,10 +213,13 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
             *   The approximate size of the contents of this interest group, in bytes.
     *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
     *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
+*   `navigator.locks.request(resource, callback)` and `navigator.locks.request(resource, options, callback)`
+    *   Acquires a lock on `resource` and invokes `callback` with the lock held. See the [request](https://w3c.github.io/web-locks/#dom-lockmanager-request) method in Web Locks API for details.
+    *   Lock Scope: shared storage locks are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a Window or Worker context.
 *   Functions exposed by APIs built on top of Shared Storage such as the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
-    *   After a Shared Storage operation has been running for 5 seconds, Private Aggregation contributions are timed out. Any future contributions are ignored and contributions already made are sent in a report as if the Shared Storage operation had completed. 
+    *   After a Shared Storage operation has been running for 5 seconds, Private Aggregation contributions are timed out. Any future contributions are ignored and contributions already made are sent in a report as if the Shared Storage operation had completed.
 
 
 ### From response headers
@@ -222,11 +232,12 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
         *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
+        *   `set(<key>, <value>, {withLockOnResource: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock_on_resource=<resource>`
         *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
         *   `clear()` &larr;&rarr; `clear`
-    *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). 
+    *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
         *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
         *   To pass a key and/or value that contains non-ASCII and/or non-printable [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   A [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) is delimited with colons and encoded using [base64](https://www.rfc-editor.org/rfc/rfc4648.html).
@@ -237,8 +248,8 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
 *  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Sec-Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
-*  The request header can alternatively be sent on document or image requests either 
-    *   via specifying a boolean content attribute, e.g.: 
+*  The request header can alternatively be sent on document or image requests either
+    *   via specifying a boolean content attribute, e.g.:
         *   `<iframe src=[url] sharedstoragewritable></iframe>`
         *    `<img src=[url] sharedstoragewritable>`
     *   or via an equivalent boolean IDL attribute, e.g.:
@@ -251,13 +262,84 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
 *  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
 
+### Locking for Modifier Methods
+
+All modifier methods (`set`, `append`, `delete`, `clear`), whether invoked from JavaScript or from response headers, accept a `withLockOnResource: <resource>` option. This option instructs the method to acquire a lock on the designated resource before executing.
+
+The locks requested this way are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a Window or Worker context. Note that they share the same scope with the locks obtained via `navigator.locks.request` in the SharedStorageWorklet context.
+
+Unlike `navigator.locks.request`, which offers various configuration options, the locks requested this way always use the default settings:
+*  `mode: "exclusive"`: The lock is never shared with other locks.
+*  `steal: false`: The lock will not preempt other locks.
+*  `ifAvailable: false`: If the lock is currently held by others, keep waiting and don't skip.
+
+#### Example: Naive Integrity Check
+
+This naive example uses a lock to ensure that the integrity check within the worklet runs atomically, preventing interference from other operations, such as `sharedStorage.set()` outside the worklet.
+
+Window context:
+
+```js
+try {
+  sharedStorage.set('key', generateRandom(), {withLockOnResource: 'naive-integrity-check-lock'});
+
+  await window.sharedStorage.worklet.addModule('naive-integrity-check-script.js');
+  await window.sharedStorage.worklet.run('naive-integrity-check');
+} catch (error) {
+  // Handle error.
+}
+```
+
+In the worklet script (`naive-integrity-check-script.js`):
+
+```js
+class NaiveIntegrityCheckOperation {
+  async run(data) {
+    await navigator.locks.request("naive-integrity-check-lock", async (lock) => {
+      if (await sharedStorage.get('key') != await sharedStorage.get('key')) {
+        throw Error('Invalid state!');
+      }
+    });
+  }
+}
+register('naive-integrity-check', NaiveIntegrityCheckOperation);
+```
+
+#### Caveat 1: Unexpected ordering
+
+Modifier methods may block due to the lock, so may not execute in the order they appear in the code.
+
+```js
+// Resolve immediately. Internally, this may block to wait for the lock to be granted.
+sharedStorage.set('key0', 'value1', { withLockOnResource: 'resource0' });
+
+// Resolve immediately. Internally, this will also execute immediately.
+sharedStorage.set('key0', 'value2');
+```
+
+Developers should be mindful of this potential ordering issue.
+
+#### Caveat 2: No atomicity for multiple writes
+
+The `withLockOnResource` option provides locking for individual methods but doesn't guarantee atomicity across multiple methods.
+
+Developers should be mindful of this limitation. To get around, consider one of these options:
+1.  Move the modifier methods inside the worklet. This allows a single lock to protect them.
+2.  Place the data under the same key and modify it within a single method, which is inherently atomic.
+
+### Recommendations for lock usage
+
+If the worklet performs only a single read or write, the lock is unnecessary (both inside and outside the worklet) because each read or write is inherently atomic. Example: [A/B experiment](https://github.com/WICG/shared-storage/blob/main/select-url.md#simple-example-consistent-ab-experiments-across-sites).
+
+If the worklet performs both read and write on the same key, the lock is likely necessary. Example: [creative selection by frequency](https://github.com/WICG/shared-storage/blob/main/select-url.md#a-second-example-ad-creative-selection-by-frequency).
+
 ### Reporting embedder context
 
 In using the [Private Aggregation API](https://github.com/patcg-individual-drafts/private-aggregation-api) to report on advertisements within [fenced frames](https://github.com/wicg/fenced-frame/), for instance, we might report on viewability, performance, which parts of the ad the user engaged with, the fact that the ad showed up at all, and so forth. But when reporting on the ad, it might be important to tie it to some contextual information from the embedding publisher page, such as an event-level ID.
 
-In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [Protected Audience auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.  
+In a scenario where the input URLs for the [fenced frame](https://github.com/wicg/fenced-frame/) must be k-anonymous, e.g. if we create a [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) from running a [Protected Audience auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#2-sellers-run-on-device-auctions), it would not be a good idea to rely on communicating the event-level ID to the [fenced frame](https://github.com/wicg/fenced-frame/) by attaching an identifier to any of the input URLs, as this would make it difficult for any input URL(s) with the attached identifier to reach the k-anonymity threshold.
 
-Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below. 
+Instead, before navigating the [fenced frame](https://github.com/wicg/fenced-frame/) to the auction's winning [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) `fencedFrameConfig`, we could write the event-level ID to `fencedFrameConfig` using `fencedFrameConfig.setSharedStorageContext()` as in the example below.
 
 Subsequently, anything we've written to `fencedFrameConfig` through `setSharedStorageContext()` prior to the fenced frame's navigation to `fencedFrameConfig`, can be read via `sharedStorage.context` from inside a shared storage worklet created by the [fenced frame](https://github.com/wicg/fenced-frame/), or created by any of its same-origin children.
 
@@ -267,7 +349,7 @@ In the embedder page:
 // See https://github.com/WICG/turtledove/blob/main/FLEDGE.md for how to write an auction config.
 const auctionConfig = { ... };
 
-// Run a Protected Audience auction, setting the option to "resolveToConfig" to true. 
+// Run a Protected Audience auction, setting the option to "resolveToConfig" to true.
 auctionConfig.resolveToConfig = true;
 const fencedFrameConfig = await navigator.runAdAuction(auctionConfig);
 
@@ -290,9 +372,9 @@ try {
     await window.sharedStorage.run('send-report', {
     data: { info: frameInfo },
     });
-} catch (error) { 
+} catch (error) {
     // Error handling
-}    
+}
 ```
 
 In the worklet script (`report.js`):
@@ -300,12 +382,12 @@ In the worklet script (`report.js`):
 ```js
 class ReportingOperation {
   async run(data) {
-    // Helper functions that map the embedder context to a predetermined bucket and the 
-    // frame info to an appropriately-scaled value. 
+    // Helper functions that map the embedder context to a predetermined bucket and the
+    // frame info to an appropriately-scaled value.
     // See also https://github.com/patcg-individual-drafts/private-aggregation-api#examples
     function convertEmbedderContextToBucketId(context) { ... }
     function convertFrameInfoToValue(info) { ... }
-    
+
     // The user agent sends the report to the reporting endpoint of the script's
     // origin (that is, the caller of `sharedStorage.run()`) after a delay.
     privateAggregation.contributeToHistogram({
@@ -323,9 +405,9 @@ Callers may wish to run multiple worklet operations from the same context, e.g. 
 
 ### Writing to Shared Storage via response headers
 
-For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below. 
+For an origin making changes to their Shared Storage data at a point when they do not need to read the data, an alternative to using the Shared Storage JavaScript API is to trigger setter and/or deleter operations via the HTTP response header `Shared-Storage-Write` as in the examples below.
 
-In order to perform operations via response header, the origin must first opt-in via one of the methods below, causing the HTTP request header `Sec-Shared-Storage-Writable: ?1` to be added by the user agent if the request is eligible based on permissions checks. 
+In order to perform operations via response header, the origin must first opt-in via one of the methods below, causing the HTTP request header `Sec-Shared-Storage-Writable: ?1` to be added by the user agent if the request is eligible based on permissions checks.
 
 An origin `a.example` could initiate such a request in multiple ways.
 
@@ -367,7 +449,7 @@ There are currently four (4) approaches to creating a worklet that loads cross-o
 #### Using the context origin as data partition origin
 The first three (3) approaches use the invoking context's origin as the partition origin for shared storage data access and the invoking context's site for shared storage budget withdrawals.
 
-1. Call `addModule()` with a cross-origin script. 
+1. Call `addModule()` with a cross-origin script.
 
     In an "https://a.example" context in the embedder page:
 
@@ -414,7 +496,7 @@ The fourth approach uses the worklet script's origin as the partition origin for
 ## Error handling
 Note that the shared storage APIs may throw for several possible reasons. The following list of situations is not exhaustive, but, for example, the APIs may throw if the site invoking the API is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and/or [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), if the user has disabled shared storage in site settings, if the "shared-storage" or "shared-storage-select-url" permissions policy denies access, or if one of its arguments is invalid.
 
-We recommend handling exceptions. This can be done by wrapping `async..await` calls to shared storage JS methods in `try...catch` blocks, or by following calls that are not awaited with `.catch`: 
+We recommend handling exceptions. This can be done by wrapping `async..await` calls to shared storage JS methods in `try...catch` blocks, or by following calls that are not awaited with `.catch`:
 
   ```js
   try {
@@ -445,7 +527,7 @@ The permissions policy inside the shared storage worklet will inherit the permis
 Each key is cleared after thirty days of last write (`set` or `append` call). If `ignoreIfPresent` is true, the last write time is updated.
 
 ## Data Storage Limits
-Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit the per-origin total key and value bytes to 5MB. 
+Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit the per-origin total key and value bytes to 5MB.
 
 
 ## Privacy
