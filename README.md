@@ -25,7 +25,11 @@ Since Shared Storage is meant for writing from anywhere, but reading is tightly 
 For example, let's say that you wanted to add a user to an experiment group, with a random assignment. But you want that group assignment to be sticky for the user across all of the sites that they visit that your third-party script is on. You may not know if you've ever written this key from this site before, but you certainly don't know if you've set it from another site. To solve this issue, utilize the  `ignoreIfPresent` option.
 
 ```js
-sharedStorage.set('group', Math.floor(Math.random() * 1000), { ignoreIfPresent: true });
+try {
+    sharedStorage.set('group', Math.floor(Math.random() * 1000), { ignoreIfPresent: true });
+} catch (error) {
+    // Error handling
+}
 ```
 And `Shared Storage` will only write the value if the key is not already present. 
 
@@ -34,8 +38,12 @@ And `Shared Storage` will only write the value if the key is not already present
 In the event that `ignoreIfPresent` is not sufficient, and you need to read your existing `Shared Storage` data before adding new data, consider passing the information that you want to record to a worklet, and letting the worklet read the existing data and perform the write. Like so:
 
 ```js
-const worklet = sharedStorage.createWorklet('https://site.example/writerWorklet.js');
-worklet.run('write', {data: {group: Math.floor(Math.random() * 1000)}});
+try {
+    const worklet = sharedStorage.createWorklet('https://site.example/writerWorklet.js');
+    worklet.run('write', {data: {group: Math.floor(Math.random() * 1000)}});
+} catch (error) { 
+    // Error handling
+}
 ```
 
 And your `writerWorklet.js` script would look like this:
@@ -73,7 +81,11 @@ To count the number of times the user has viewed your third-party content, consi
 
 e.g.,:
 ```js
-window.sharedStorage.append('count', '1');
+try {
+    window.sharedStorage.append('count', '1');
+} catch (error) { 
+    // Error handling
+}
 ```
 
 Then, sometime later in your worklet, you can get the total count:
@@ -166,6 +178,20 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
     *   If no contextual information string had been written for the given frame, returns undefined.
+*   `interestGroups()`
+    *   Returns a promise that resolves into an array of `StorageInterestGroup`. A `StorageInterestGroup` is a dictionary that extends the [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup) dictionary with the following attributes:
+        *   unsigned long long `joinCount`
+        *   unsigned long long `bidCount`
+        *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `prevWinsMs`
+        *   USVString `joiningOrigin`
+        *   double `timeSinceGroupJoinedMs`
+        *   double `lifetimeRemainingMs`
+        *   double `timeSinceLastUpdateMs`
+        *   double `timeUntilNextUpdateMs`
+        *   unsigned long long `estimatedSize`
+            *   The approximate size of the contents of this interest group, in bytes.
+    *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
+    *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
 *   Functions exposed by APIs built on top of Shared Storage such as the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -245,10 +271,14 @@ In the fenced frame (`my-fenced-frame`):
 const frameInfo = { ... };
 
 // Send a report using shared storage and private aggregation.
-await window.sharedStorage.worklet.addModule('report.js');
-await window.sharedStorage.run('send-report', {
-  data: { info: frameInfo },
-});
+try {
+    await window.sharedStorage.worklet.addModule('report.js');
+    await window.sharedStorage.run('send-report', {
+    data: { info: frameInfo },
+    });
+} catch (error) { 
+    // Error handling
+}    
 ```
 
 In the worklet script (`report.js`):
@@ -367,6 +397,25 @@ The fourth approach uses the worklet script's origin as the partition origin for
     For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used.
 
 
+## Error handling
+Note that the shared storage APIs may throw for several possible reasons. The following list of situations is not exhaustive, but, for example, the APIs may throw if the site invoking the API is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and/or [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), if the user has disabled shared storage in site settings, if the "shared-storage" or "shared-storage-select-url" permissions policy denies access, or if one of its arguments is invalid.
+
+We recommend handling exceptions. This can be done by wrapping `async..await` calls to shared storage JS methods in `try...catch` blocks, or by following calls that are not awaited with `.catch`: 
+
+  ```js
+  try {
+    await window.sharedStorage.worklet.addModule('worklet.js');
+  } catch (error) {
+    // Handle error.
+  }
+  ```
+
+  ```js
+  window.sharedStorage.worklet.addModule('worklet.js')
+    .catch((error) => {
+    // Handle error.
+  });
+  ```
 ## Worklets can outlive the associated document
 
 After a document dies, the corresponding worklet (if running an operation) will continue to be kept alive for a maximum of two seconds to allow the pending operation(s) to execute. This gives more confidence that any end-of-page operations (e.g. reporting) are able to finish.
