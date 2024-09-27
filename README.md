@@ -13,7 +13,21 @@ Shared Storage is a key/value store that is partitioned by calling origin (but n
 
 See the [draft specification](https://wicg.github.io/shared-storage/).
 
-### Demonstration 
+## APIs built on top of Shared Storage
+
+This document only describes the core shared storage framework and infrastructure to store cross-site data privately and to read that data from within a secure worklet environment. APIs that use shared storage's data to produce some output are linked to below.
+
+### Private Aggregation
+
+The [Private Aggregation](https://github.com/patcg-individual-drafts/private-aggregation-api) API allows for aggregated histograms to be sent based on data read from shared storage. The histograms are differentially private.
+
+
+### Select URL
+
+The [selectURL](https://github.com/WICG/shared-storage/blob/main/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
+
+
+## Demonstration 
 
 You can [try out](https://shared-storage-demo.web.app/) Shared Storage along with some APIs built for it using Chrome 104+.
 
@@ -434,28 +448,15 @@ Each key is cleared after thirty days of last write (`set` or `append` call). If
 Shared Storage is not subject to the quota manager, as that would leak information across sites. Therefore we limit the per-origin total key and value bytes to 5MB. 
 
 
-## APIs built on top of Shared Storage
+## Privacy
 
-
-The privacy properties of shared storage are enforced through limited output. So we must protect against any unintentional output channels, as well as against abuse of the intentional output channels.
-
-
-### Private Aggregation
-
-The [Private Aggregation](https://github.com/patcg-individual-drafts/private-aggregation-api) allows for data read from Shared Storage worklets to be sent as aggregated histogram reports with differential privacy protecting the payload.
-
-### Select URL
-
-The [selectURL](https://github.com/WICG/shared-storage/blob/main/select-url.md) API allows for content selection based on cross-site data. It takes 8 possible URLs as input and sends them to a worklet which selects from a small list of URLs. The chosen URL is stored in a fenced frame config as an opaque form that can only be read by a [fenced frame](https://github.com/WICG/fenced-frame); the embedder does not learn this information. 
+Shared Storage prevents privacy side-channel leaks when writing data and creating worklets by immediately returning and not exposing the time it takes for the underlying operation to run. The APIs that can read data from Shared Storage have their own privacy documentation.
 
 #### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
 
 For each method in the Shared Storage API surface, a check will be performed to determine whether the calling [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations). In the case where the [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), the promise returned by the method is rejected.
 
-### Preventing timing attacks
-
-Revealing the time an operation takes to run could also leak information. We avoid this by having `sharedStorage.run()` queue the operation and then immediately resolve the returned promise. 
 
 ## Possibilities for extension
 
