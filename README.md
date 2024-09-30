@@ -532,9 +532,7 @@ Shared Storage is not subject to the quota manager, as that would leak informati
 
 ## Privacy
 
-Shared Storage makes sure leaking can only happen via privacy-preserving APIs, and not via other side channels.
-
-#### Preventing Side-Channel Leaks
+Shared Storage takes the following protective measures to prevent its stored data from being read by means other than via approved APIs (e.g., via side channels):
 
 - **Concealed Operation Time and Errors**: When writing data or running worklet operations from the Window scope, the method returns immediately and will not expose errors that might arise from reading shared storage data.
 
@@ -542,7 +540,7 @@ Shared Storage makes sure leaking can only happen via privacy-preserving APIs, a
 
 - **Isolated Locks**: Locks requested for Shared Storage are completely separate from locks requested from the Window scope. This prevents information leakage through lock contention.
 
-#### Privacy-Preserving APIs
+### Privacy-Preserving APIs
 
 The APIs that can read data from Shared Storage have their own privacy documentation.
 
