@@ -138,19 +138,19 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   `key` and `value` are both strings.
     *   Options include:
         *   `ignoreIfPresent` (defaults to false): if true, a `key`’s entry is not updated if the `key` already exists. The embedder is not notified which occurred.
-        * `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+        * `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.append(key, value, options)`
     *   Appends `value` to the entry for `key`. Equivalent to `set` if the `key` is not present.
     *   Options include:
-        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.delete(key, options)`
     *   Deletes the entry at the given `key`.
     *   Options include:
-        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.clear(options)`
     *   Deletes all entries.
     *   Options include:
-        *   `withLockOnResource`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
     *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data (for the invoking origin) will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
@@ -214,8 +214,8 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
     *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
 *   `navigator.locks.request(resource, callback)` and `navigator.locks.request(resource, options, callback)`
-    *   Acquires a lock on `resource` and invokes `callback` with the lock held. See the [request](https://w3c.github.io/web-locks/#dom-lockmanager-request) method in Web Locks API for details.
-    *   Lock Scope: shared storage locks are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a Window or Worker context.
+    *   Acquires a lock on `resource` and invokes `callback` with the lock held. `navigator.locks` returns a `LockManager` as it does in a `Window`. See the [request](https://w3c.github.io/web-locks/#dom-lockmanager-request) method in Web Locks API for details.
+    *   Lock Scope: shared storage locks are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a `Window` or `Worker` context. This prevents contention between shared storage locks and other locks, ensuring that shared storage data cannot be inadvertently leaked.
 *   Functions exposed by APIs built on top of Shared Storage such as the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -232,7 +232,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
         *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
-        *   `set(<key>, <value>, {withLockOnResource: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock_on_resource=<resource>`
+        *   `set(<key>, <value>, {withLock: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock=<resource>`
         *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
@@ -264,7 +264,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
 
 ### Locking for Modifier Methods
 
-All modifier methods (`set`, `append`, `delete`, `clear`), whether invoked from JavaScript or from response headers, accept a `withLockOnResource: <resource>` option. This option instructs the method to acquire a lock on the designated resource before executing.
+All modifier methods (`set`, `append`, `delete`, `clear`), whether invoked from JavaScript or from response headers, accept a `withLock: <resource>` option. This option instructs the method to acquire a lock on the designated resource before executing.
 
 The locks requested this way are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a Window or Worker context. Note that they share the same scope with the locks obtained via `navigator.locks.request` in the SharedStorageWorklet context.
 
@@ -281,7 +281,7 @@ Window context:
 
 ```js
 try {
-  sharedStorage.set('key', generateRandom(), {withLockOnResource: 'naive-integrity-check-lock'});
+  sharedStorage.set('key', generateRandom(), {withLock: 'naive-integrity-check-lock'});
 
   await window.sharedStorage.worklet.addModule('naive-integrity-check-script.js');
   await window.sharedStorage.worklet.run('naive-integrity-check');
@@ -311,7 +311,7 @@ Modifier methods may block due to the lock, so may not execute in the order they
 
 ```js
 // Resolve immediately. Internally, this may block to wait for the lock to be granted.
-sharedStorage.set('key0', 'value1', { withLockOnResource: 'resource0' });
+sharedStorage.set('key0', 'value1', { withLock: 'resource0' });
 
 // Resolve immediately. Internally, this will also execute immediately.
 sharedStorage.set('key0', 'value2');
@@ -321,10 +321,10 @@ Developers should be mindful of this potential ordering issue.
 
 #### Caveat 2: No atomicity for multiple writes
 
-The `withLockOnResource` option provides locking for individual methods but doesn't guarantee atomicity across multiple methods.
+The `withLock` option provides locking for individual methods but doesn't guarantee atomicity across multiple methods.
 
-Developers should be mindful of this limitation. To get around, consider one of these options:
-1.  Move the modifier methods inside the worklet. This allows a single lock to protect them.
+Developers should be mindful of this limitation. To work around it, consider one of these options:
+1.  Move the modifier methods inside the worklet, which may involve sending any necessary data via the data parameter. This allows a single lock to protect them.
 2.  Place the data under the same key and modify it within a single method, which is inherently atomic.
 
 ### Recommendations for lock usage
@@ -532,9 +532,21 @@ Shared Storage is not subject to the quota manager, as that would leak informati
 
 ## Privacy
 
-Shared Storage prevents privacy side-channel leaks when writing data and creating worklets by immediately returning and not exposing the time it takes for the underlying operation to run. The APIs that can read data from Shared Storage have their own privacy documentation.
+Shared Storage makes sure leaking can only happen via privacy-preserving APIs, and not via other side channels.
 
-#### Enrollment and Attestation
+#### Preventing Side-Channel Leaks
+
+- **Concealed Operation Time and Errors**: When writing data or running worklet operations from the Window scope, the method returns immediately and will not expose errors that might arise from reading shared storage data.
+
+- **Disabled Storage Access before Loading Finishes**: Access to Shared Storage is disabled until a module script finishes loading. This prevents websites from using timing attacks to learn about the data stored in Shared Storage.
+
+- **Isolated Locks**: Locks requested for Shared Storage are completely separate from locks requested from the Window scope. This prevents information leakage through lock contention.
+
+#### Privacy-Preserving APIs
+
+The APIs that can read data from Shared Storage have their own privacy documentation.
+
+### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
 
 For each method in the Shared Storage API surface, a check will be performed to determine whether the calling [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations). In the case where the [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), the promise returned by the method is rejected.
