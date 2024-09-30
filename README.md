@@ -313,7 +313,7 @@ Modifier methods may block due to the lock, so may not execute in the order they
 // Resolve immediately. Internally, this may block to wait for the lock to be granted.
 sharedStorage.set('key0', 'value1', { withLock: 'resource0' });
 
-// Resolve immediately. Internally, this will also execute immediately.
+// Resolve immediately. Internally, this will execute immediately.
 sharedStorage.set('key0', 'value2');
 ```
 
