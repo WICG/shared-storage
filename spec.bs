@@ -338,12 +338,12 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |moduleURLRecord| be |moduleMapKeyTuples|[0][0].
     1. Let |savedQueryName| be |options|["`savedQuery`"].
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
-        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, and |savedQueryName|.
-        1. If |savedIndex| is not null, then:
-            1. If |savedIndex| is greater than |urlList|'s [=list/size=], return a [=promise rejected=] with a {{TypeError}}.
+        1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
+        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
+        1. If |savedIndex| is nonnegative, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
+        1. If |savedIndex| is -1, then return |promise| and abort these steps.
 
-                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
-            1. Return a [=promise resolved=] with |savedIndex|.
+
     1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
@@ -360,12 +360,12 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
             <dl class="switch">
                 :   If it was fulfilled with value |index|:
-                ::  1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
+                    1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
@@ -955,8 +955,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a [=map=] of [=site=] to {{double}}
 
     : <dfn>saved query map</dfn>
-    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to {{unsigned long}}
+    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to [=saved query data=]
   </dl>
+
+  The <dfn for="shared storage page budget">saved query data</dfn> is a [=struct=] with the following [=struct/items=]:
+
+  <dl dfn-for="saved query data">
+    : <dfn>index</dfn>
+    :: a {{unsigned long}}
+
+    : <dfn>callbacks</dfn>
+    :: a [=queue=] of [=tasks=]</dl>
 
 
   #### Monkey patch for [=navigable/Traversable Navigables=] #### {#patch-trav-nav}
@@ -982,20 +991,40 @@ navigables</a> section, add the following:
   #### Saved queries #### {#saved-queries}
 
   <div algorithm>
-    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, and [=string=] |savedQueryName|:
+    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and [=task=] |callbackTask|:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then return null.
-    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)].
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then:
+        1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to a new [=saved query data=] struct |queryData|.
+        1. Set |queryData|'s [=saved query data/index=] value to -1.
+        1. Return -2.
+    1. Let |savedIndex| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)]'s  [=saved query data/index=].
+    1. If |savedIndex| is -1:
+        1. [=queue/Enqueue=] |callbackTask| to |queryData|'s [=saved query data/callbacks=].
+        1. Return -1.
+    1. Return |savedIndex|.
   </div>
 
   <div algorithm>
-    To <dfn>store the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
+    To <dfn>store the index for a saved query</dfn>, given {{Window}} |window|, [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to |index|.
+    1. Let |queryData| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)].
+    1. [=map/Set=] |queryData|'s [=saved query data/index=] to |index|.
+    1. [=While=] |queryData|'s [=saved query data/callbacks=] is not empty:
+        1. [=queue/Dequeue=] the next [=task=] |callbackTask| from |queryData|'s [=saved query data/callbacks=], and [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |index|.
+  </div>
+
+  <div algorithm>
+    To <dfn>obtain a callback to process the saved index result</dfn>, given {{Window}} |window|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, [=promise=] |promise|, perform the following steps. They return an algorithm.
+
+    1. Let |processIndexTask| be an algorithm to perform the following steps, given an {{unsigned long}} |index|:
+        1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+    1. Return |processIndexTask|.
   </div>
 
   #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
