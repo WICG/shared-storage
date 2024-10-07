@@ -962,7 +962,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   <dl dfn-for="saved query data">
     : <dfn>index</dfn>
-    :: a {{unsigned long}}
+    :: a {{long}}
 
     : <dfn>callbacks</dfn>
     :: a [=queue=] of [=tasks=]</dl>
