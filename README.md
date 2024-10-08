@@ -128,7 +128,7 @@ There have been multiple privacy proposals ([SPURFOWL](https://github.com/AdRoll
 
 
 ### Outside of worklets (e.g., places where writing can happen)
-The setter methods (`set`, `append`, `delete`, and `clear`) should be made generally available across most any context. That includes top-level documents, iframes, shared storage worklets,  Protected Audience worklets, service workers, dedicated workers, etc.
+The modifier methods (`set`, `append`, `delete`, `clear`, and `batchUpdate`) should be made generally available across most any context. That includes top-level documents, iframes, shared storage worklets,  Protected Audience worklets, service workers, dedicated workers, etc.
 
 The shared storage worklet invocation methods (`addModule`, `createWorklet`, and `run`) are available within document contexts.
 
@@ -138,12 +138,26 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   `key` and `value` are both strings.
     *   Options include:
         *   `ignoreIfPresent` (defaults to false): if true, a `key`’s entry is not updated if the `key` already exists. The embedder is not notified which occurred.
-*   `window.sharedStorage.append(key, value)`
+        * `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.append(key, value, options)`
     *   Appends `value` to the entry for `key`. Equivalent to `set` if the `key` is not present.
-*   `window.sharedStorage.delete(key)`
+    *   Options include:
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.delete(key, options)`
     *   Deletes the entry at the given `key`.
-*   `window.sharedStorage.clear()`
+    *   Options include:
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.clear(options)`
     *   Deletes all entries.
+    *   Options include:
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+*   `window.sharedStorage.batchUpdate(methods, options)`
+    *   Execute `methods` in order.
+    *   `methods` is an array of method objects defining the operations to perform. Each object must be one of the following types: `SharedStorageSetMethod`, `SharedStorageAppendMethod`, `SharedStorageDeleteMethod`, or `SharedStorageClearMethod`. Each method object's constructor accepts the same parameters as the corresponding individual method (e.g., `set`, `append`, `delete`, `clear`).
+    *   Options include:
+        *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
+    *   The `withLock` option for individual method objects within the batch is ignored; only the `options.withLock` value applies to the entire batch.
+    *   This method, with the `withLock` option, allows multiple modifier methods to be executed atomically, enabling use cases where a website needs to maintain consistency while updating data organized across multiple keys.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
     *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data (for the invoking origin) will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
@@ -187,7 +201,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Returns a promise that resolves into the number of keys.
 *   `sharedStorage.keys()` and `sharedStorage.entries()`
     *   Returns an async iterator for all the stored keys or [key, value] pairs, sorted in the underlying key order.
-*   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value)`, `sharedStorage.delete(key)`, and `sharedStorage.clear()`
+*   `sharedStorage.set(key, value, options)`, `sharedStorage.append(key, value, options)`, `sharedStorage.delete(key, options)`, `sharedStorage.clear(options)`, and `sharedStorage.batchUpdate(methods, options)`
     *   Same as outside the worklet, except that the promise returned only resolves into `undefined` when the operation has completed.
 *  `sharedStorage.context`
     *   From inside a worklet created inside a [fenced frame](https://github.com/wicg/fenced-frame/), returns a string of contextual information, if any, that the embedder had written to the [fenced frame](https://github.com/wicg/fenced-frame/)'s [FencedFrameConfig](https://github.com/WICG/fenced-frame/blob/master/explainer/fenced_frame_config.md) before the [fenced frame](https://github.com/wicg/fenced-frame/)'s navigation.
@@ -206,6 +220,9 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
             *   The approximate size of the contents of this interest group, in bytes.
     *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
     *   This API provides the Protected Audience buyer with a better picture of what's happening with their users, allowing for Private Aggregation reports.
+*   `navigator.locks.request(resource, callback)` and `navigator.locks.request(resource, options, callback)`
+    *   Acquires a lock on `resource` and invokes `callback` with the lock held. `navigator.locks` returns a `LockManager` as it does in a `Window`. See the [request](https://w3c.github.io/web-locks/#dom-lockmanager-request) method in Web Locks API for details.
+    *   Lock Scope: shared storage locks are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a `Window` or `Worker` context. This prevents contention between shared storage locks and other locks, ensuring that shared storage data cannot be inadvertently leaked.
 *   Functions exposed by APIs built on top of Shared Storage such as the [Private Aggregation API](https://github.com/alexmturner/private-aggregation-api), e.g. `privateAggregation.contributeToHistogram()`.
     *   These functions construct and then send an aggregatable report for the private, secure [aggregation service](https://github.com/WICG/conversion-measurement-api/blob/main/AGGREGATION_SERVICE_TEE.md).
     *   The report contents (e.g. key, value) are encrypted and sent after a delay. The report can only be read by the service and processed into aggregate statistics.
@@ -214,18 +231,22 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
 
 ### From response headers
 
-*  `set()`, `append()`, `delete()`, and `clear()` operations can be triggered via the HTTP response header `Shared-Storage-Write`.
+*  `set()`, `append()`, `delete()`, `clear()`, and `batchUpdate()` operations can be triggered via the HTTP response header `Shared-Storage-Write`.
 *  This may provide a large performance improvement over creating a cross-origin iframe and writing from there, if a network request is otherwise required.
 *   `Shared-Storage-Write` is a [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists).
-    *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) denoting the operation to be performed, with any arguments for the operation as associated  [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters).
+    *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) denoting the operation to be performed, with any arguments for the operation as associated [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters). A string type argument or option (`key`, `value`, `with_lock`) can take the form of a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) or a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or a [Byte Sequence Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). A boolean type option (`ignore_if_present`) can take the form of a [Boolean Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-booleans).
     *   The order of [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is the order in which the operations will be performed.
     *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
         *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
+        *   `set(<key>, <value>, {withLock: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock=<resource>`
         *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
         *   `clear()` &larr;&rarr; `clear`
+        *   `batchUpdate(<methods>, {withLock: <resource>})` &larr;&rarr; `batchUpdate;methods=<serialized methods>;with_lock=<resource>`
+            *   `<serialized methods>` is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) containing the [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) serialization of batched methods in the same list structure. Note that nested `batchUpdate()` operations within a `batchUpdate()` are not allowed.
+            *   Example header value: `batchUpdate;methods="set;key=\"123\";value=\"456\";ignore_if_present, append;key=abc;value=def";with_lock="report-lock"`. This corresponds to the JavaScript method: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true}), new SharedStorageAppendMethod("abc", "def")], { withLock: "report-lock" })`.
     *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
         *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
         *   To pass a key and/or value that contains non-ASCII and/or non-printable [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
@@ -250,6 +271,78 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   If there are redirects, the origin of the redirect URL that is accompanied by the `Shared-Storage-Write` response header(s) will be used.
 *  The response header will only be honored if the corresponding request included the request header: `Sec-Shared-Storage-Writable: ?1`.
 *  See example usage below.
+
+### Locking for Modifier Methods
+
+All modifier methods (`set`, `append`, `delete`, `clear`, `batchUpdate`), whether invoked from JavaScript or from response headers, accept a `withLock: <resource>` option. This option instructs the method to acquire a lock on the designated resource before executing.
+
+The locks requested this way are partitioned by the shared storage data origin, and are independent of any locks obtained via `navigator.locks.request` in a Window or Worker context. Note that they share the same scope with the locks obtained via `navigator.locks.request` in the SharedStorageWorklet context.
+
+Unlike `navigator.locks.request`, which offers various configuration options, the locks requested this way always use the default settings:
+*  `mode: "exclusive"`: The lock is never shared with other locks.
+*  `steal: false`: The lock will not preempt other locks.
+*  `ifAvailable: false`: If the lock is currently held by others, keep waiting and don't skip.
+
+#### Example: Report on Multiple Keys
+
+This example uses a lock to ensure that the read and delete operations inside the worklet runs atomically, preventing interference from the write operations outside the worklet.
+
+Window context:
+
+```js
+try {
+  sharedStorage.batchUpdate([
+    new SharedStorageSetMethod('key0', calculateValueFor('key0')),
+    new SharedStorageSetMethod('key1', calculateValueFor('key1'))
+  ], { withLock: 'report-lock' });
+
+  await sharedStorage.worklet.addModule('report-on-multiple-keys-script.js');
+  await sharedStorage.worklet.run('report-on-multiple-keys');
+} catch (error) {
+  // Handle error.
+}
+```
+
+In the worklet script (`report-on-multiple-keys-script.js`):
+
+```js
+class ReportOnMultipleKeysOperation {
+  async run(data) {
+    await navigator.locks.request("report-lock", async (lock) => {
+      const value1 = await sharedStorage.get('key1');
+      const value2 = await sharedStorage.get('key2');
+
+      // Record an aggregate histogram with `value1` and `value2` here...
+
+      await sharedStorage.delete('key1');
+      await sharedStorage.delete('key2');
+    });
+  }
+}
+register('report-on-multiple-keys', ReportOnMultipleKeysOperation);
+```
+
+#### Caveat: Unexpected ordering
+
+Modifier methods may block due to the lock, so may not execute in the order they appear in the code.
+
+```js
+// Resolve immediately. Internally, this may block to wait for the lock to be granted.
+sharedStorage.set('key0', 'value1', { withLock: 'resource0' });
+
+// Resolve immediately. Internally, this will execute immediately.
+sharedStorage.set('key0', 'value2');
+```
+
+Developers should be mindful of this potential ordering issue.
+
+### Recommendations for lock usage
+
+If only a single key is involved, and the data is accessed at most once within and outside worklet, then the lock is unnecessary. This is because each access is inherently atomic. Example: [A/B experiment](https://github.com/WICG/shared-storage/blob/main/select-url.md#simple-example-consistent-ab-experiments-across-sites).
+
+If the worklet performs both read and write on the same key, then the lock is likely necessary. Example: [creative selection by frequency](https://github.com/WICG/shared-storage/blob/main/select-url.md#a-second-example-ad-creative-selection-by-frequency).
+
+If the logic involes updating data organized across multiple keys, then the lock is likely necessary. [Example: Report on Multiple Keys](#example-report-on-multiple-keys).
 
 ### Reporting embedder context
 
@@ -450,9 +543,19 @@ Shared Storage is not subject to the quota manager, as that would leak informati
 
 ## Privacy
 
-Shared Storage prevents privacy side-channel leaks when writing data and creating worklets by immediately returning and not exposing the time it takes for the underlying operation to run. The APIs that can read data from Shared Storage have their own privacy documentation.
+Shared Storage takes the following protective measures to prevent its stored data from being read by means other than via approved APIs (e.g., via side channels):
 
-#### Enrollment and Attestation
+- **Concealed Operation Time and Errors**: When writing data or running worklet operations from the Window scope, the method returns immediately and will not expose errors that might arise from reading shared storage data.
+
+- **Disabled Storage Access before Loading Finishes**: Access to Shared Storage is disabled until a module script finishes loading. This prevents websites from using timing attacks to learn about the data stored in Shared Storage.
+
+- **Isolated Locks**: Locks requested for Shared Storage are completely separate from locks requested from the Window scope. This prevents information leakage through lock contention.
+
+### Privacy-Preserving APIs
+
+The APIs that can read data from Shared Storage have their own privacy documentation.
+
+### Enrollment and Attestation
 Use of Shared Storage requires [enrollment](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attestation](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations) via the [Privacy Sandbox enrollment attestation model](https://github.com/privacysandbox/attestation/blob/main/README.md).
 
 For each method in the Shared Storage API surface, a check will be performed to determine whether the calling [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations). In the case where the [site](https://html.spec.whatwg.org/multipage/browsers.html#site) is not [enrolled](https://github.com/privacysandbox/attestation/blob/main/how-to-enroll.md) and [attested](https://github.com/privacysandbox/attestation/blob/main/README.md#core-privacy-attestations), the promise returned by the method is rejected.
