@@ -369,7 +369,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
-                ::  1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and 0.
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
                     1. Run |privateAggregationCompletionTask|.
@@ -1005,6 +1006,10 @@ navigables</a> section, add the following:
         1. Return -1.
     1. Return |savedIndex|.
   </div>
+
+      Note: The [=get the index for a saved query=] algorithm returns -2 to indicate that [=obtain a worklet agent|a worklet agent should be obtained=] and the index value is pending the result of the worklet agent's operation.
+
+      Note: The [=get the index for a saved query=] algorithm returns -1 to indicate that a worklet agent was previously obtained and that the index is pending the result of the previous worklet agent's operation. We queue <var ignore=''>callbackTask</var> to be run when the previous worklet agent's operation has completed.
 
   <div algorithm>
     To <dfn>store the index for a saved query</dfn>, given {{Window}} |window|, [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
