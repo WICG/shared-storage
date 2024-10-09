@@ -329,8 +329,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
-    1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
-    1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |window|'s [=Window/browsing context=] is null, then return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true) and abort these steps.
+    1. If |window|'s [=associated document=] is not [=fully active=], return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true) and abort these steps.
     1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be |worklet|'s [=global scopes=][0].
     1. Let |moduleMapKeyTuples| be the result of running [=map/get the keys=] on |globalScope|'s [=relevant settings object=]'s [=module map=].
@@ -340,15 +340,15 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
         1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
         1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
-        1. If |savedIndex| is -1, then return |promise| and abort these steps.
+        1. If |savedIndex| is -1, then return the [=tuple=] (|promise|, false) and abort these steps.
 
             Note: |callbackTask| is now stored to be run when a previously obtained worklet agent completes its operation to select the index for this query. When the steps of |callbackTask| are run, |promise| will be resolved.
         1. If |savedIndex| is nonnegative, then:
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
 
                 Note: Running the steps of |callbackTask| will resolve |promise|.
-            1. Return |promise| and abort these steps.
-    1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
+            1. Return the [=tuple=] (|promise|, false) and abort these steps.
+    1. Return the [=tuple=] (|promise|, true), and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
@@ -433,8 +433,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
-    1. [=Upon fulfillment=] of |indexPromise| with (|resultIndex|, |shouldChargeTopLevelBudgets|), perform the following steps:
+    1. Let (|indexPromise|, |shouldChargeTopLevelBudgets|) be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
+    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
@@ -451,6 +451,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
     1. [=Upon rejection=] of |indexPromise|, perform the following steps:
         1. Let |finalConfig| be a new [=fenced frame config=].
+        1. If |shouldChargeTopLevelBudgets| is true, run [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
         1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default selectURL index=]].
         1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
         1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
@@ -1034,7 +1035,7 @@ navigables</a> section, add the following:
     1. Let |processIndexTask| be an algorithm to perform the following steps, given an {{unsigned long}} |index|:
         1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
                 Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
-        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with the [=tuple=] (|index|, false).
+        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
     1. Return |processIndexTask|.
   </div>
 
