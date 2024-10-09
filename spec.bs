@@ -174,6 +174,9 @@ spec: wikipedia-entropy; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(infor
 spec: shared-storage-explainer; urlPrefix: https://github.com/WICG/shared-storage
     type:dfn
         text: legitimate use cases; url: example-scenarios
+spec: UUID; urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
+    type: dfn
+        text: urn uuid; url: urn-uuid
 </pre>
 
 <style>
@@ -324,7 +327,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of [=strings=] |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
@@ -373,12 +376,33 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
-                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and 0.
+                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
                     1. Run |privateAggregationCompletionTask|.
             </dl>
+  </div>
+
+  <div algorithm>
+    To <dfn>handle the result of selecting an index</dfn>, given a {{SharedStorageWorklet}} |worklet|, an [=environment settings object=] |environment|, a {{Document}} |document|, a {{sequence}} of {{SharedStorageUrlWithMetadata}} |urls|, a [=list=] of [=strings=] |urlList|, a [=/navigable=] |navigable|, a {{SharedStorageRunOperationMethodOptions}} |options|, a [=traversable navigable/fenced frame config mapping=] |fencedFrameConfigMapping|, a [=urn uuid=] |urn|, a [=/boolean=] |shouldChargeTopLevelBudgets|, a [=/boolean=] |shouldUseDefaultIndex|, and an {{unsigned long}} |resultIndex|, perform the following steps:
+
+    1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
+    1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
+    1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
+    1. If |shouldChargeTopLevelBudgets| is true:
+        1. Let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
+        1. If |pageBudgetResult| is false, set |shouldUseDefaultIndex| to true.
+    1. If |pendingBits| is greather than |remainingBudget|, set |shouldUseDefaultIndex| to true.
+    1. If |shouldUseDefaultIndex| is true, set |resultIndex| to the [=default selectURL index=].
+    1. Let |finalConfig| be a new [=fenced frame config=].
+    1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
+    1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
+    1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
+    1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
+    1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
+    1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with |worklet|.
+
   </div>
 
   <div algorithm>
@@ -434,27 +458,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
     1. Let (|indexPromise|, |shouldChargeTopLevelBudgets|) be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
-    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
-        1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
-        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
-        1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. If |shouldChargeTopLevelBudgets| is true:
-            1. Let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
-            1. If |pageBudgetResult| is false, set |resultIndex| to the [=default selectURL index=].
-        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
-        1. Let |finalConfig| be a new [=fenced frame config=].
-        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
-        1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
-        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
-        1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
-        1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
-    1. [=Upon rejection=] of |indexPromise|, perform the following steps:
-        1. Let |finalConfig| be a new [=fenced frame config=].
-        1. If |shouldChargeTopLevelBudgets| is true, run [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
-        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default selectURL index=]].
-        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
+    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, run [=handle the result of selecting an index=] given |worklet|, |environment|, |document|, |urls|, |urlList|, |navigable|, |options|, |fencedFrameConfigMapping|, |urn|, |shouldChargeTopLevelBudgets|, false, and |resultIndex|.
+    1. [=Upon rejection=] of |indexPromise|, run [=handle the result of selecting an index=] given |worklet|, |environment|, |document|, |urls|, |urlList|, |navigable|, |options|, |fencedFrameConfigMapping|, |urn|, |shouldChargeTopLevelBudgets|, true, and the [=default selectURL index=].
     1. Return |resultPromise|.
   </div>
 
