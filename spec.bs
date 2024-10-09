@@ -340,10 +340,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
         1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
         1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
-        1. If |savedIndex| is nonnegative, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
         1. If |savedIndex| is -1, then return |promise| and abort these steps.
 
+            Note: |callbackTask| is now stored to be run when a previously obtained worklet agent completes its operation to select the index for this query. When the steps of |callbackTask| are run, |promise| will be resolved.
+        1. If |savedIndex| is nonnegative, then:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
 
+                Note: Running the steps of |callbackTask| will resolve |promise|.
+            1. Return |promise| and abort these steps.
     1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
