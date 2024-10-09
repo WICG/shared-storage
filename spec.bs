@@ -369,7 +369,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with a [=tuple=] (|index|, true).
                     1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
@@ -434,12 +434,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
     1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
-    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
+    1. [=Upon fulfillment=] of |indexPromise| with (|resultIndex|, |shouldChargeTopLevelBudgets|), perform the following steps:
         1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
         1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
         1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
-        1. If |pageBudgetResult| is false, or if |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
+        1. If |shouldChargeTopLevelBudgets| is true:
+            1. Let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
+            1. If |pageBudgetResult| is false, set |resultIndex| to the [=default selectURL index=].
+        1. If |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
         1. Let |finalConfig| be a new [=fenced frame config=].
         1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
         1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
@@ -1032,7 +1034,7 @@ navigables</a> section, add the following:
     1. Let |processIndexTask| be an algorithm to perform the following steps, given an {{unsigned long}} |index|:
         1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
                 Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
-        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with the [=tuple=] (|index|, false).
     1. Return |processIndexTask|.
   </div>
 
