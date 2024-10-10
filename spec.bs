@@ -149,7 +149,7 @@ spec: protected-audience; urlPrefix: https://wicg.github.io/turtledove/
         for: PermissionsPolicy
             text: run-ad-auction
             text: join-ad-interest-group
-        text: asynchronously finish reporting
+        text: get storage interest groups for owner
     type: interface
         text: StorageInterestGroup; url: dictdef-storageinterestgroup
 spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
@@ -786,7 +786,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |workletDataOrigin| be [=current realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/run-ad-auction=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/join-ad-interest-group=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=resolve=] |promise| with the result of running [=asynchronously finish reporting=].
+    1. [=resolve=] |promise| with the result of running [=get storage interest groups for owner=].
   </div>
 
   <div algorithm>
