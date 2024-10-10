@@ -327,13 +327,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of [=strings=] |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of [=strings=] |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|, run the following steps. This algorithm will return a [=tuple=] consisting of a [=promise=] that resolves into an {{unsigned long}} whose value is the index of the URL selected from |urlList| and a [=/boolean=] indicating whether the [top-level traversable's budgets](#charge-top-trav-budgets) should be [=charge shared storage top-level traversable budgets|charged=].
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
-    1. If |window|'s [=Window/browsing context=] is null, then return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true) and abort these steps.
-    1. If |window|'s [=associated document=] is not [=fully active=], return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true) and abort these steps.
+    1. If |window|'s [=Window/browsing context=] is null, then return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true).
+    1. If |window|'s [=associated document=] is not [=fully active=], return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true).
     1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be |worklet|'s [=global scopes=][0].
     1. Let |moduleMapKeyTuples| be the result of running [=map/get the keys=] on |globalScope|'s [=relevant settings object=]'s [=module map=].
@@ -343,14 +343,15 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
         1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
         1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
-        1. If |savedIndex| is -1, then return the [=tuple=] (|promise|, false) and abort these steps.
+        1. If |savedIndex| is "pending callback", then return the [=tuple=] (|promise|, false).
 
             Note: |callbackTask| is now stored to be run when a previously obtained worklet agent completes its operation to select the index for this query. When the steps of |callbackTask| are run, |promise| will be resolved.
-        1. If |savedIndex| is nonnegative, then:
+        1. If |savedIndex| is an {{unsigned long}}, then:
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
 
                 Note: Running the steps of |callbackTask| will resolve |promise|.
-            1. Return the [=tuple=] (|promise|, false) and abort these steps.
+            1. Return the [=tuple=] (|promise|, false).
+        1. [=Assert=] that |savedIndex| is "obtain worklet agent".
     1. Return the [=tuple=] (|promise|, true), and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
@@ -1011,17 +1012,17 @@ navigables</a> section, add the following:
     1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then:
         1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to a new [=saved query data=] struct |queryData|.
         1. Set |queryData|'s [=saved query data/index=] value to -1.
-        1. Return -2.
+        1. Return "obtain worklet agent".
     1. Let |savedIndex| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)]'s  [=saved query data/index=].
     1. If |savedIndex| is -1:
         1. [=queue/Enqueue=] |callbackTask| to |queryData|'s [=saved query data/callbacks=].
-        1. Return -1.
+        1. Return "pending callback".
     1. Return |savedIndex|.
   </div>
 
-      Note: The [=get the index for a saved query=] algorithm returns -2 to indicate that [=obtain a worklet agent|a worklet agent should be obtained=] and the index value is pending the result of the worklet agent's operation.
+      Note: The [=get the index for a saved query=] algorithm returns "obtain worklet agent" to indicate that [=obtain a worklet agent|a worklet agent should be obtained=] and the index value is pending the result of the worklet agent's operation.
 
-      Note: The [=get the index for a saved query=] algorithm returns -1 to indicate that a worklet agent was previously obtained and that the index is pending the result of the previous worklet agent's operation. We queue <var ignore=''>callbackTask</var> to be run when the previous worklet agent's operation has completed.
+      Note: The [=get the index for a saved query=] algorithm returns "pending callback" to indicate that a worklet agent was previously obtained and that the index is pending the result of the previous worklet agent's operation. We queue <var ignore=''>callbackTask</var> to be run when the previous worklet agent's operation has completed.
 
   <div algorithm>
     To <dfn>store the index for a saved query</dfn>, given {{Window}} |window|, [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
