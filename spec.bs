@@ -144,6 +144,14 @@ spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github
             text: scoping details; url: #privateaggregation-scoping-details
     type: interface
         text: PrivateAggregation
+spec: protected-audience; urlPrefix: https://wicg.github.io/turtledove/
+    type: dfn
+        for: PermissionsPolicy
+            text: run-ad-auction
+            text: join-ad-interest-group
+        text: asynchronously finish reporting
+    type: interface
+        text: StorageInterestGroup; url: dictdef-storageinterestgroup
 spec: fenced-frame; urlPrefix: https://wicg.github.io/fenced-frame/
     type: dfn
         text: fenced frame; url: the-fencedframe-element
@@ -736,6 +744,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
       readonly attribute SharedStorage sharedStorage;
       readonly attribute PrivateAggregation privateAggregation;
+
+      Promise<sequence<AuctionAdInterestGroup>> interestGroups();
     };
   </xmp>
 
@@ -762,6 +772,22 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   Issue(151): The "name" and "operationCtor" cannot be missing here given WebIDL. Should just check for default/empty values.
+
+  <div algorithm>
+    The <dfn method for="SharedStorageWorkletGlobalScope">interestGroups()</dfn> method steps are:
+
+    1. Let |promise| be a new [=promise=].
+    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be |globalObject|'s [=Window/browsing context=].
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |document| be |context|'s [=active window=]'s [=associated document=].
+    1. If |document| is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |workletDataOrigin| be [=current realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
+    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/run-ad-auction=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
+    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/join-ad-interest-group=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
+    1. [=resolve=] |promise| with the result of running [=asynchronously finish reporting=].
+  </div>
 
   <div algorithm>
     The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
