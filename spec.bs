@@ -46,6 +46,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
         text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
+        text: worklet event loop; url: webappapis.html#worklet-event-loop
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
         text: beginning navigation; url: webappapis.html#beginning-navigation
         text: ending navigation; url: webappapis.html#ending-navigation
@@ -351,8 +352,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
                 Note: Running the steps of |callbackTask| will resolve |promise|.
             1. Return the [=tuple=] (|promise|, false).
-        1. [=Assert=] that |savedIndex| is "obtain worklet agent".
-    1. Return the [=tuple=] (|promise|, true), and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
+        1. [=Assert=] that |savedIndex| is "pending current operation".
+    1. [=Queue a task=] on |globalScope|'s [=worklet event loop=] to perform the following steps:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
@@ -368,11 +369,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
             <dl class="switch">
                 :   If it was fulfilled with value |index|:
-                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
-                    1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+                ::  1. If |index| is greater than |urlList|'s [=list/size=], then:
+                        1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
+                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with a [=tuple=] (|index|, true).
                     1. Run |privateAggregationCompletionTask|.
 
@@ -383,6 +386,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
                     1. Run |privateAggregationCompletionTask|.
             </dl>
+    1. Return the [=tuple=] (|promise|, true).
   </div>
 
   <div algorithm>
@@ -1012,7 +1016,7 @@ navigables</a> section, add the following:
     1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then:
         1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to a new [=saved query data=] struct |queryData|.
         1. Set |queryData|'s [=saved query data/index=] value to -1.
-        1. Return "obtain worklet agent".
+        1. Return "pending current operation".
     1. Let |savedIndex| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)]'s  [=saved query data/index=].
     1. If |savedIndex| is -1:
         1. [=queue/Enqueue=] |callbackTask| to |queryData|'s [=saved query data/callbacks=].
@@ -1020,9 +1024,9 @@ navigables</a> section, add the following:
     1. Return |savedIndex|.
   </div>
 
-      Note: The [=get the index for a saved query=] algorithm returns "obtain worklet agent" to indicate that [=obtain a worklet agent|a worklet agent should be obtained=] and the index value is pending the result of the worklet agent's operation.
+      Note: The [=get the index for a saved query=] algorithm returns "pending current operation" to indicate that the index value is pending the result of [=queueing a task=] on the {{SharedStorageWorkletGlobalScope}}'s [=worklet event loop=] to perform the [=registered=] operation.
 
-      Note: The [=get the index for a saved query=] algorithm returns "pending callback" to indicate that a worklet agent was previously obtained and that the index is pending the result of the previous worklet agent's operation. We queue <var ignore=''>callbackTask</var> to be run when the previous worklet agent's operation has completed.
+      Note: The [=get the index for a saved query=] algorithm returns "pending callback" to indicate that a [=task=] to determine the result of the index was previously [=queue a task|queued=] on the {{SharedStorageWorkletGlobalScope}}'s [=worklet event loop=], and that we are now queueing an additional <var ignore=''>callbackTask</var> to be run when the original [=task=] has completed.
 
   <div algorithm>
     To <dfn>store the index for a saved query</dfn>, given {{Window}} |window|, [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
@@ -1040,6 +1044,7 @@ navigables</a> section, add the following:
 
     1. Let |processIndexTask| be an algorithm to perform the following steps, given an {{unsigned long}} |index|:
         1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+
                 Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
         1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
     1. Return |processIndexTask|.
