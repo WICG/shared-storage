@@ -158,14 +158,18 @@ class CreativeSelectionByFrequencyOperation {
     // By default, return the default url (0th index).
     let index = 0;
 
-    let count = await sharedStorage.get(data.campaignId);
-    count = count ? parseInt(count) : 0;
+    // Acquire a lock to ensure that the count is accurate even if multiple
+    // instances of the code are running concurrently (e.g. in separate tabs).
+    await navigator.locks.request("creation-selection-by-frequency-lock", async (lock) => {
+      let count = await sharedStorage.get(data.campaignId);
+      count = count ? parseInt(count) : 0;
 
-    // If under cap, return the desired ad.
-    if (count < 3) {
-      index = 1;
-      sharedStorage.set(data.campaignId, (count + 1).toString());
-    }
+      // If under cap, return the desired ad.
+      if (count < 3) {
+        index = 1;
+        sharedStorage.set(data.campaignId, (count + 1).toString());
+      }
+    });
 
     return index;
   }
