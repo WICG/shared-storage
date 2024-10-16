@@ -212,10 +212,10 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
         *   unsigned long long `bidCount`
         *   sequence<[PreviousWin](https://wicg.github.io/turtledove/#typedefdef-previouswin)> `prevWinsMs`
         *   USVString `joiningOrigin`
-        *   double `timeSinceGroupJoinedMs`
-        *   double `lifetimeRemainingMs`
-        *   double `timeSinceLastUpdateMs`
-        *   double `timeUntilNextUpdateMs`
+        *   long long `timeSinceGroupJoinedMs`
+        *   long long `lifetimeRemainingMs`
+        *   long long `timeSinceLastUpdateMs`
+        *   long long `timeUntilNextUpdateMs`
         *   unsigned long long `estimatedSize`
             *   The approximate size of the contents of this interest group, in bytes.
     *   The [AuctionAdInterestGroup](https://wicg.github.io/turtledove/#dictdef-auctionadinterestgroup)'s [lifetimeMs](https://wicg.github.io/turtledove/#dom-auctionadinterestgroup-lifetimems) field will remain unset. It's no longer applicable at query time and is replaced with attributes `timeSinceGroupJoinedMs` and `lifetimeRemainingMs`.
