@@ -511,17 +511,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         does not [=map/exist=], return null.
     1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"]
         does not [=map/exist=], return null.
-    1. Let |url| be the result of running the [=URL parser=] on
+    1. Return the result of [=obtaining the Private Aggregation coordinator=]
+        given
         |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"].
-    1. If |url| is failure or null, return a new {{DOMException}} with name
-        "`SyntaxError`".
-
-        Issue: Consider throwing an error if the path is not empty.
-    1. Let |origin| be |url|'s [=url/origin=].
-    1. If the result of [=determining if an origin is an aggregation coordinator=]
-        given |origin| is false, return a new {{DOMException}} with name
-        "`DataError`".
-    1. Return |origin|.
   </div>
 
   <div algorithm>
