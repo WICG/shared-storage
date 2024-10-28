@@ -375,9 +375,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
-                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                    1. Run |privateAggregationCompletionTask|.
+                        Otherwise:
+                        1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                        1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
                 ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
