@@ -46,6 +46,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: fetch a worklet script graph; url: webappapis.html#fetch-a-worklet-script-graph
         text: processCustomFetchResponse; url: webappapis.html#fetching-scripts-processcustomfetchresponse
         text: environment; url: webappapis.html#environment
+        text: worklet event loop; url: webappapis.html#worklet-event-loop
         text: obtaining a worklet agent; url: webappapis.html#obtain-a-worklet-agent
         text: beginning navigation; url: webappapis.html#beginning-navigation
         text: ending navigation; url: webappapis.html#ending-navigation
@@ -174,6 +175,9 @@ spec: wikipedia-entropy; urlPrefix: https://en.wikipedia.org/wiki/Entropy_(infor
 spec: shared-storage-explainer; urlPrefix: https://github.com/WICG/shared-storage
     type:dfn
         text: legitimate use cases; url: example-scenarios
+spec: UUID; urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
+    type: dfn
+        text: urn uuid; url: urn-uuid
 </pre>
 
 <style>
@@ -324,13 +328,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   ## Run Operation Methods on {{SharedStorageWorklet}} ## {#run-op-shared-storage-worklet}
 
   <div algorithm>
-    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|:
+    To <dfn>get the select-url result index</dfn>, given {{SharedStorageWorklet}} |worklet|, {{DOMString}} |operationName|, [=/list=] of [=strings=] |urlList|, an [=/origin=] |workletDataOrigin|, a [=/navigable=] |navigable|, {{SharedStorageRunOperationMethodOptions}} |options|, a [=pre-specified report parameters=] or null |preSpecifiedParams| and an [=aggregation coordinator=] or null |aggregationCoordinator|, run the following steps. This algorithm will return a [=tuple=] consisting of a [=promise=] that resolves into an {{unsigned long}} whose value is the index of the URL selected from |urlList| and a [=/boolean=] indicating whether the [top-level traversable's budgets](#charge-top-trav-budgets) should be [=charge shared storage top-level traversable budgets|charged=].
 
     1. Let |promise| be a new [=promise=].
     1. Let |window| be |worklet|'s [=relevant settings object=].
     1. [=Assert=]: |window| is a {{Window}}.
-    1. If |window|'s [=Window/browsing context=] is null, then return a [=promise rejected=] with a {{TypeError}}.
-    1. If |window|'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. If |window|'s [=Window/browsing context=] is null, then return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true).
+    1. If |window|'s [=associated document=] is not [=fully active=], return the [=tuple=] of a ([=promise rejected=] with a {{TypeError}}, true).
     1. [=Assert=]: |worklet|'s [=global scopes=]'s [=list/size=] is 1.
     1. Let |globalScope| be |worklet|'s [=global scopes=][0].
     1. Let |moduleMapKeyTuples| be the result of running [=map/get the keys=] on |globalScope|'s [=relevant settings object=]'s [=module map=].
@@ -338,13 +342,18 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |moduleURLRecord| be |moduleMapKeyTuples|[0][0].
     1. Let |savedQueryName| be |options|["`savedQuery`"].
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
-        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, and |savedQueryName|.
-        1. If |savedIndex| is not null, then:
-            1. If |savedIndex| is greater than |urlList|'s [=list/size=], return a [=promise rejected=] with a {{TypeError}}.
+        1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
+        1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
+        1. If |savedIndex| is "pending callback", then return the [=tuple=] (|promise|, false).
 
-                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
-            1. Return a [=promise resolved=] with |savedIndex|.
-    1. Return |promise|, and immediately [=obtain a worklet agent=] given |window| and run the rest of these steps in that agent:
+            Note: |callbackTask| is now stored to be run when a previously obtained worklet agent completes its operation to select the index for this query. When the steps of |callbackTask| are run, |promise| will be resolved.
+        1. If |savedIndex| is an {{unsigned long}}, then:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |savedIndex|.
+
+                Note: Running the steps of |callbackTask| will resolve |promise|.
+            1. Return the [=tuple=] (|promise|, false).
+        1. [=Assert=] that |savedIndex| is "pending current operation".
+    1. [=Queue a task=] on |globalScope|'s [=worklet event loop=] to perform the following steps:
         1. Let |operationMap| be |globalScope|'s [=SharedStorageWorkletGlobalScope/operation map=].
         1. If |operationMap| does not [=map/contain=] |operationName|, then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
@@ -360,20 +369,46 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
             <dl class="switch">
                 :   If it was fulfilled with value |index|:
-                ::  1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+                ::  1. If |index| is greater than |urlList|'s [=list/size=], then:
+                        1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                    1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
-                    1. Run |privateAggregationCompletionTask|.
+                        Otherwise:
+                        1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+                        1. Run |privateAggregationCompletionTask|.
 
                 :   If it was rejected:
-                ::  1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
                     1. Run |privateAggregationCompletionTask|.
             </dl>
+    1. Return the [=tuple=] (|promise|, true).
+  </div>
+
+  <div algorithm>
+    To <dfn>handle the result of selecting an index</dfn>, given a {{SharedStorageWorklet}} |worklet|, an [=environment settings object=] |environment|, a {{Document}} |document|, a {{sequence}} of {{SharedStorageUrlWithMetadata}} |urls|, a [=list=] of [=strings=] |urlList|, a [=/navigable=] |navigable|, a {{SharedStorageRunOperationMethodOptions}} |options|, a [=traversable navigable/fenced frame config mapping=] |fencedFrameConfigMapping|, a [=urn uuid=] |urn|, a [=/boolean=] |shouldChargeTopLevelBudgets|, a [=/boolean=] |shouldUseDefaultIndex|, and an {{unsigned long}} |resultIndex|, perform the following steps:
+
+    1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
+    1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
+    1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
+    1. If |shouldChargeTopLevelBudgets| is true:
+        1. Let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
+        1. If |pageBudgetResult| is false, set |shouldUseDefaultIndex| to true.
+    1. If |pendingBits| is greather than |remainingBudget|, set |shouldUseDefaultIndex| to true.
+    1. If |shouldUseDefaultIndex| is true, set |resultIndex| to the [=default selectURL index=].
+    1. Let |finalConfig| be a new [=fenced frame config=].
+    1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
+    1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
+    1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
+    1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
+    1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
+    1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with |worklet|.
+
   </div>
 
   <div algorithm>
@@ -428,25 +463,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |options|["`resolveToConfig`"] is true, [=resolve=] |resultPromise| with |pendingConfig|.
     1. Otherwise, [=resolve=] |resultPromise| with |urn|.
-    1. Let |indexPromise| be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
-    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, perform the following steps:
-        1. Let |site| be the result of running [=obtain a site=] with |document|'s [=Document/origin=].
-        1. Let |remainingBudget| be the result of running [=determine remaining navigation budget=] with |environment| and |site|.
-        1. Let |pendingBits| be the logarithm base 2 of |urlList|'s [=list/size=].
-        1. let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
-        1. If |pageBudgetResult| is false, or if |pendingBits| is greather than |remainingBudget|, set |resultIndex| to the [=default selectURL index=].
-        1. Let |finalConfig| be a new [=fenced frame config=].
-        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
-        1. Set |finalConfig|'s <span class=todo>a "pending shared storage budget debit" field</span> to |pendingBits|.
-        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
-        1. Let |resultURLWithMetadata| be |urls|[|resultIndex|].
-        1. If |resultURLWithMetadata| has field "`reportingMetadata`", run [=register reporting metadata=] with |resultURLWithMetadata|["`reportingMetadata`"].
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
-    1. [=Upon rejection=] of |indexPromise|, perform the following steps:
-        1. Let |finalConfig| be a new [=fenced frame config=].
-        1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[[=default selectURL index=]].
-        1. [=Finalize a pending config=] on |fencedFrameConfigMapping| with |urn| and |finalConfig|.
-        1. If |options|["`keepAlive`"] is false, run [=terminate a worklet global scope=] with [=this=].
+    1. Let (|indexPromise|, |shouldChargeTopLevelBudgets|) be the result of running [=get the select-url result index=], given [=this=], |name|, |urlList|, |workletDataOrigin|, |navigable|, |options|, |preSpecifiedParams| and |aggregationCoordinator|.
+    1. [=Upon fulfillment=] of |indexPromise| with |resultIndex|, run [=handle the result of selecting an index=] given |worklet|, |environment|, |document|, |urls|, |urlList|, |navigable|, |options|, |fencedFrameConfigMapping|, |urn|, |shouldChargeTopLevelBudgets|, false, and |resultIndex|.
+    1. [=Upon rejection=] of |indexPromise|, run [=handle the result of selecting an index=] given |worklet|, |environment|, |document|, |urls|, |urlList|, |navigable|, |options|, |fencedFrameConfigMapping|, |urn|, |shouldChargeTopLevelBudgets|, true, and the [=default selectURL index=].
     1. Return |resultPromise|.
   </div>
 
@@ -947,8 +966,17 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a [=map=] of [=site=] to {{double}}
 
     : <dfn>saved query map</dfn>
-    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to {{unsigned long}}
+    :: a [=map=] of [=tuples=] ([=url/origin=] <dfn for="saved query map" export>data origin</dfn>, [=/URL=] <dfn for="saved query map" export>worklet script URL</dfn>, [=string=] <dfn for="saved query map" export>operation name</dfn>, [=string=] <dfn for="saved query map" export>query name</dfn>) to [=saved query data=]
   </dl>
+
+  The <dfn for="shared storage page budget">saved query data</dfn> is a [=struct=] with the following [=struct/items=]:
+
+  <dl dfn-for="saved query data">
+    : <dfn>index</dfn>
+    :: a {{long}}
+
+    : <dfn>callbacks</dfn>
+    :: a [=queue=] of [=tasks=]</dl>
 
 
   #### Monkey patch for [=navigable/Traversable Navigables=] #### {#patch-trav-nav}
@@ -974,20 +1002,45 @@ navigables</a> section, add the following:
   #### Saved queries #### {#saved-queries}
 
   <div algorithm>
-    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, and [=string=] |savedQueryName|:
+    To <dfn>get the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and [=task=] |callbackTask|:
 
     1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
     1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then return null.
-    1. Return |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)].
+    1. If |topLevelTraversable|'s [=page budget=]'s [=saved query map=] does not [=map/contain=] (|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|), then:
+        1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to a new [=saved query data=] struct |queryData|.
+        1. Set |queryData|'s [=saved query data/index=] value to -1.
+        1. Return "pending current operation".
+    1. Let |savedIndex| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)]'s  [=saved query data/index=].
+    1. If |savedIndex| is -1:
+        1. [=queue/Enqueue=] |callbackTask| to |queryData|'s [=saved query data/callbacks=].
+        1. Return "pending callback".
+    1. Return |savedIndex|.
+  </div>
+
+      Note: The [=get the index for a saved query=] algorithm returns "pending current operation" to indicate that the index value is pending the result of [=queueing a task=] on the {{SharedStorageWorkletGlobalScope}}'s [=worklet event loop=] to perform the [=registered=] operation.
+
+      Note: The [=get the index for a saved query=] algorithm returns "pending callback" to indicate that a [=task=] to determine the result of the index was previously [=queue a task|queued=] on the {{SharedStorageWorkletGlobalScope}}'s [=worklet event loop=], and that we are now queueing an additional <var ignore=''>callbackTask</var> to be run when the original [=task=] has completed.
+
+  <div algorithm>
+    To <dfn>store the index for a saved query</dfn>, given {{Window}} |window|, [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
+
+    1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
+    1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
+    1. Let |queryData| be |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)].
+    1. [=map/Set=] |queryData|'s [=saved query data/index=] to |index|.
+    1. [=While=] |queryData|'s [=saved query data/callbacks=] is not empty:
+        1. [=queue/Dequeue=] the next [=task=] |callbackTask| from |queryData|'s [=saved query data/callbacks=], and [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to run the steps of |callbackTask|, given |index|.
   </div>
 
   <div algorithm>
-    To <dfn>store the index for a saved query</dfn>, given [=/navigable=] |navigable|, [=url/origin=] |origin|, [=/URL=] |moduleURLRecord|, [=string=] |operationName|, [=string=] |savedQueryName|, and {{unsigned long}} |index|:
+    To <dfn>obtain a callback to process the saved index result</dfn>, given {{Window}} |window|, [=/list=] of {{SharedStorageUrlWithMetadata}}s |urlList|, [=promise=] |promise|, perform the following steps. They return an algorithm.
 
-    1. Let |topLevelTraversable| be the result of running [=get the top-level traversable=] for |navigable|.
-    1. [=Assert=] that |topLevelTraversable|'s [=page budget=] is not null.
-    1. [=map/Set=] |topLevelTraversable|'s [=page budget=]'s [=saved query map=][(|origin|, |moduleURLRecord|, |operationName|, |savedQueryName|)] to |index|.
+    1. Let |processIndexTask| be an algorithm to perform the following steps, given an {{unsigned long}} |index|:
+        1. If |index| is greater than |urlList|'s [=list/size=], then [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+
+                Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
+        1.  Otherwise, [=queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
+    1. Return |processIndexTask|.
   </div>
 
   #### Charging the [=Top-Level Traversable=] Entropy Budgets #### {#charge-top-trav-budgets}
