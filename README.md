@@ -179,11 +179,36 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Creates a new worklet, and loads and adds the module to the worklet (similar to the handling for `window.sharedStorage.worklet.addModule(url, options)`).
     *   By default, the worklet uses the invoking context's origin as its partition origin for accessing shared storage data and for budget checking and withdrawing.
         *   To instead use the worklet script origin (i.e. `url`'s origin) as the partition origin for accessing shared storage, pass the `dataOrigin` option with "script-origin" as its value in the `options` dictionary.
-        *   Currently, the `dataOrigin` option, if used, is restricted to having either "script-origin" or "context-origin" as its value. "script-origin" designates the worklet script origin as the data partition origin; "context-origin" designates the invoking context origin as the data partition origin.
-    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only the invocation methods (e.g., `run`)  are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
+        *   To use a custom origin as the partition origin for accessing shared storage, pass the `dataOrigin` option with the serialized partition origin (i.e. the [URL serialization](https://url.spec.whatwg.org/#url-serializing) of a URL with the same scheme, host, and port as the partition origin, but whose other components are empty) as its value in the `options` dictionary.
+        *   Supported values for the `dataOrigin` option, if used, are the keywords "script-origin" and "context-origin", as well as any valid serialized HTTPS origin, e.g. "https://custom-data-origin.example". 
+            *   "script-origin" designates the worklet script origin as the data partition origin.
+            *   "context-origin" (default) designates the invoking context origin as the data partition origin.
+            *   A serialized HTTPS origin designates itself as the data partition origin.
+    *   When a valid serialized HTTPS URL is passed as the value for `dataOrigin` and the parsed URL's origin is cross-origin to both the invoking context's origin and the worklet script's origin, the parsed URL's origin must host a JSON file at the <a name="well-known">/.well-known/</a> path "/.well-known/shared-storage/trusted-origins" with an array of dictionaries, each with keys `scriptOrigin` and `contextOrigin`. The values for these keys should be either a string or an array of strings.
+        *   A string value should be either a serialized origin or `"*"`, where `"*"` matches all origins.
+        *   A value that is an array of strings should be a list of serialized origins. 
+        *   For example, the following JSON at "https://custom-data-origin.example/.well-known/shared-storage/trusted-origins" allows script from "https://script-origin.a.example" to process "https://custom-data-origin.example"'s shared storage data when `createWorklet` is invoked in the context "https://context-origin.a.example", it allows script from "https://script-origin.b.example" to process "https://custom-data-origin.example"'s shared storage data when `createWorklet` is invoked in the context of either "https://context-origin.a.example" or "https://context-origin.b.example", and it also allows script from "https://script-origin.c.example" and "https://script-origin.d.example" to process "https://custom-data-origin.example"'s shared storage data when `createWorklet` is invoked in any origin's context.
+            ```
+              [
+                {
+                  scriptOrigin: "https://script-origin.a.example",
+                  contextOrigin: "https://context-origin.a.example"
+                },
+                {
+                  scriptOrigin: "https://script-origin.b.example",
+                  contextOrigin: ["https://context-origin.a.example", "https://context-origin.b.example"]
+                },
+                {
+                  scriptOrigin: ["https://script-origin.c.example", "https://script-origin.d.example"],
+                  contextOrigin: "*"
+                }
+              ]
+            ```
+    *   The object that the returned Promise resolves to has the same type with the implicitly constructed `window.sharedStorage.worklet`. However, for a worklet created via `window.sharedStorage.createWorklet(url, options)`, only `selectURL()` and `run()` are available, whereas calling `addModule()` will throw an error. This is to prevent leaking shared storage data via `addModule()`, similar to the reason why `addModule()` can only be invoked once on the implicitly constructed `window.sharedStorage.worklet`.
     *   Redirects are not allowed.
-    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin", a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required.
-    *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
+    *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin" (or when `dataOrigin` is a valid serialized HTTPS URL that is same-origin to the worklet's script's origin), the check for trusted origins at the [/.well-known/ path](#well-known) will be skipped, and a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required instead.
+        *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
+        *   Note that for the script server's infomation, the request header "Sec-Shared-Storage-Data-Origin" will be included with the value of the serialized data partition origin to be used if the data partition origin is cross-origin to the invoking context's origin.
 
 
 
@@ -455,7 +480,7 @@ sharedStorage.set("all", "done");
 
 ### Loading cross-origin worklet scripts
 
-There are currently four (4) approaches to creating a worklet that loads cross-origin script. The partition origin for the worklet's shared storage data access depends on the approach.
+There are currently six (6) approaches to creating a worklet that loads cross-origin script. The partition origin for the worklet's shared storage data access depends on the approach.
 
 #### Using the context origin as data partition origin
 The first three (3) approaches use the invoking context's origin as the partition origin for shared storage data access and the invoking context's site for shared storage budget withdrawals.
@@ -501,7 +526,38 @@ The fourth approach uses the worklet script's origin as the partition origin for
     const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "script-origin"});
     ```
 
-    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used.
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://b.example" (i.e. the worklet script origin) will be used, assuming that the worklet script's server confirmed opt-in with the required "Shared-Storage-Cross-Origin-Worklet-Allowed: ?1" response header.
+
+#### Using a custom origin as data partition origin
+The fifth through eighth approaches use a custom origin as the partition origin for shared storage data access and the custom origin's site for shared storage budget withdrawals.
+
+5. Call `createWorklet()`, setting its `dataOption` to a string whose value is the serialization of the custom origin.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://a.example/worklet.js", {dataOrigin: "https://custom.example"});
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://custom.example" will be used, assuming that the [/.well-known/](#well-known) JSON file at  "https://custom.example/.well-known/shared-storage/trusted-origins" contains an array of dictionaries, where one of its dictionaries has
+
+* the `scriptOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
+* the `contextOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
+   
+    
+6. Call `createWorklet()` with a cross-origin script, setting its `dataOption` to a string whose value is the serialization of the custom origin.
+
+    In an "https://a.example" context in the embedder page:
+
+    ```
+    const worklet = await sharedStorage.createWorklet("https://b.example/worklet.js", {dataOrigin: "https://custom.example"});
+    ```
+
+    For any subsequent `run()` or `selectURL()` operation invoked on this worklet, the shared storage data for "https://custom.example" will be used, assuming that the [/.well-known/](#well-known) JSON file at  "https://custom.example/.well-known/shared-storage/trusted-origins" contains an array of dictionaries, where one of its dictionaries has
+
+* the `scriptOrigin` key's value matches "https://b.example" (i.e. its value is "https://b.example", `"*"`, or an array of strings containing "https://b.example")
+* the `contextOrigin` key's value matches "https://a.example" (i.e. its value is "https://a.example", `"*"`, or an array of strings containing "https://a.example")
+
 
 
 ## Error handling
