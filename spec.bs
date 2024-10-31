@@ -745,7 +745,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
       readonly attribute SharedStorage sharedStorage;
       readonly attribute PrivateAggregation privateAggregation;
 
-      Promise<sequence<AuctionAdInterestGroup>> interestGroups();
+      Promise<sequence<StorageInterestGroup>> interestGroups();
     };
   </xmp>
 
@@ -786,7 +786,13 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |workletDataOrigin| be [=current realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/run-ad-auction=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
     1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/join-ad-interest-group=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
-    1. [=Resolve=] |promise| with the result of running [=get storage interest groups for owner=].
+    1. Run the following steps [=in parallel=]:
+        1. Let |interestGroups| be the result of running [=get storage interest groups for owner=] given |workletDataOrigin|.
+        1. If |interestGroups| is failure:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+        1. Otherwise:
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |interestGroups|.
+    1. Return |promise|.
   </div>
 
   <div algorithm>
