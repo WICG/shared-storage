@@ -269,7 +269,7 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">addModule initiated</dfn>, initialized to false.
 
-Each {{SharedStorageWorklet}} has an associated {{DOMString}} <dfn for="SharedStorageWorklet">data origin</dfn>, initialized to `"context-origin"`.
+Each {{SharedStorageWorklet}} has an associated {{USVString}} <dfn for="SharedStorageWorklet">data origin</dfn>, initialized to `"context-origin"`.
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">has cross-origin data origin</dfn>, initialized to false.
 
@@ -1408,7 +1408,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   };
 
   dictionary SharedStorageWorkletOptions : WorkletOptions {
-    DOMString dataOrigin = "context-origin";
+    USVString dataOrigin = "context-origin";
   };
 </xmp>
 
