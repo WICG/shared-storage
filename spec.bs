@@ -254,8 +254,6 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
 <xmp class='idl'>
   typedef (USVString or FencedFrameConfig) SharedStorageResponse;
-
-  enum SharedStorageDataOrigin { "context-origin", "script-origin" };
 </xmp>
 
 <xmp class='idl'>
@@ -271,7 +269,7 @@ The {{SharedStorageWorklet}} object allows developers to supply [=module scripts
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">addModule initiated</dfn>, initialized to false.
 
-Each {{SharedStorageWorklet}} has an associated {{SharedStorageDataOrigin}} <dfn for="SharedStorageWorklet">data origin</dfn>, initialized to `"context-origin"`.
+Each {{SharedStorageWorklet}} has an associated {{DOMString}} <dfn for="SharedStorageWorklet">data origin</dfn>, initialized to `"context-origin"`.
 
 Each {{SharedStorageWorklet}} has an associated boolean <dfn for="SharedStorageWorklet">has cross-origin data origin</dfn>, initialized to false.
 
@@ -314,6 +312,10 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     1. Set |worklet|'s [=addModule initiated=] to true.
     1. Let |workletDataOrigin| be the [=current settings object=]'s [=environment settings object/origin=].
     1. If |worklet|'s [=SharedStorageWorklet/data origin=] is `"script-origin"`, set |workletDataOrigin| to |moduleURLRecord|'s [=url/origin=].
+    1. Otherwise, if |worklet|'s [=SharedStorageWorklet/data origin=] is not `"context-origin"`:
+        1. Let |customOriginUrl| be the result of running a [=URL parser=] on |worklet|'s [=SharedStorageWorklet/data origin=].
+        1. If |customOriginUrl| is not a valid [=/URL=], return "DisallowedDueToNonPreferenceError".
+        1. Set |workletDataOrigin| to |customOriginUrl|'s [=url/origin=].
     1. Let |hasCrossOriginDataOrigin| be false.
     1. If |workletDataOrigin| and the [=current settings object=]'s [=environment settings object/origin=] are not [=same origin=], then set |hasCrossOriginDataOrigin| to true.
     1. Let |allowedInOpaqueOriginContext| be |hasCrossOriginDataOrigin|.
@@ -628,10 +630,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
           1. If |workletGlobalScope| is not {{SharedStorageWorkletGlobalScope}}, return |origin|.
           1. [=Assert=] that |worklet| is a {{SharedStorageWorklet}}.
           1. If |worklet|'s [=SharedStorageWorklet/data origin=] is `"context-origin"`, return <var ignore=''>outsideSettings</var>'s [=environment settings object/origin=].
-          1. Let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
-          1. [=Assert=]: |pendingAddedModules|'s [=list/size=] is 1.
-          1. Let |moduleURL| be |pendingAddedModules|[0].
-          1. Return |moduleURL|'s [=url/origin=].
+          1. Otherwise, if [=SharedStorageWorklet/data origin=] is `"script-origin"`:
+              1. Let |pendingAddedModules| be a [=list/clone=] of |worklet|'s [=added modules list=].
+              1. [=Assert=]: |pendingAddedModules|'s [=list/size=] is 1.
+              1. Let |moduleURL| be |pendingAddedModules|[0].
+              1. Return |moduleURL|'s [=url/origin=].
+          1. Otherwise, let |customOriginUrl| be the result of running a [=URL parser=] on [=SharedStorageWorklet/data origin=].
+          1. [=Assert=] |customOriginUrl| is a valid [=/URL=].
+          1. Return |customOriginUrl|'s [=url/origin=].
 
         ......
 
@@ -687,6 +693,55 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     This rationale also applies to the handling for user preferences error for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}}.
     </div>
 
+  After the step "Let <var ignore=''>addedSuccessfully</var> be false", we need to include the following step:
+
+    4. If |this| is of type {{SharedStorageWorklet}}, [=SharedStorageWorklet/has cross-origin data origin=] is true, and [=SharedStorageWorklet/data origin=] is not `"script-origin"`:
+        1. [=Assert=] |pendingTasks| is 1.
+        1. Set |pendingTasks| to 2.
+        1. [=Queue a global task=] on the [=networking task source=] given <var ignore=''>workletGlobalScope</var> to perform the following steps:
+            1. Let |customOriginUrl| be the result of running a [=URL parser=] on [=SharedStorageWorklet/data origin=].
+            1. [=Assert=] |customOriginUrl| is a valid [=/URL=].
+            1. Set |customOriginUrl|'s [=url/path=] to ≪".well-known", "shared-storage", "trusted-origins"≫.
+            1. Let |request| be a new [=/request=] whose [=request/URL=] is |customOriginUrl|, [=request/mode=] is `"cors"`, [=request/referrer=] is `"client"`, [=request/destination=] is `"json"`, [=request/initiator type=] is `"script"`, and [=request/client=] is |outsideSettings|.
+            1. [=Fetch=] |request| with [=fetch/processResponseConsumeBody=] set to the following algorithm, given [=/response=] |response| and null, failurem or a [=/byte sequence=] |bodyBytes|:
+                1. If any of the following are true:
+                    * |bodyBytes| is null or failure; or
+                    * |response|'s [=response/status=] is not an [=ok status=],
+
+                       then:
+                       1. Set |pendingTasks| to −1.
+                       1. [=Reject=] |promise| with an "TypeError" DOMException.
+                       1. Abort these steps.
+                1. Let |mimeType| be the result of [=extracting a MIME type=] from |response|'s [=response/header list=].
+                1. If |mimeType| is not a [=JSON MIME type=], then:
+                    1. Set |pendingTasks| to −1.
+                    1. [=Reject=] |promise| with an "TypeError" DOMException.
+                    1. Abort these steps.
+                1. Let |sourceText| be the result of [=UTF-8 decoding=] |bodyBytes|.
+                1. Let |parsed| be the result of [=parsing a JSON string to an Infra value=] given |sourceText|.
+                1. If |parsed| is not a [=list=] or if |parsed| is [=list/empty=], then:
+                    1. Set |pendingTasks| to −1.
+                    1. [=Reject=] |promise| with an "TypeError" DOMException.
+                    1. Abort these steps.
+                1. Let |doesMatch| be false.
+                1. For each |item| of |parsed|:
+                    1. If |item| is not an [=ordered map=], then continue.
+                    1. If |item| does not [=map/contain=] `scriptOrigin` or |item| does not [=map/contain=] `contextOrigin`, then continue.
+                    1. Let |doesMatch| be the result of running [=check for script and context origin match=] on |item|[`scriptOrigin`], <var ignore=''>moduleURLRecord</var>'s [=url/origin=], |item|[`contextOrigin`], and |outsideSettings|'s [=environment settings object/origin=].
+                    1. If |doesMatch| is true:
+                        1. [=Queue a global task=] on the [=networking task source=] given |this|'s [=relevant global object=] to perform the following steps:
+                            1. If |pendingTasks| is not −1, then:
+                                1. Set |pendingTasks| to |pendingTasks| − 1.
+                                1. If |pendingTasks| is 0, perform the following steps:
+                                    1. If |workletGlobalScope| has an associated boolean [=addModule success=], set |workletGlobalScope|'s [=addModule success=] to true.
+                                    1. [=Resolve=] |promise|.
+                        1. Break.
+                1. If |doesMatch| is false, then:
+                    1. Set |pendingTasks| to −1.
+                    1. [=Reject=] |promise| with an "TypeError" DOMException.
+
+
+
   The penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then [=resolve=] |promise|.", should be updated to:
 
     2. If |pendingTasks| is 0, perform the following steps:
@@ -722,6 +777,36 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             Note: Multiple operation invocations can be in-progress at the same
             time, each with a different batching scope and debug scope. However,
             only one can be currently executing.
+
+
+  A <dfn>trusted origin type</dfn> is a [=string=] or [=list=] of [=strings=].
+
+  <div algorithm>
+  To <dfn>check for script and context origin match</dfn>, given [=trusted origin type=] |itemScriptOrigin|, [=url/origin=] |actualScriptOrigin|, [=trusted origin type=] |itemContextOrigin|, and [=environment settings object/origin=] |actualContextOrigin|, peform the following steps:
+
+    1. If the result of running [=check for trusted origin match=], given |itemScriptOrigin| and |actualScriptOrigin| is false, return false.
+    1. Return the result of running [=check for trusted origin match=], given |itemContextOrigin| and |actualContextOrigin|.
+  </div>
+
+  <div algorithm>
+  To <dfn>check for trusted origin match</dfn>, given [=trusted origin type=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+
+    1. If |itemOrigin| is a [=string=], return the result of running [=check for trusted origin match on a string=], given |itemOrigin| and |actualOrigin|.
+    1. Otherwise, for each |originString| in |itemOrigin|:
+        1. If the result of running [=check for trusted origin match on a string=] given |originString| and |actualOrigin| is true, return true.
+    1. Return false.
+  </div>
+
+
+  <div algorithm>
+  To <dfn>check for trusted origin match on a string</dfn>, given [=string=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+
+    1. If |itemOrigin| is `"*"`, return true.
+    1. Let |itemOriginUrl| be the result of running a [=URL parser=] on |itemOrigin|.
+    1. If |itemOriginUrl| is not a valid [=/URL=], then return false.
+    1. If |itemOriginUrl|'s [=url/origin=] and |actualOrigin| are [=same origin=], return true.
+    1. Otherwise, return false.
+  </div>
 
   <span class=todo>Add additional monkey patch pieces for out-of-process worklets.</span>
 
@@ -1323,7 +1408,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
   };
 
   dictionary SharedStorageWorkletOptions : WorkletOptions {
-    SharedStorageDataOrigin dataOrigin = "context-origin";
+    DOMString dataOrigin = "context-origin";
   };
 </xmp>
 
@@ -1727,9 +1812,10 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
             1. [=Assert=] that |dataOriginUrl| is not failure.
             1. [=Assert=] that |request|'s [=request/origin=] is not "<code>client</code>".
             1. [=Assert=] that |request|'s [=request/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are not [=same origin=].
-            1. [=Assert=] that |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=].
-            1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
-            1. Let |allowed| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Cross-Origin-Worklet-Allowed:], "item", and |responseHeaders| as input.
+            1. Let |allowed| be true.
+            1. If |dataOriginUrl|'s [=url/origin=] and |request|'s [=request/URL=]'s [=url/origin=] are [=same origin=]:
+                1. Let |responseHeaders| be |internalResponse|'s [=response/header list=].
+                1. Let |allowed| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Cross-Origin-Worklet-Allowed:], "item", and |responseHeaders| as input.
             1. If |allowed| is false, then return a [=network error=].
     1. [=Handle a Shared-Storage-Write response=], given [=/response=] |internalResponse| and [=/request=] <var ignore=''>request</var> as input.
   </div>
