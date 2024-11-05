@@ -271,7 +271,10 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
         *   `clear()` &larr;&rarr; `clear`
     *   The `batchUpdate()` options corresponds to an [Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `{withLock: <resource>}` &larr;&rarr; `options;with_lock=<resource>`
-    *   Example:
+    *   Example 1: Single Update
+        * Header value: `set;key="123";value="456";ignore_if_present`.
+        * JavaScript equivalent: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true})])`. Note that this is also equivalent to: `sharedStorage.set("123", "456", {ignoreIfPresent: true})`.
+    *   Example 2: Batch Update with Lock
         * Header value: `set;key="123";value="456";ignore_if_present, append;key=abc;value=def, options;with_lock="report-lock"`.
         * JavaScript equivalent: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true}), new SharedStorageAppendMethod("abc", "def")], { withLock: "report-lock" })`.
     *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
