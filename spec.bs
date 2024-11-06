@@ -348,7 +348,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |moduleMapKeyTuples| be the result of running [=map/get the keys=] on |globalScope|'s [=relevant settings object=]'s [=module map=].
     1. [=Assert=]: |moduleMapKeyTuples| has [=map/size=] 1.
     1. Let |moduleURLRecord| be |moduleMapKeyTuples|[0][0].
-    1. Let |savedQueryName| be |options|["`savedQuery`"]. 
+    1. Let |savedQueryName| be |options|["`savedQuery`"].
     1. If |savedQueryName| is a [=string=] that is not the empty string, then:
         1. Let |callbackTask| be the result of running [=obtain a callback to process the saved index result=], given |window|, |urlList|, and |promise|.
         1. Let |savedIndex| be the result of running [=get the index for a saved query=] on |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |callbackTask|.
@@ -1008,8 +1008,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     :: a {{long}}
 
     : <dfn>callbacks</dfn>
-    :: a [=queue=] of [=tasks=]</dl>
-
+    :: a [=queue=] of [=tasks=]
+  </dl>
 
   #### Monkey patch for [=navigable/Traversable Navigables=] #### {#patch-trav-nav}
 
