@@ -471,7 +471,7 @@ On the client side, to initiate the request:
 
 On the server side, here is an example response header:
 ```text
-Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present, append;key="good";value="bye", delete;key="hello", set;key="all";value="done", options;with_lock="report-lock"
+Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present;with_lock="lock2", append;key="good";value="bye", delete;key="hello", set;key="all";value="done", options;with_lock="lock1"
 ```
 
 Sending the above response header would be equivalent to making the following call on the client side, from either the document or a worklet:
@@ -479,11 +479,11 @@ Sending the above response header would be equivalent to making the following ca
 
 sharedStorage.batchUpdate([
   new SharedStorageClearMethod(),
-  new SharedStorageSetMethod("hello", "world", {ignoreIfPresent: true}),
+  new SharedStorageSetMethod("hello", "world", {ignoreIfPresent: true, withLock: "lock2"}),
   new SharedStorageAppendMethod("good", "bye"),
   new SharedStorageDeleteMethod("hello"),
   new SharedStorageSetMethod("all", "done")
-], { withLock: "report-lock" })
+], { withLock: "lock1" })
 
 ```
 
