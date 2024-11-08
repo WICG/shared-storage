@@ -178,6 +178,9 @@ spec: shared-storage-explainer; urlPrefix: https://github.com/WICG/shared-storag
 spec: UUID; urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
     type: dfn
         text: urn uuid; url: urn-uuid
+spec: hr-time; urlPrefix: https://w3c.github.io/hr-time/
+    type: dfn
+        text: current wall time; url: dfn-current-wall-time
 </pre>
 
 <style>
@@ -703,7 +706,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             1. [=Assert=] |customOriginUrl| is a valid [=/URL=].
             1. Set |customOriginUrl|'s [=url/path=] to ≪".well-known", "shared-storage", "trusted-origins"≫.
             1. Let |request| be a new [=/request=] whose [=request/URL=] is |customOriginUrl|, [=request/mode=] is `"cors"`, [=request/referrer=] is `"client"`, [=request/destination=] is `"json"`, [=request/initiator type=] is `"script"`, and [=request/client=] is |outsideSettings|.
-            1. [=Fetch=] |request| with [=fetch/processResponseConsumeBody=] set to the following algorithm, given [=/response=] |response| and null, failurem or a [=/byte sequence=] |bodyBytes|:
+            1. [=Fetch=] |request| with [=fetch/processResponseConsumeBody=] set to the following algorithm, given [=/response=] |response| and null, failure or a [=/byte sequence=] |bodyBytes|:
                 1. If any of the following are true:
                     * |bodyBytes| is null or failure; or
                     * |response|'s [=response/status=] is not an [=ok status=],
@@ -740,7 +743,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                     1. Set |pendingTasks| to −1.
                     1. [=Reject=] |promise| with an "TypeError" DOMException.
 
-
+    Note: If the worklet data origin is different from the current context and the script origin, an additional check is performed. This involves fetching a configuration file from the worklet data origin to verify that the current context is allowed to load the worklet with the script and perform operations.
 
   The penultimate step (i.e. the final indented step), currently "If |pendingTasks| is 0, then [=resolve=] |promise|.", should be updated to:
 
