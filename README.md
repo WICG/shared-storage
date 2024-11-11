@@ -156,7 +156,6 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   `methods` is an array of method objects defining the operations to perform. Each object must be one of the following types: `SharedStorageSetMethod`, `SharedStorageAppendMethod`, `SharedStorageDeleteMethod`, or `SharedStorageClearMethod`. Each method object's constructor accepts the same parameters as the corresponding individual method (e.g., `set`, `append`, `delete`, `clear`).
     *   Options include:
         *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
-    *   The `withLock` option for individual method objects within the batch is ignored; only the `options.withLock` value applies to the entire batch.
     *   This method, with the `withLock` option, allows multiple modifier methods to be executed atomically, enabling use cases where a website needs to maintain consistency while updating data organized across multiple keys.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
@@ -256,12 +255,13 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
 
 ### From response headers
 
-*  `set()`, `append()`, `delete()`, `clear()`, and `batchUpdate()` operations can be triggered via the HTTP response header `Shared-Storage-Write`.
+*  `batchUpdate()` can be triggered via the HTTP response header `Shared-Storage-Write`.
 *  This may provide a large performance improvement over creating a cross-origin iframe and writing from there, if a network request is otherwise required.
 *   `Shared-Storage-Write` is a [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists).
-    *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) denoting the operation to be performed, with any arguments for the operation as associated [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters). A string type argument or option (`key`, `value`, `with_lock`) can take the form of a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) or a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or a [Byte Sequence Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). A boolean type option (`ignore_if_present`) can take the form of a [Boolean Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-booleans).
-    *   The order of [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is the order in which the operations will be performed.
-    *   Operations correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
+    *   Each member of the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) is a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) denoting either 1) the individual modifier method (`set`, `append`, `delete`, `clear`), with any arguments for the method as associated [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters), or 2) the options to apply to the whole batch, with any individual options as associated [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters). A string type argument or option (`key`, `value`, `with_lock`) can take the form of a [Token Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-tokens) or a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or a [Byte Sequence Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences). A boolean type option (`ignore_if_present`) can take the form of a [Boolean Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-booleans).
+    *   The modifier methods [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) are handled in the order they appear.
+    *   If multiple `options` [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) appear in the [List](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists), the last one will be used.
+    *   The individual modifier methods correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
         *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
         *   `set(<key>, <value>, {withLock: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock=<resource>`
@@ -269,9 +269,14 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
         *   `clear()` &larr;&rarr; `clear`
-        *   `batchUpdate(<methods>, {withLock: <resource>})` &larr;&rarr; `batchUpdate;methods=<serialized methods>;with_lock=<resource>`
-            *   `<serialized methods>` is a [String Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) containing the [List Structured Header](https://www.rfc-editor.org/rfc/rfc8941.html#name-lists) serialization of batched methods in the same list structure. Note that nested `batchUpdate()` operations within a `batchUpdate()` are not allowed.
-            *   Example header value: `batchUpdate;methods="set;key=\"123\";value=\"456\";ignore_if_present, append;key=abc;value=def";with_lock="report-lock"`. This corresponds to the JavaScript method: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true}), new SharedStorageAppendMethod("abc", "def")], { withLock: "report-lock" })`.
+    *   The `batchUpdate()` options corresponds to an [Item](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
+        *   `{withLock: <resource>}` &larr;&rarr; `options;with_lock=<resource>`
+    *   Example 1: Single Update
+        * Header value: `set;key="123";value="456";ignore_if_present`.
+        * JavaScript equivalent: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true})])`. Note that this is also equivalent to: `sharedStorage.set("123", "456", {ignoreIfPresent: true})`.
+    *   Example 2: Batch Update with Lock
+        * Header value: `set;key="123";value="456";ignore_if_present, append;key=abc;value=def, options;with_lock="report-lock"`.
+        * JavaScript equivalent: `sharedStorage.batchUpdate([new SharedStorageSetMethod("123", "456", {ignoreIfPresent: true}), new SharedStorageAppendMethod("abc", "def")], { withLock: "report-lock" })`.
     *  `<key>` and `<value>` [Parameters](https://www.rfc-editor.org/rfc/rfc8941.html#name-parameters) are of type [String](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) or [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
         *   Note that [Strings](https://www.rfc-editor.org/rfc/rfc8941.html#name-strings) are defined as zero or more [printable ASCII characters](https://www.rfc-editor.org/rfc/rfc20.html), and this excludes tabs, newlines, carriage returns, and so forth.
         *   To pass a key and/or value that contains non-ASCII and/or non-printable [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) characters, specify it as a [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
@@ -281,7 +286,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
                 *    `:aGVsbG8K:` encodes "hello\n" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences) (where "\n" is the newline character).
                 *    `:8J+YgA==:` encodes "😀" in a [UTF-8](https://www.rfc-editor.org/rfc/rfc3629.html) [Byte Sequence](https://www.rfc-editor.org/rfc/rfc8941.html#name-byte-sequences).
             *   Remember that results returned via `get()` are [UTF-16](https://www.rfc-editor.org/rfc/rfc2781.html) [DOMStrings](https://webidl.spec.whatwg.org/#idl-DOMString).
-*  Performing operations via response headers requires a prior opt-in via a corresponding HTTP request header `Sec-Shared-Storage-Writable: ?1`.
+*  Modifying shared storage via response headers requires a prior opt-in via a corresponding HTTP request header `Sec-Shared-Storage-Writable: ?1`.
 *  The request header can be sent along with `fetch` requests via specifying an option: `fetch(<url>, {sharedStorageWritable: true})`.
 *  The request header can alternatively be sent on document or image requests either
     *   via specifying a boolean content attribute, e.g.:
@@ -466,16 +471,20 @@ On the client side, to initiate the request:
 
 On the server side, here is an example response header:
 ```text
-Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present, append;key="good";value="bye", delete;key="hello", set;key="all";value="done"
+Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present;with_lock="lock2", append;key="good";value="bye", delete;key="hello", set;key="all";value="done", options;with_lock="lock1"
 ```
 
-Sending the above response header would be equivalent to making the following calls in the following order on the client side, from either the document or a worklet:
+Sending the above response header would be equivalent to making the following call on the client side, from either the document or a worklet:
 ```js
-sharedStorage.clear();
-sharedStorage.set("hello", "world", {ignoreIfPresent: true});
-sharedStorage.append("good", "bye");
-sharedStorage.delete("hello");
-sharedStorage.set("all", "done");
+
+sharedStorage.batchUpdate([
+  new SharedStorageClearMethod(),
+  new SharedStorageSetMethod("hello", "world", {ignoreIfPresent: true, withLock: "lock2"}),
+  new SharedStorageAppendMethod("good", "bye"),
+  new SharedStorageDeleteMethod("hello"),
+  new SharedStorageSetMethod("all", "done")
+], { withLock: "lock1" })
+
 ```
 
 ### Loading cross-origin worklet scripts
