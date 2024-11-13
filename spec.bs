@@ -728,8 +728,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                     1. Abort these steps.
                 1. Let |doesMatch| be false.
                 1. For each |item| of |parsed|:
-                    1. If |item| is not an [=ordered map=], then continue.
-                    1. If |item| does not [=map/contain=] `scriptOrigin` or |item| does not [=map/contain=] `contextOrigin`, then continue.
+                    1. If |item| is not an [=ordered map=], or if |item| does not [=map/contain=] `scriptOrigin`, or if |item| does not [=map/contain=] `contextOrigin`:
+                        1. Set |pendingTasks| to −1.
+                        1. [=Reject=] |promise| with an "TypeError" DOMException.
+                        1. Abort these steps.
                     1. Let |doesMatch| be the result of running [=check for script and context origin match=] on |item|[`scriptOrigin`], <var ignore=''>moduleURLRecord</var>'s [=url/origin=], |item|[`contextOrigin`], and |outsideSettings|'s [=environment settings object/origin=].
                     1. If |doesMatch| is true:
                         1. [=Queue a global task=] on the [=networking task source=] given |this|'s [=relevant global object=] to perform the following steps:
