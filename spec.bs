@@ -147,9 +147,6 @@ spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github
         text: PrivateAggregation
 spec: protected-audience; urlPrefix: https://wicg.github.io/turtledove/
     type: dfn
-        for: PermissionsPolicy
-            text: run-ad-auction
-            text: join-ad-interest-group
         text: get storage interest groups for owner
     type: interface
         text: StorageInterestGroup; url: dictdef-storageinterestgroup
@@ -885,8 +882,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. Let |document| be |context|'s [=active window=]'s [=associated document=].
     1. If |document| is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |workletDataOrigin| be [=current realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
-    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/run-ad-auction=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
-    1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/join-ad-interest-group=]", |document|, and |workletDataOrigin| returns false, then return a [=promise rejected=] with a {{TypeError}}.
     1. Run the following steps [=in parallel=]:
         1. Let |interestGroups| be the result of running [=get storage interest groups for owner=] given |workletDataOrigin|.
         1. If |interestGroups| is failure:
