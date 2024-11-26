@@ -258,7 +258,7 @@ This document introduces a new storage API that is intentionally not partitioned
 
 The {{SharedStorageWorklet}} Interface {#worklet}
 =================================================
-The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=Private Aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate. 
+The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=Private Aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
 
 <xmp class='idl'>
   typedef (USVString or FencedFrameConfig) SharedStorageResponse;
