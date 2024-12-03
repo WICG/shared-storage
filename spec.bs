@@ -859,7 +859,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=function objects=].
 
-  Each {{SharedStorageWorkletGlobalScope}} also has an associated {{SharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
+  Each {{SharedStorageWorkletGlobalScope}} has an associated {{SharedStorage}} instance <dfn for=SharedStorageWorkletGlobalScope>shared storage instance</dfn>.
+
+  Each {{SharedStorageWorkletGlobalScope}} has an associated {{SharedStorageWorkletNavigator}} instance <dfn for=SharedStorageWorkletGlobalScope>navigator instance</dfn>.
+
 
   ### {{SharedStorageWorkletGlobalScope}} algorithms ### {#scope-algo}
   <div algorithm>
@@ -898,9 +901,16 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   <div algorithm>
-    The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
+    The <dfn attribute for=SharedStorageWorkletGlobalScope>sharedStorage</dfn> [=getter steps=] are:
 
-    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
+    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s [=SharedStorageWorkletGlobalScope/shared storage instance=].
+    1. Otherwise, throw a {{TypeError}}.
+  </div>
+
+  <div algorithm>
+    The <dfn attribute for=SharedStorageWorkletGlobalScope>navigator</dfn> [=getter steps=] are:
+
+    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s [=SharedStorageWorkletGlobalScope/navigator instance=].
     1. Otherwise, throw a {{TypeError}}.
   </div>
 
