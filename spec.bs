@@ -94,6 +94,10 @@ spec: storage; urlPrefix: https://storage.spec.whatwg.org/
 spec: beacon; urlPrefix: https://w3c.github.io/beacon/
     type: dfn
         text: beacon; url: beacon
+spec: web-locks; urlPrefix: https://w3c.github.io/web-locks/
+    type: dfn
+        text: lock manager; url: lock-manager
+        text: obtain a lock manager; url: obtain-a-lock-manager
 spec: ecma; urlPrefix: https://tc39.es/ecma262/
     type: dfn
         text: call; url: sec-call
@@ -844,6 +848,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
       readonly attribute PrivateAggregation privateAggregation;
 
       Promise<sequence<StorageInterestGroup>> interestGroups();
+
+      readonly attribute SharedStorageWorkletNavigator navigator;
     };
   </xmp>
 
@@ -2022,6 +2028,58 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If |parameters|[|paramKey|] is not a [=structured header/Boolean=], return null.
     1. Return |parameters|[|paramKey|].
+  </div>
+
+# Web Locks Integration # {#web-locks-integration}
+
+## User Agent Associated State ## {#user-agent-associated-state}
+
+A <dfn>shared storage lock managers map</dfn> is a [=map=] of [=/origins=] to [=lock manager=]. It is initially empty.
+
+A [=user agent=] has an associated [=shared storage lock managers map=].
+
+Note: Similar to its data partitioning, the shared storage has its own lock management scope, independent of the Storage Buckets API.
+
+## {{SharedStorageWorkletNavigator}} interface ## {#shared-storage-worklet-navigator-interface}
+
+<xmp class='idl'>
+[
+  Exposed=SharedStorageWorklet,
+] interface SharedStorageWorkletNavigator {};
+</xmp>
+
+## Web Locks IDLs Monkey Patches ## {#web-locks-api-monkey-patches}
+
+Include the {{NavigatorLocks}} mixin in {{SharedStorageWorkletNavigator}} (i.e., let {{SharedStorageWorkletNavigator}} contain a {{LockManager}} instance):
+
+<xmp class='idl'>
+SharedStorageWorkletNavigator includes NavigatorLocks;
+</xmp>
+
+The {{LockManager}} and {{Lock}} are additionally exposed to SharedStorageWorklet:
+
+<xmp class='idl'>
+[SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
+interface LockManager {};
+</xmp>
+
+<xmp class='idl'>
+[SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
+interface Lock {};
+</xmp>
+
+## Monkey Patch for lock manager's description ## {#monkey-patch-for-lock-manager-description}
+
+Add the following sentence at the end of the paragraph that defines [=lock manager=]: "Additionally, each user agent includes one [=shared storage lock managers map=] for Web Locks API's integration with the Shared Storage API."
+
+## Monkey Patch for the "obtain a lock manager" algorithm ## {#monkey-patch-for-the-obtain-a-lock-manager-algorithm}
+
+The [=obtain a lock manager=] algorithm should be prepended with the following steps:
+
+  <div algorithm='monkey-patch-obtain-a-lock-manager'>
+    1. If [=current realm=]'s [=global object=] is a {{SharedStorageWorkletGlobalScope}}:
+        1. Let |workletDataOrigin| be <var ignore=''>environment</var>'s [=environment settings object/origin=].
+        1. Return [=shared storage lock managers map=][|workletDataOrigin|].
   </div>
 
 Permissions Policy Integration {#permission}
