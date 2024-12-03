@@ -2044,7 +2044,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
 ## User Agent Associated State ## {#user-agent-associated-state}
 
-A <dfn>shared storage lock managers map</dfn> is a [=map=] of [=/origins=] to [=lock manager=]. It is initially empty.
+A <dfn>shared storage lock managers map</dfn> is a [=map=] of [=/origins=] to [=lock managers=]. It is initially empty.
 
 A [=user agent=] has an associated [=shared storage lock managers map=].
 
