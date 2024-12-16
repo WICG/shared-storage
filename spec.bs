@@ -21,6 +21,7 @@ spec:infra;
 spec:webidl;
     type:interface;
         text:double
+        text:long
     type:dfn;
         text:an exception was thrown
 spec:html;
@@ -94,6 +95,10 @@ spec: storage; urlPrefix: https://storage.spec.whatwg.org/
 spec: beacon; urlPrefix: https://w3c.github.io/beacon/
     type: dfn
         text: beacon; url: beacon
+spec: web-locks; urlPrefix: https://w3c.github.io/web-locks/
+    type: dfn
+        text: lock manager; url: lock-manager
+        text: obtain a lock manager; url: obtain-a-lock-manager
 spec: ecma; urlPrefix: https://tc39.es/ecma262/
     type: dfn
         text: call; url: sec-call
@@ -844,6 +849,8 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
       readonly attribute PrivateAggregation privateAggregation;
 
       Promise<sequence<StorageInterestGroup>> interestGroups();
+
+      readonly attribute SharedStorageWorkletNavigator navigator;
     };
   </xmp>
 
@@ -853,7 +860,10 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Each {{SharedStorageWorkletGlobalScope}} also has an associated <dfn for=SharedStorageWorkletGlobalScope>operation map</dfn>, which is a [=map=], initially empty, of [=strings=] (denoting operation names) to [=function objects=].
 
-  Each {{SharedStorageWorkletGlobalScope}} also has an associated {{SharedStorage}} instance, with the [=SharedStorageWorkletGlobalScope/sharedStorage getter=] algorithm as described below.
+  Each {{SharedStorageWorkletGlobalScope}} has an associated {{SharedStorage}} instance <dfn for=SharedStorageWorkletGlobalScope>shared storage instance</dfn>.
+
+  Each {{SharedStorageWorkletGlobalScope}} has an associated {{SharedStorageWorkletNavigator}} instance <dfn for=SharedStorageWorkletGlobalScope>navigator instance</dfn>.
+
 
   ### {{SharedStorageWorkletGlobalScope}} algorithms ### {#scope-algo}
   <div algorithm>
@@ -892,9 +902,16 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   </div>
 
   <div algorithm>
-    The <dfn for="SharedStorageWorkletGlobalScope">{{SharedStorageWorkletGlobalScope/sharedStorage}} getter</dfn> steps are:
+    The <dfn attribute for=SharedStorageWorkletGlobalScope>sharedStorage</dfn> [=getter steps=] are:
 
-    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s {{SharedStorageWorkletGlobalScope/sharedStorage}}.
+    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s [=SharedStorageWorkletGlobalScope/shared storage instance=].
+    1. Otherwise, throw a {{TypeError}}.
+  </div>
+
+  <div algorithm>
+    The <dfn attribute for=SharedStorageWorkletGlobalScope>navigator</dfn> [=getter steps=] are:
+
+    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s [=SharedStorageWorkletGlobalScope/navigator instance=].
     1. Otherwise, throw a {{TypeError}}.
   </div>
 
@@ -2022,6 +2039,58 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. If |parameters| does not [=map/contain=] |paramKey|, return null.
     1. If |parameters|[|paramKey|] is not a [=structured header/Boolean=], return null.
     1. Return |parameters|[|paramKey|].
+  </div>
+
+# Web Locks Integration # {#web-locks-integration}
+
+## User Agent Associated State ## {#user-agent-associated-state}
+
+A <dfn>shared storage lock managers map</dfn> is a [=map=] of [=/origins=] to [=lock managers=]. It is initially empty.
+
+A [=user agent=] has an associated [=shared storage lock managers map=].
+
+Note: Similar to its data partitioning, the shared storage has its own lock management scope, independent of the Storage Buckets API. These web locks will not interact with web locks created from Window or Worker via the existing, legacy Web Locks API.
+
+## {{SharedStorageWorkletNavigator}} interface ## {#shared-storage-worklet-navigator-interface}
+
+<xmp class='idl'>
+[
+  Exposed=SharedStorageWorklet,
+] interface SharedStorageWorkletNavigator {};
+</xmp>
+
+## Web Locks IDLs Monkey Patches ## {#web-locks-api-monkey-patches}
+
+Include the {{NavigatorLocks}} mixin in {{SharedStorageWorkletNavigator}} (i.e., let {{SharedStorageWorkletNavigator}} contain a {{LockManager}} instance):
+
+<xmp class='idl'>
+SharedStorageWorkletNavigator includes NavigatorLocks;
+</xmp>
+
+The {{LockManager}} and {{Lock}} are additionally exposed to SharedStorageWorklet:
+
+<xmp class='idl'>
+[SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
+interface LockManager {};
+</xmp>
+
+<xmp class='idl'>
+[SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
+interface Lock {};
+</xmp>
+
+## Monkey Patch for lock manager's description ## {#monkey-patch-for-lock-manager-description}
+
+Add the following sentence at the end of the paragraph that defines [=lock manager=]: "Additionally, each user agent includes one [=shared storage lock managers map=] for Web Locks API's integration with the Shared Storage API."
+
+## Monkey Patch for the "obtain a lock manager" algorithm ## {#monkey-patch-for-the-obtain-a-lock-manager-algorithm}
+
+The [=obtain a lock manager=] algorithm should be prepended with the following steps:
+
+  <div algorithm='monkey-patch-obtain-a-lock-manager'>
+    1. If [=current realm=]'s [=global object=] is a {{SharedStorageWorkletGlobalScope}}:
+        1. Let |workletDataOrigin| be <var ignore=''>environment</var>'s [=environment settings object/origin=].
+        1. Return [=shared storage lock managers map=][|workletDataOrigin|].
   </div>
 
 Permissions Policy Integration {#permission}
