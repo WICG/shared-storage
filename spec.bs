@@ -2055,7 +2055,7 @@ Note: Similar to its data partitioning, the shared storage has its own lock mana
 
 <xmp class='idl'>
 [
-  Exposed=SharedStorageWorklet,
+  Exposed=SharedStorageWorklet
 ] interface SharedStorageWorkletNavigator {};
 </xmp>
 
