@@ -21,6 +21,7 @@ spec:infra;
 spec:webidl;
     type:interface;
         text:double
+        text:long
     type:dfn;
         text:an exception was thrown
 spec:html;
@@ -2048,7 +2049,7 @@ A <dfn>shared storage lock managers map</dfn> is a [=map=] of [=/origins=] to [=
 
 A [=user agent=] has an associated [=shared storage lock managers map=].
 
-Note: Similar to its data partitioning, the shared storage has its own lock management scope, independent of the Storage Buckets API.
+Note: Similar to its data partitioning, the shared storage has its own lock management scope, independent of the Storage Buckets API. These web locks will not interact with web locks created from Window or Worker via the existing, legacy Web Locks API.
 
 ## {{SharedStorageWorkletNavigator}} interface ## {#shared-storage-worklet-navigator-interface}
 
