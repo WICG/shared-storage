@@ -1388,6 +1388,135 @@ Each {{Window}} object has an associated {{SharedStorage}} instance {{Window/sha
     1. Otherwise, return null.
 </div>
 
+The {{SharedStorageModifierMethod}} Interface Groups {#shared-storage-modifier-method-interface-groups}
+==========================================================
+The {{SharedStorageSetMethod}}, {{SharedStorageAppendMethod}}, {{SharedStorageDeleteMethod}}, {{SharedStorageClearMethod}} interfaces correspond to the {{SharedStorage/set()}}, {{SharedStorage/append()}}, {{SharedStorage/delete()}}, {{SharedStorage/clear()}} modifier methods. They all inherit the base {{SharedStorageModifierMethod}} interface.
+
+<xmp class='idl'>
+  [Exposed=(Window,SharedStorageWorklet)]
+  interface SharedStorageModifierMethod {};
+
+  [Exposed=(Window, SharedStorageWorklet)]
+  interface SharedStorageSetMethod : SharedStorageModifierMethod {
+    constructor(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options);
+  };
+
+  [Exposed=(Window, SharedStorageWorklet)]
+  interface SharedStorageAppendMethod : SharedStorageModifierMethod {
+    constructor(DOMString key, DOMString value);
+  };
+
+  [Exposed=(Window, SharedStorageWorklet)]
+  interface SharedStorageDeleteMethod : SharedStorageModifierMethod {
+    constructor(DOMString key);
+  };
+
+  [Exposed=(Window, SharedStorageWorklet)]
+  interface SharedStorageClearMethod : SharedStorageModifierMethod {
+    constructor();
+  };
+</xmp>
+
+A {{SharedStorageSetMethod}} has the following associated fields:
+  <dl dfn-for="SharedStorageSetMethod">
+    : <dfn for=SharedStorageSetMethod>key</dfn>
+    :: A [=string=]. Initially empty.
+    : <dfn for=SharedStorageSetMethod>value</dfn>
+    :: A [=string=]. Initially empty.
+    : <dfn for=SharedStorageSetMethod>ignore if present</dfn>
+    :: A [=/boolean=]. Initially false.
+  </dl>
+
+A {{SharedStorageAppendMethod}} has the following associated fields:
+  <dl dfn-for="SharedStorageAppendMethod">
+    : <dfn for=SharedStorageAppendMethod>key</dfn>
+    :: A [=string=]. Initially empty.
+    : <dfn for=SharedStorageAppendMethod>value</dfn>
+    :: A [=string=]. Initially empty.
+  </dl>
+
+A {{SharedStorageDeleteMethod}} has the following associated fields:
+  <dl dfn-for="SharedStorageDeleteMethod">
+    : <dfn for=SharedStorageDeleteMethod>key</dfn>
+    :: A [=string=]. Initially empty.
+  </dl>
+
+  <div algorithm="SharedStorageSetMethod">
+
+  The <dfn constructor for="SharedStorageSetMethod" lt="SharedStorageSetMethod(key, value, options)">new SharedStorageSetMethod(|key|, |value|, |options|)</dfn> constructor steps are:
+
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+    1. Else:
+        1. Set |context| to |globalObject|'s [=outside settings=]'s [=target browsing context=].
+        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, throw a {{TypeError}}.
+    1. If |context| is null, throw a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], throw a {{TypeError}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], throw a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], throw a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
+    1. If |databaseMap| is failure, throw a {{TypeError}}.
+    1. Set |this|'s [=SharedStorageSetMethod/key=] to |key|.
+    1. Set |this|'s [=SharedStorageSetMethod/value=] to |value|.
+    1. Set |this|'s [=SharedStorageSetMethod/ignore if present=] to |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"].
+  </div>
+
+  The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|)</dfn> constructor steps are:
+
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+    1. Else:
+        1. Set |context| to |globalObject|'s [=outside settings=]'s [=target browsing context=].
+        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, throw a {{TypeError}}.
+    1. If |context| is null, throw a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], throw a {{TypeError}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], throw a {{TypeError}}.
+    1. If |value|'s [=string/length=] exceeds the [=value/maximum length=], throw a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
+    1. If |databaseMap| is failure, throw a {{TypeError}}.
+    1. Set |this|'s [=SharedStorageAppendMethod/key=] to |key|.
+    1. Set |this|'s [=SharedStorageAppendMethod/value=] to |value|.
+  </div>
+
+  The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|)</dfn> constructor steps are:
+
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+    1. Else:
+        1. Set |context| to |globalObject|'s [=outside settings=]'s [=target browsing context=].
+        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, throw a {{TypeError}}.
+    1. If |context| is null, throw a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], throw a {{TypeError}}.
+    1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], throw a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
+    1. If |databaseMap| is failure, throw a {{TypeError}}.
+    1. Set |this|'s [=SharedStorageDeleteMethod/key=] to |key|.
+  </div>
+
+  The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod()</dfn> constructor steps are:
+
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+    1. Else:
+        1. Set |context| to |globalObject|'s [=outside settings=]'s [=target browsing context=].
+        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, throw a {{TypeError}}.
+    1. If |context| is null, throw a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], throw a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
+    1. If |databaseMap| is failure, throw a {{TypeError}}.
+  </div>
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
 ==========================================================
@@ -1409,6 +1538,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
                         DOMString value);
     Promise<any> delete(DOMString key);
     Promise<any> clear();
+    Promise<any> batchUpdate(sequence<SharedStorageModifierMethod> methods);
 
     [Exposed=Window]
     Promise<SharedStorageResponse> selectURL(DOMString name,
@@ -1489,6 +1619,62 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. [=Upon fulfillment=] of |addModulePromise|, [=resolve=] |resultPromise| to |sharedStorageWorklet|.
     1. [=Upon rejection=] of |addModulePromise|, [=reject=] |resultPromise| with a {{TypeError}}.
     1. Return |resultPromise|.
+  </div>
+
+## BatchUpdate Method ## {#batch-update}
+
+  <div algorithm>
+    The <dfn method for="SharedStorage">batchUpdate(|methods|)</dfn> method steps are:
+
+    1. Let |promise| be a new [=promise=].
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+    1. Else:
+        1. Set |context| to |globalObject|'s [=outside settings=]'s [=target browsing context=].
+        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+    1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
+    1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
+    1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |unfinishedUpdatesCount| be |methods|'s [=list/size=].
+    1. Let |hasFailure| be false.
+    1. For each |method| in |methods|:
+        1. Let |methodResultPromise| be a new [=promise=].
+        1. If |method| is a {{SharedStorageSetMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageSetMethod/key=].
+            1. Let |value| be |method|'s [=SharedStorageSetMethod/value=].
+            1. Let |methodOptions| be a new {{SharedStorageSetMethodOptions}}.
+            1. Set |methodOptions|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to |method|'s [=SharedStorageSetMethod/ignore if present=].
+            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/set()|set}}(|key|, |value|, |methodOptions|).
+        1. Else if |method| is a {{SharedStorageAppendMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageAppendMethod/key=].
+            1. Let |value| be |method|'s [=SharedStorageAppendMethod/value=].
+            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/append()|append}}(|key|, |value|).
+        1. Else if |method| is a {{SharedStorageDeleteMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageDeleteMethod/key=].
+            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/delete()|delete}}(|key|).
+        1. Else:
+            1. [=Assert=]: |method| is a {{SharedStorageClearMethod}}.
+            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/clear()|clear}}().
+        1. [=Upon fulfillment=] of |methodResultPromise|:
+            1. Decrement |unfinishedUpdatesCount| by 1.
+            1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+        1. [=Upon rejection=] of |methodResultPromise|:
+            1. Decrement |unfinishedUpdatesCount| by 1.
+            1. Set |hasFailure| to true.
+            1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+    1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+    1. Return |promise|.
+  </div>
+
+  <div algorithm>
+    To <dfn>finish a batch update</dfn>, given a [=promise=] |promise| and a [=/boolean=] |hasFailure|, perform the following steps:
+
+    1. If |hasFailure| is true, [=reject=] |promise| with a {{TypeError}}.
+    1. Else, [=resolve=] |promise| with undefined.
   </div>
 
 ## Setter/Deleter Methods ## {#setter}
@@ -1965,6 +2151,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. Let |list| be |response|'s [=response/header list=].
     1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Write:], "`list`", and |list| as input.
     1. If |operationsToParse| is null or [=list/empty=], then return.
+    1. Let |methods| be an empty [=list=].
     1. For each tuple (|item|, |parameters|) in |operationsToParse|, perform the following steps:
         1. If |item| is an [=structured header/Inner List=], continue.
         1. [=Assert=]: |item| is an [=structured header/Bare Item=].
@@ -1974,19 +2161,27 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
             <dl class=switch>
               <dt> If |operationString| is "`clear`":
                  <dd> Perform the following steps:
-                     1. Run |sharedStorage|.{{SharedStorage/clear()|clear}}().
+                     1. Let |method| be new {{SharedStorageClearMethod/constructor()|SharedStorageClearMethod}}().
+                     1. If [=an exception was thrown=], continue.
+                     1. [=list/Append=] |method| to |methods|.
                      1. Continue.
               <dt> If |operationString| is "`delete`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
-                     1. If |key| is not null, run |sharedStorage|.{{SharedStorage/delete()|delete}}(|key|).
+                     1. If |key| is null, continue.
+                     1. Let |method| be new {{SharedStorageDeleteMethod/constructor()|SharedStorageDeleteMethod}}(|key|).
+                     1. If [=an exception was thrown=], continue.
+                     1. [=list/Append=] |method| to |methods|.
                      1. Continue.
               <dt> If |operationString| is "`append`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
                      1. If |key| is null, continue.
                      1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
-                     1. If |value| is not null, run |sharedStorage|.{{SharedStorage/append()|append}}(|key|, |value|).
+                     1. If |value| is null, continue.
+                     1. Let |method| be new {{SharedStorageAppendMethod/constructor()|SharedStorageAppendMethod}}(|key|, |value|).
+                     1. If [=an exception was thrown=], continue.
+                     1. [=list/Append=] |method| to |methods|.
                      1. Continue.
               <dt> If |operationString| is "`set`":
                 <dd> Perform the following steps:
@@ -1996,11 +2191,14 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                      1. If |value| is null, continue.
                      1. Let |options| be a new {{SharedStorageSetMethodOptions}}.
                      1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["`ignoreIfPresent`"] to true.
-                     1. Run |sharedStorage|.{{SharedStorage/set()|set}}(|key|, |value|, |options|).
+                     1. Let |method| be new {{SharedStorageSetMethod/constructor()|SharedStorageSetMethod}}(|key|, |value|, |options|).
+                     1. If [=an exception was thrown=], continue.
+                     1. [=list/Append=] |method| to |methods|.
                      1. Continue.
               <dt> If |operationString| is anything else:
                 <dd> Continue.
             </dl>
+    1. Run |sharedStorage|.{{SharedStorage/batchUpdate()|batchUpdate}}(|methods|).
   </div>
 
   <div algorithm>
