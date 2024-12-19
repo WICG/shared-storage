@@ -36,6 +36,9 @@ spec:fenced-frame;
 </pre>
 
 <pre class="anchors">
+spec: ecma262; urlPrefix: https://tc39.github.io/ecma262/
+    type: dfn
+        text: agent; url: agent
 urlPrefix: https://www.ietf.org/rfc/rfc4122.txt
     type: dfn; text: urn uuid
 spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
@@ -99,6 +102,7 @@ spec: web-locks; urlPrefix: https://w3c.github.io/web-locks/
     type: dfn
         text: lock manager; url: lock-manager
         text: obtain a lock manager; url: obtain-a-lock-manager
+        text: request a lock; url: request-a-lock
 spec: ecma; urlPrefix: https://tc39.es/ecma262/
     type: dfn
         text: call; url: sec-call
@@ -1398,24 +1402,38 @@ The {{SharedStorageSetMethod}}, {{SharedStorageAppendMethod}}, {{SharedStorageDe
 
   [Exposed=(Window, SharedStorageWorklet)]
   interface SharedStorageSetMethod : SharedStorageModifierMethod {
-    constructor(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options);
+    constructor(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options = {});
   };
 
   [Exposed=(Window, SharedStorageWorklet)]
   interface SharedStorageAppendMethod : SharedStorageModifierMethod {
-    constructor(DOMString key, DOMString value);
+    constructor(DOMString key, DOMString value, optional SharedStorageModifierMethodOptions options = {});
   };
 
   [Exposed=(Window, SharedStorageWorklet)]
   interface SharedStorageDeleteMethod : SharedStorageModifierMethod {
-    constructor(DOMString key);
+    constructor(DOMString key, optional SharedStorageModifierMethodOptions options = {});
   };
 
   [Exposed=(Window, SharedStorageWorklet)]
   interface SharedStorageClearMethod : SharedStorageModifierMethod {
-    constructor();
+    constructor(optional SharedStorageModifierMethodOptions options = {});
+  };
+
+  dictionary SharedStorageModifierMethodOptions {
+    DOMString withLock;
+  };
+
+  dictionary SharedStorageSetMethodOptions : SharedStorageModifierMethodOptions {
+    boolean ignoreIfPresent;
   };
 </xmp>
+
+A {{SharedStorageModifierMethod}} has the following associated fields:
+  <dl dfn-for="SharedStorageModifierMethod">
+    : <dfn for=SharedStorageModifierMethod>with lock</dfn>
+    :: Null or a [=string=]. Initially null.
+  </dl>
 
 A {{SharedStorageSetMethod}} has the following associated fields:
   <dl dfn-for="SharedStorageSetMethod">
@@ -1462,9 +1480,10 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Set |this|'s [=SharedStorageSetMethod/key=] to |key|.
     1. Set |this|'s [=SharedStorageSetMethod/value=] to |value|.
     1. Set |this|'s [=SharedStorageSetMethod/ignore if present=] to |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"].
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|)</dfn> constructor steps are:
+  The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. Let |context| be null.
@@ -1482,9 +1501,10 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. Set |this|'s [=SharedStorageAppendMethod/key=] to |key|.
     1. Set |this|'s [=SharedStorageAppendMethod/value=] to |value|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|)</dfn> constructor steps are:
+  The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. Let |context| be null.
@@ -1500,9 +1520,10 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. Set |this|'s [=SharedStorageDeleteMethod/key=] to |key|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod()</dfn> constructor steps are:
+  The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod(|options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. Let |context| be null.
@@ -1516,6 +1537,7 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
@@ -1535,10 +1557,12 @@ On the other hand, methods for getting data from the [=shared storage database=]
                      DOMString value,
                      optional SharedStorageSetMethodOptions options = {});
     Promise<any> append(DOMString key,
-                        DOMString value);
-    Promise<any> delete(DOMString key);
-    Promise<any> clear();
-    Promise<any> batchUpdate(sequence<SharedStorageModifierMethod> methods);
+                        DOMString value,
+                        optional SharedStorageModifierMethodOptions options = {});
+    Promise<any> delete(DOMString key, optional SharedStorageModifierMethodOptions options = {});
+    Promise<any> clear(optional SharedStorageModifierMethodOptions options = {});
+    Promise<any> batchUpdate(sequence<SharedStorageModifierMethod> methods,
+                             optional SharedStorageModifierMethodOptions options = {});
 
     [Exposed=Window]
     Promise<SharedStorageResponse> selectURL(DOMString name,
@@ -1566,10 +1590,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     [Exposed=SharedStorageWorklet]
     async iterable<DOMString, DOMString>;
-  };
-
-  dictionary SharedStorageSetMethodOptions {
-    boolean ignoreIfPresent = false;
   };
 
   dictionary SharedStoragePrivateAggregationConfig {
@@ -1624,7 +1644,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
 ## BatchUpdate Method ## {#batch-update}
 
   <div algorithm>
-    The <dfn method for="SharedStorage">batchUpdate(|methods|)</dfn> method steps are:
+    The <dfn method for="SharedStorage">batchUpdate(|methods|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1641,32 +1661,42 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |unfinishedUpdatesCount| be |methods|'s [=list/size=].
     1. Let |hasFailure| be false.
-    1. For each |method| in |methods|:
-        1. Let |methodResultPromise| be a new [=promise=].
-        1. If |method| is a {{SharedStorageSetMethod}}:
-            1. Let |key| be |method|'s [=SharedStorageSetMethod/key=].
-            1. Let |value| be |method|'s [=SharedStorageSetMethod/value=].
-            1. Let |methodOptions| be a new {{SharedStorageSetMethodOptions}}.
-            1. Set |methodOptions|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to |method|'s [=SharedStorageSetMethod/ignore if present=].
-            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/set()|set}}(|key|, |value|, |methodOptions|).
-        1. Else if |method| is a {{SharedStorageAppendMethod}}:
-            1. Let |key| be |method|'s [=SharedStorageAppendMethod/key=].
-            1. Let |value| be |method|'s [=SharedStorageAppendMethod/value=].
-            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/append()|append}}(|key|, |value|).
-        1. Else if |method| is a {{SharedStorageDeleteMethod}}:
-            1. Let |key| be |method|'s [=SharedStorageDeleteMethod/key=].
-            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/delete()|delete}}(|key|).
-        1. Else:
-            1. [=Assert=]: |method| is a {{SharedStorageClearMethod}}.
-            1. Set |methodResultPromise| to the result of invoking {{SharedStorage/clear()|clear}}().
-        1. [=Upon fulfillment=] of |methodResultPromise|:
-            1. Decrement |unfinishedUpdatesCount| by 1.
-            1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
-        1. [=Upon rejection=] of |methodResultPromise|:
-            1. Decrement |unfinishedUpdatesCount| by 1.
-            1. Set |hasFailure| to true.
-            1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
-    1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+    1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
+        1. For each |method| in |methods|:
+            1. Let |methodResultPromise| be a new [=promise=].
+            1. If |method| is a {{SharedStorageSetMethod}}:
+                1. Let |key| be |method|'s [=SharedStorageSetMethod/key=].
+                1. Let |value| be |method|'s [=SharedStorageSetMethod/value=].
+                1. Let |methodOptions| be a new {{SharedStorageSetMethodOptions}}.
+                1. Set |methodOptions|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to |method|'s [=SharedStorageSetMethod/ignore if present=].
+                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
+                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/set()|set}}(|key|, |value|, |methodOptions|).
+            1. Else if |method| is a {{SharedStorageAppendMethod}}:
+                1. Let |key| be |method|'s [=SharedStorageAppendMethod/key=].
+                1. Let |value| be |method|'s [=SharedStorageAppendMethod/value=].
+                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
+                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
+                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/append()|append}}(|key|, |value|, |methodOptions|).
+            1. Else if |method| is a {{SharedStorageDeleteMethod}}:
+                1. Let |key| be |method|'s [=SharedStorageDeleteMethod/key=].
+                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
+                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
+                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/delete()|delete}}(|key|, |methodOptions|).
+            1. Else:
+                1. [=Assert=]: |method| is a {{SharedStorageClearMethod}}.
+                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
+                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
+                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/clear()|clear}}(|methodOptions|).
+            1. [=Upon fulfillment=] of |methodResultPromise|:
+                1. Decrement |unfinishedUpdatesCount| by 1.
+                1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+            1. [=Upon rejection=] of |methodResultPromise|:
+                1. Decrement |unfinishedUpdatesCount| by 1.
+                1. Set |hasFailure| to true.
+                1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+        1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
 
@@ -1699,25 +1729,28 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
-    1. [=Enqueue the following steps=] on |queue|:
-        1. If |options|["`ignoreIfPresent`"] is true:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-            1. If |currentValue| is failure and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+    1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
+        1. [=Enqueue the following steps=] on |queue|:
+            1. If |options|["`ignoreIfPresent`"] is true:
+                1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
+                1. If |currentValue| is failure and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+                    1. Abort these steps.
+                1. If |currentValue| is not undefined:
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+                    1. Abort these steps.
+            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+            1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
-            1. If |currentValue| is not undefined:
-                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-                1. Abort these steps.
-        1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
-        1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-            1. Abort these steps.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">append(|key|, |value|)</dfn> method steps are:
+    The <dfn method for="SharedStorage">append(|key|, |value|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1736,29 +1769,32 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
-    1. [=Enqueue the following steps=] on |queue|:
-        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-        1. If |currentValue| is failure:
-            1. If |globalObject| is a {{Window}}:
-                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-            1. Else:
+    1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
+        1. [=Enqueue the following steps=] on |queue|:
+            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
+            1. If |currentValue| is failure:
+                1. If |globalObject| is a {{Window}}:
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+                1. Else:
+                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+            1. If |currentValue| is not undefined:
+                1. Let |list| be a new [=/list=].
+                1. [=list/Append=] |currentValue| to |list|.
+                1. [=list/Append=] |value| to |list|.
+                1. Set |value| to the result of running [=string/concatenate=] on |list|.
+            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+            1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-            1. Abort these steps.
-        1. If |currentValue| is not undefined:
-            1. Let |list| be a new [=/list=].
-            1. [=list/Append=] |currentValue| to |list|.
-            1. [=list/Append=] |value| to |list|.
-            1. Set |value| to the result of running [=string/concatenate=] on |list|.
-        1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
-        1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-            1. Abort these steps.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+                1. Abort these steps.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">delete(|key|)</dfn> method steps are:
+    The <dfn method for="SharedStorage">delete(|key|, |options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1776,17 +1812,20 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
-    1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |databaseMap|, and |key|.
-        1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-            1. Abort these steps.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
+        1. [=Enqueue the following steps=] on |queue|:
+            1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |databaseMap|, and |key|.
+            1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
 
   <div algorithm>
-    The <dfn method for="SharedStorage">clear()</dfn> method steps are:
+    The <dfn method for="SharedStorage">clear(|options|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1803,12 +1842,15 @@ On the other hand, methods for getting data from the [=shared storage database=]
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
     1. Let |queue| be |context|'s associated [=shared storage database|database=]'s [=shared storage database/shared storage database queue=].
     1. Let |realm| be the [=current realm=].
-    1. [=Enqueue the following steps=] on |queue|:
-        1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |databaseMap|.
-        1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
-            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-            1. Abort these steps.
-        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
+        1. [=Enqueue the following steps=] on |queue|:
+            1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue| and |databaseMap|.
+            1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
 
@@ -2152,53 +2194,71 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
     1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Write:], "`list`", and |list| as input.
     1. If |operationsToParse| is null or [=list/empty=], then return.
     1. Let |methods| be an empty [=list=].
+    1. Let |batchWithLock| be null.
     1. For each tuple (|item|, |parameters|) in |operationsToParse|, perform the following steps:
         1. If |item| is an [=structured header/Inner List=], continue.
         1. [=Assert=]: |item| is an [=structured header/Bare Item=].
-        1. Let |operationString| be the result of running [=get the string value=] for |item|.
-        1. If |operationString| is failure, continue.
-        1. Switch on |operationString|:
+        1. Let |methodOrOptionsString| be the result of running [=get the string value=] for |item|.
+        1. If |methodOrOptionsString| is failure, continue.
+        1. Switch on |methodOrOptionsString|:
             <dl class=switch>
-              <dt> If |operationString| is "`clear`":
+              <dt> If |methodOrOptionsString| is "`clear`":
                  <dd> Perform the following steps:
-                     1. Let |method| be new {{SharedStorageClearMethod/constructor()|SharedStorageClearMethod}}().
+                     1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
+                     1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
+                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. Let |method| be new {{SharedStorageClearMethod/constructor()|SharedStorageClearMethod}}(|options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
                      1. Continue.
-              <dt> If |operationString| is "`delete`":
+              <dt> If |methodOrOptionsString| is "`delete`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
                      1. If |key| is null, continue.
-                     1. Let |method| be new {{SharedStorageDeleteMethod/constructor()|SharedStorageDeleteMethod}}(|key|).
+                     1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
+                     1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
+                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. Let |method| be new {{SharedStorageDeleteMethod/constructor()|SharedStorageDeleteMethod}}(|key|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
                      1. Continue.
-              <dt> If |operationString| is "`append`":
+              <dt> If |methodOrOptionsString| is "`append`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
                      1. If |key| is null, continue.
                      1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
                      1. If |value| is null, continue.
-                     1. Let |method| be new {{SharedStorageAppendMethod/constructor()|SharedStorageAppendMethod}}(|key|, |value|).
+                     1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
+                     1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
+                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. Let |method| be new {{SharedStorageAppendMethod/constructor()|SharedStorageAppendMethod}}(|key|, |value|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
                      1. Continue.
-              <dt> If |operationString| is "`set`":
+              <dt> If |methodOrOptionsString| is "`set`":
                 <dd> Perform the following steps:
                      1. Let |key| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`key`".
                      1. If |key| is null, continue.
                      1. Let |value| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`value`".
                      1. If |value| is null, continue.
                      1. Let |options| be a new {{SharedStorageSetMethodOptions}}.
-                     1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["`ignoreIfPresent`"] to true.
+                     1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to true.
+                     1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
+                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
                      1. Let |method| be new {{SharedStorageSetMethod/constructor()|SharedStorageSetMethod}}(|key|, |value|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
                      1. Continue.
-              <dt> If |operationString| is anything else:
+              <dt> If |methodOrOptionsString| is "`options`":
+                <dd> Perform the following steps:
+                     1. Set |batchWithLock| to the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
+                     1. Continue.
+              <dt> If |methodOrOptionsString| is anything else:
                 <dd> Continue.
             </dl>
-    1. Run |sharedStorage|.{{SharedStorage/batchUpdate()|batchUpdate}}(|methods|).
+    1. Let |batchOptions| be a new {{SharedStorageModifierMethodOptions}}.
+    1. If |batchWithLock| is not null, set |batchOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |batchWithLock|.
+    1. Run |sharedStorage|.{{SharedStorage/batchUpdate()|batchUpdate}}(|methods|, |batchOptions|).
   </div>
 
   <div algorithm>
@@ -2290,6 +2350,22 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
         1. Let |workletDataOrigin| be <var ignore=''>environment</var>'s [=environment settings object/origin=].
         1. Return [=shared storage lock managers map=][|workletDataOrigin|].
   </div>
+
+## "Handle callback within a shared storage lock" algorithm ## {#handle-callback-within-a-shared-storage-lock-algorithm}
+
+  <div algorithm='handle-callback-within-a-shared-storage-lock-algorithm'>
+    To <dfn>handle callback within a shared storage lock</dfn> given an [=/origin=] |workletDataOrigin|, a [=string=] |name|, a [=task=] |callback|, perform the following steps:
+
+    1. Let |environment| be [=this=]'s [=relevant settings object=].
+    1. Let |lockManager| be [=shared storage lock managers map=][|workletDataOrigin|].
+    1. If |name| starts with U+002D HYPHEN-MINUS (-), then return failure.
+    1. Let |promise| be [=a new promise=].
+    1. Let |defaultOptions| be a new {{LockOptions}}.
+    1. [=Request a lock=] with |promise|, the current [=/agent=], |environment|'s [=environment/id=], |lockManager|, |callback|, |name|, |defaultOptions|["{{LockOptions/mode}}"], |defaultOptions|["{{LockOptions/ifAvailable}}"], |defaultOptions|["{{LockOptions/steal}}"], |defaultOptions|["{{LockOptions/signal}}"].
+
+    Note: With the default {{LockOptions}}, |callback| will eventually be called when the lock is granted (i.e., the lock request won't fail).
+  </div>
+
 
 Permissions Policy Integration {#permission}
 ============================================
