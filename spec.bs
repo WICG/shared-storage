@@ -1480,7 +1480,9 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Set |this|'s [=SharedStorageSetMethod/key=] to |key|.
     1. Set |this|'s [=SharedStorageSetMethod/value=] to |value|.
     1. Set |this|'s [=SharedStorageSetMethod/ignore if present=] to |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"].
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
+        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
   The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
@@ -1501,7 +1503,9 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. Set |this|'s [=SharedStorageAppendMethod/key=] to |key|.
     1. Set |this|'s [=SharedStorageAppendMethod/value=] to |value|.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
+        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
   The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|, |options|)</dfn> constructor steps are:
@@ -1520,7 +1524,9 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. Set |this|'s [=SharedStorageDeleteMethod/key=] to |key|.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
+        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
   The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod(|options|)</dfn> constructor steps are:
@@ -1537,7 +1543,9 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
+        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
@@ -1744,7 +1752,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), return a [=promise rejected=] with a {{TypeError}}.
+        1. Run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
     1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
@@ -1788,7 +1798,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), return a [=promise rejected=] with a {{TypeError}}.
+        1. Run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
     1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
@@ -1819,7 +1831,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), return a [=promise rejected=] with a {{TypeError}}.
+        1. Run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
     1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
@@ -1849,7 +1863,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
+    1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), return a [=promise rejected=] with a {{TypeError}}.
+        1. Run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
     1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
   </div>
@@ -2206,7 +2222,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                  <dd> Perform the following steps:
                      1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
                      1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
-                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. If |withLock| is not null and |withLock| does not start with U+002D HYPHEN-MINUS (-), [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
                      1. Let |method| be new {{SharedStorageClearMethod/constructor()|SharedStorageClearMethod}}(|options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
@@ -2217,7 +2233,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                      1. If |key| is null, continue.
                      1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
                      1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
-                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. If |withLock| is not null and |withLock| does not start with U+002D HYPHEN-MINUS (-), [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
                      1. Let |method| be new {{SharedStorageDeleteMethod/constructor()|SharedStorageDeleteMethod}}(|key|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
@@ -2230,7 +2246,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                      1. If |value| is null, continue.
                      1. Let |options| be a new {{SharedStorageModifierMethodOptions}}.
                      1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
-                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. If |withLock| is not null and |withLock| does not start with U+002D HYPHEN-MINUS (-), [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
                      1. Let |method| be new {{SharedStorageAppendMethod/constructor()|SharedStorageAppendMethod}}(|key|, |value|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
@@ -2244,7 +2260,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                      1. Let |options| be a new {{SharedStorageSetMethodOptions}}.
                      1. If the result of running [=obtain a boolean parameter value=] with |parameters| and "`ignore_if_present`" is true, [=map/set=] |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to true.
                      1. Let |withLock| be the result of running [=obtain a string-like parameter value=] with |parameters| and "`with_lock`".
-                     1. If |withLock| is not null, [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
+                     1. If |withLock| is not null and |withLock| does not start with U+002D HYPHEN-MINUS (-), [=map/set=] |options|["{{SharedStorageModifierMethodOptions/withLock}}"] to |withLock|.
                      1. Let |method| be new {{SharedStorageSetMethod/constructor()|SharedStorageSetMethod}}(|key|, |value|, |options|).
                      1. If [=an exception was thrown=], continue.
                      1. [=list/Append=] |method| to |methods|.
@@ -2257,7 +2273,7 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
                 <dd> Continue.
             </dl>
     1. Let |batchOptions| be a new {{SharedStorageModifierMethodOptions}}.
-    1. If |batchWithLock| is not null, set |batchOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |batchWithLock|.
+    1. If |batchWithLock| is not null and |batchWithLock| does not start with U+002D HYPHEN-MINUS (-), set |batchOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |batchWithLock|.
     1. Run |sharedStorage|.{{SharedStorage/batchUpdate()|batchUpdate}}(|methods|, |batchOptions|).
   </div>
 
@@ -2358,7 +2374,6 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
 
     1. Let |environment| be [=this=]'s [=relevant settings object=].
     1. Let |lockManager| be [=shared storage lock managers map=][|workletDataOrigin|].
-    1. If |name| starts with U+002D HYPHEN-MINUS (-), then return failure.
     1. Let |promise| be [=a new promise=].
     1. Let |defaultOptions| be a new {{LockOptions}}.
     1. [=Request a lock=] with |promise|, the current [=/agent=], |environment|'s [=environment/id=], |lockManager|, |callback|, |name|, |defaultOptions|["{{LockOptions/mode}}"], |defaultOptions|["{{LockOptions/ifAvailable}}"], |defaultOptions|["{{LockOptions/steal}}"], |defaultOptions|["{{LockOptions/signal}}"].
