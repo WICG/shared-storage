@@ -220,7 +220,7 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional output gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -586,7 +586,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
     |workletDataOrigin|, a [=pre-specified report parameters=] or null
     |preSpecifiedParams| and an [=aggregation coordinator=] or null
-    |aggregationCoordinator|, peform the following steps. They return an
+    |aggregationCoordinator|, perform the following steps. They return an
     algorithm.
 
     Note: The returned algorithm should be run when the associated operation is
@@ -797,14 +797,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   A <dfn>trusted origin type</dfn> is a [=string=] or [=list=] of [=strings=].
 
   <div algorithm>
-  To <dfn>check for script and context origin match</dfn>, given [=trusted origin type=] |itemScriptOrigin|, [=url/origin=] |actualScriptOrigin|, [=trusted origin type=] |itemContextOrigin|, and [=environment settings object/origin=] |actualContextOrigin|, peform the following steps:
+  To <dfn>check for script and context origin match</dfn>, given [=trusted origin type=] |itemScriptOrigin|, [=url/origin=] |actualScriptOrigin|, [=trusted origin type=] |itemContextOrigin|, and [=environment settings object/origin=] |actualContextOrigin|, perform the following steps:
 
     1. If the result of running [=check for trusted origin match=], given |itemScriptOrigin| and |actualScriptOrigin| is false, return false.
     1. Return the result of running [=check for trusted origin match=], given |itemContextOrigin| and |actualContextOrigin|.
   </div>
 
   <div algorithm>
-  To <dfn>check for trusted origin match</dfn>, given [=trusted origin type=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+  To <dfn>check for trusted origin match</dfn>, given [=trusted origin type=] |itemOrigin| and [=url/origin=] |actualOrigin|, perform the following steps:
 
     1. If |itemOrigin| is a [=string=], return the result of running [=check for trusted origin match on a string=], given |itemOrigin| and |actualOrigin|.
     1. Otherwise, for each |originString| in |itemOrigin|:
@@ -814,7 +814,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
 
   <div algorithm>
-  To <dfn>check for trusted origin match on a string</dfn>, given [=string=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+  To <dfn>check for trusted origin match on a string</dfn>, given [=string=] |itemOrigin| and [=url/origin=] |actualOrigin|, perform the following steps:
 
     1. If |itemOrigin| is `"*"`, return true.
     1. Let |itemOriginUrl| be the result of running a [=URL parser=] on |itemOrigin|.
@@ -2109,6 +2109,6 @@ Privacy Considerations {#privacy}
 
   The Shared Storage API attempts to provide the ability to use cross-site data for a range of use cases in a way that better protects user privacy than the use of third-party cookies. Shared Storage's main privacy safeguard is that read access of the data stored in its storage may only occur within an embedder's {{SharedStorageWorklet}}. Well-defined limits restrict output of data from the {{SharedStorageWorklet}} to a minimum.
 
-  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
+  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specific mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
 
   An embedder is also able to send aggregatable reports via the [=Private Aggregation=] API, which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
