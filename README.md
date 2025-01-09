@@ -207,7 +207,7 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Redirects are not allowed.
     *   When the module script's URL's origin is cross-origin with the worklet's creator window's origin and when `dataOrigin` is "script-origin" (or when `dataOrigin` is a valid serialized HTTPS URL that is same-origin to the worklet's script's origin), the check for trusted origins at the [/.well-known/ path](#well-known) will be skipped, and a `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` response header is required instead.
         *   The script server must carefully consider the security risks of allowing worklet creation by other origins (via `Shared-Storage-Cross-Origin-Worklet-Allowed: ?1` and CORS), because this will also allow the worklet creator to run subsequent operations, and a malicious actor could poison and use up the worklet origin's budget.
-        *   Note that for the script server's infomation, the request header "Sec-Shared-Storage-Data-Origin" will be included with the value of the serialized data partition origin to be used if the data partition origin is cross-origin to the invoking context's origin.
+        *   Note that for the script server's information, the request header "Sec-Shared-Storage-Data-Origin" will be included with the value of the serialized data partition origin to be used if the data partition origin is cross-origin to the invoking context's origin.
 
 
 
