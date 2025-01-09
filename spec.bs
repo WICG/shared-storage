@@ -133,6 +133,7 @@ spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github
         for: pre-specified report parameters
             text: context ID
             text: filtering ID max bytes
+            text: max contributions
         text: batching scope
         text: debug scope
         text: process contributions for a batching scope
@@ -579,11 +580,20 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. If |filteringIdMaxBytes| is not the [=default filtering ID max bytes=] or
             |contextId| is not null, return a new {{DOMException}} with name
             "`DataError`".
+    1. Let |maxContributions| be null.
+    1. If
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"]
+        [=map/exists=], set |maxContributions| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"].
+    1. If |maxContributions| is zero, return a new {{DOMException}} with name
+        "`DataError`".
     1. Return a new [=pre-specified report parameters=] with the items:
         : <a spec="private-aggregation-api" for="pre-specified report parameters">context ID</a>
         :: |contextId|
         : [=pre-specified report parameters/filtering ID max bytes=]
         :: |filteringIdMaxBytes|
+        : [=pre-specified report parameters/max contributions=]
+        :: |maxContributions|
   </div>
 
   <div algorithm>
@@ -1604,6 +1614,7 @@ On the other hand, methods for getting data from the [=shared storage database=]
     USVString aggregationCoordinatorOrigin;
     USVString contextId;
     [EnforceRange] unsigned long long filteringIdMaxBytes;
+    [EnforceRange] unsigned long long maxContributions;
   };
 
   dictionary SharedStorageRunOperationMethodOptions {
