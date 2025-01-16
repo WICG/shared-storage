@@ -55,7 +55,7 @@ spec: html; urlPrefix: https://html.spec.whatwg.org/multipage/
         text: boolean attributes; url: common-microsyntaxes.html#boolean-attributes
         text: content attributes; url: dom.html#concept-element-attributes
         text: update the image data; url: images.html#update-the-image-data
-        text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetchin
+        text: create navigation params by fetching; url: browsing-the-web.html#create-navigation-params-by-fetching
         text: serialization; for: origin; url: browsers.html#ascii-serialisation-of-an-origin
         text: initialize the navigable; url: document-sequences.html#initialize-the-navigable
 spec: url; urlPrefix: https://url.spec.whatwg.org/
@@ -220,7 +220,7 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional ouput gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional output gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -414,7 +414,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     1. If |shouldChargeTopLevelBudgets| is true:
         1. Let |pageBudgetResult| be the result of running [=charge shared storage top-level traversable budgets=] with |navigable|, |site|, and |pendingBits|.
         1. If |pageBudgetResult| is false, set |shouldUseDefaultIndex| to true.
-    1. If |pendingBits| is greather than |remainingBudget|, set |shouldUseDefaultIndex| to true.
+    1. If |pendingBits| is greater than |remainingBudget|, set |shouldUseDefaultIndex| to true.
     1. If |shouldUseDefaultIndex| is true, set |resultIndex| to the [=default selectURL index=].
     1. Let |finalConfig| be a new [=fenced frame config=].
     1. Set |finalConfig|'s [=fenced frame config/mapped url=] to |urlList|[|resultIndex|].
@@ -586,7 +586,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
     To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
     |workletDataOrigin|, a [=pre-specified report parameters=] or null
     |preSpecifiedParams| and an [=aggregation coordinator=] or null
-    |aggregationCoordinator|, peform the following steps. They return an
+    |aggregationCoordinator|, perform the following steps. They return an
     algorithm.
 
     Note: The returned algorithm should be run when the associated operation is
@@ -797,14 +797,14 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   A <dfn>trusted origin type</dfn> is a [=string=] or [=list=] of [=strings=].
 
   <div algorithm>
-  To <dfn>check for script and context origin match</dfn>, given [=trusted origin type=] |itemScriptOrigin|, [=url/origin=] |actualScriptOrigin|, [=trusted origin type=] |itemContextOrigin|, and [=environment settings object/origin=] |actualContextOrigin|, peform the following steps:
+  To <dfn>check for script and context origin match</dfn>, given [=trusted origin type=] |itemScriptOrigin|, [=url/origin=] |actualScriptOrigin|, [=trusted origin type=] |itemContextOrigin|, and [=environment settings object/origin=] |actualContextOrigin|, perform the following steps:
 
     1. If the result of running [=check for trusted origin match=], given |itemScriptOrigin| and |actualScriptOrigin| is false, return false.
     1. Return the result of running [=check for trusted origin match=], given |itemContextOrigin| and |actualContextOrigin|.
   </div>
 
   <div algorithm>
-  To <dfn>check for trusted origin match</dfn>, given [=trusted origin type=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+  To <dfn>check for trusted origin match</dfn>, given [=trusted origin type=] |itemOrigin| and [=url/origin=] |actualOrigin|, perform the following steps:
 
     1. If |itemOrigin| is a [=string=], return the result of running [=check for trusted origin match on a string=], given |itemOrigin| and |actualOrigin|.
     1. Otherwise, for each |originString| in |itemOrigin|:
@@ -814,7 +814,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
 
   <div algorithm>
-  To <dfn>check for trusted origin match on a string</dfn>, given [=string=] |itemOrigin| and [=url/origin=] |actualOrigin|, peform the following steps:
+  To <dfn>check for trusted origin match on a string</dfn>, given [=string=] |itemOrigin| and [=url/origin=] |actualOrigin|, perform the following steps:
 
     1. If |itemOrigin| is `"*"`, return true.
     1. Let |itemOriginUrl| be the result of running a [=URL parser=] on |itemOrigin|.
@@ -1919,7 +1919,7 @@ The [=SharedStorageIterator/asynchronous iterator initialization steps=] and [=S
             1. Create an object |doneObject|.
             1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |doneObject|.
             1. Abort these steps.
-        1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeueing=] from |iterator|'s [=SharedStorageIterator/pending entries=].
+        1. Otherwise, let |entry| be the result of [=queue/dequeue|dequeuing=] from |iterator|'s [=SharedStorageIterator/pending entries=].
         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with |entry|.
     1. Return |promise|.
   </div>
@@ -2296,7 +2296,7 @@ Permissions Policy Integration {#permission}
 
 This specification defines a [=policy-controlled feature=] identified by the string "<dfn for="PermissionsPolicy">shared-storage</dfn>," along with a second [=policy-controlled feature=] identified by "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>".
 
-"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an exra permission layer to {{SharedStorageWorklet/selectURL()}}. For each of these, the default allowlist is *.
+"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}. For each of these, the default allowlist is *.
 
 Clear Site Data Integration {#clear}
 ====================================
@@ -2307,6 +2307,6 @@ Privacy Considerations {#privacy}
 
   The Shared Storage API attempts to provide the ability to use cross-site data for a range of use cases in a way that better protects user privacy than the use of third-party cookies. Shared Storage's main privacy safeguard is that read access of the data stored in its storage may only occur within an embedder's {{SharedStorageWorklet}}. Well-defined limits restrict output of data from the {{SharedStorageWorklet}} to a minimum.
 
-  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specifc mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
+  In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specific mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
 
   An embedder is also able to send aggregatable reports via the [=Private Aggregation=] API, which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
