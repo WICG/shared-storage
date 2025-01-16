@@ -1388,7 +1388,7 @@ Each {{Window}} object has an associated {{SharedStorage}} instance {{Window/sha
     1. Otherwise, return null.
 </div>
 
-The {{SharedStorageModifierMethod}} Interface Groups {#shared-storage-modifier-method-interface-groups}
+The {{SharedStorageModifierMethod}} Interface Group {#shared-storage-modifier-method-interface-group}/
 ==========================================================
 The {{SharedStorageSetMethod}}, {{SharedStorageAppendMethod}}, {{SharedStorageDeleteMethod}}, {{SharedStorageClearMethod}} interfaces correspond to the {{SharedStorage/set()}}, {{SharedStorage/append()}}, {{SharedStorage/delete()}}, {{SharedStorage/clear()}} modifier methods. They all inherit the base {{SharedStorageModifierMethod}} interface.
 
