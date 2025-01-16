@@ -1398,7 +1398,7 @@ The {{SharedStorageSetMethod}}, {{SharedStorageAppendMethod}}, {{SharedStorageDe
 
   [Exposed=(Window, SharedStorageWorklet)]
   interface SharedStorageSetMethod : SharedStorageModifierMethod {
-    constructor(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options);
+    constructor(DOMString key, DOMString value, optional SharedStorageSetMethodOptions options = {});
   };
 
   [Exposed=(Window, SharedStorageWorklet)]
