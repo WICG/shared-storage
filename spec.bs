@@ -1888,9 +1888,9 @@ On the other hand, methods for getting data from the [=shared storage database=]
         1. Let |navigable| be |document|'s [=node navigable=].
         1. If the result of running [=determine if a navigable has fully revoked network=] given |navigable| is false, [=reject=] |promise| with an {{OperationError}}.
     1. Else:
+        1  If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
         1. Set |context| to {{SharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
         1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
-        1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
