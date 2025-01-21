@@ -2343,12 +2343,12 @@ SharedStorageWorkletNavigator includes NavigatorLocks;
 
 The {{LockManager}} and {{Lock}} are additionally exposed to SharedStorageWorklet:
 
-<xmp class='idl'>
+<xmp class='idl' noexport>
 [SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
 interface LockManager {};
 </xmp>
 
-<xmp class='idl'>
+<xmp class='idl' noexport>
 [SecureContext, Exposed=(Window,Worker,SharedStorageWorklet)]
 interface Lock {};
 </xmp>
