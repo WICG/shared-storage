@@ -1485,6 +1485,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm="SharedStorageAppendMethod">
+
   The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1508,6 +1510,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm="SharedStorageDeleteMethod">
+
   The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1529,6 +1533,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm="SharedStorageClearMethod">
+
   The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod(|options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1545,7 +1551,7 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
         1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
-        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+        1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
