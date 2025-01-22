@@ -320,7 +320,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#setter]], |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the {{Window}} that created the worklet (when called from a {{SharedStorageWorkletGlobalScope}}), and |origin| is |environment|'s [=environment settings object/origin=].
-    - For {{SharedStorage/get()}}, |environment| is the
+    - For {{SharedStorage/get()}}, |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the active {{Window}} of the {{SharedStorageWorkletGlobalScope}}, and |origin| is |environment|'s [=environment settings object/origin=]. 
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
     - For [[#ss-fetch-algo]], for {{SharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
@@ -2402,12 +2402,13 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
 Permissions Policy Integration {#permission}
 ============================================
 
-This specification defines three [=policy-controlled features=]:
+This specification defines three [=policy-controlled features=].
 
-1. "<dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
-1. "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}
-1. "<dfn for="PermissionsPolicy">fenced-unpartitioned-storage-read</dfn>" adds an extra permission layer to {{SharedStorage/get()}}, to
-ensure it can only be invoked successfully from a {{Window}} if the {{Promise}} returned from {{Fence/disableUntrustedNetwork()}} has [=resolved=].
+<dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
+
+"<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}
+
+"<dfn for="PermissionsPolicy">fenced-unpartitioned-storage-read</dfn>" adds an extra permission layer to {{SharedStorage/get()}}, to ensure it can only be invoked successfully from a {{Window}} if the {{Promise}} returned from {{Fence/disableUntrustedNetwork()}} has [=resolved=].
 
 For each of these, the default allowlist is *.
 
