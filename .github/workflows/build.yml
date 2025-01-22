@@ -1,5 +1,10 @@
 name: Build
 on:
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - "**.bs"
   push:
     branches: [main]
     paths: ["**.bs"]
