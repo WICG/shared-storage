@@ -26,6 +26,8 @@ spec:webidl;
         text:an exception was thrown
 spec:html;
     type:dfn;
+        for: /
+            text: allowed to use
         for:realm; text:global object
         for:WorkerGlobalScope; text:module map
         for:navigable; text:top-level traversable
@@ -33,6 +35,27 @@ spec:fenced-frame;
     type:dfn;
         for:fencedframetype; text:fenced frame reporter
         for:browsing context; text:fenced frame config instance
+spec:private-aggregation-api
+    type:dfn
+        for:/
+            text: aggregation coordinator
+            text: batching scope
+            text: debug scope
+            text: private-aggregation
+        text: default filtering id max bytes
+        text: determine if a report should be sent deterministically
+        text: get batching scope steps
+        text: get debug scope steps
+        text: pre-specified report parameters
+        for: pre-specified report parameters
+            text: context id
+            text: filtering id max bytes
+            text: max contributions
+        text: scoping details
+        text: serialize an aggregatable report
+        text: valid filtering id max bytes range
+        for: PrivateAggregation
+            text: allowed to use
 </pre>
 
 <pre class="anchors">
@@ -124,36 +147,6 @@ spec: permissions-policy; urlPrefix: https://www.w3.org/TR/permissions-policy/
 spec: attestation; urlPrefix: https://github.com/privacysandbox/attestation
     type: dfn
         text: enrolled
-spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github.io/private-aggregation-api/
-    type: dfn
-        text: Private Aggregation; url:
-        text: get the privateAggregation
-        text: determine if an origin is an aggregation coordinator
-        text: pre-specified report parameters
-        for: pre-specified report parameters
-            text: context ID
-            text: filtering ID max bytes
-        text: batching scope
-        text: debug scope
-        text: process contributions for a batching scope
-        text: set the aggregation coordinator for a batching scope
-        text: determine if a report should be sent deterministically
-        text: mark a debug scope complete
-        text: set the pre-specified report parameters for a batching scope
-        text: aggregation coordinator
-        text: default filtering id max bytes
-        text: valid filtering id max bytes range
-        text: context id
-        text: scoping details
-        for: scoping details
-            text: get batching scope steps
-            text: get debug scope steps
-        text: private-aggregation
-        for: PrivateAggregation
-            text: allowed to use
-            text: scoping details; url: #privateaggregation-scoping-details
-    type: interface
-        text: PrivateAggregation
 spec: protected-audience; urlPrefix: https://wicg.github.io/turtledove/
     type: dfn
         text: get storage interest groups for owner
@@ -224,7 +217,7 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional output gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=serialize an aggregatable report|Private Aggregation report=]. Over time, there may be additional output gates included in the standard.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -267,7 +260,7 @@ This document introduces a new storage API that is intentionally not partitioned
 
 The {{SharedStorageWorklet}} Interface {#worklet}
 =================================================
-The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [=Private Aggregation=] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
+The {{SharedStorageWorklet}} object allows developers to supply [=module scripts=] to process [=Shared Storage=] data and then output the result through one or more of the output gates. Currently there are two output gates, the [[!PRIVATE-AGGREGATION-API|Private Aggregation]] output gate and the {{SharedStorageWorklet/selectURL()|URL-selection}} output gate.
 
 <xmp class='idl'>
   typedef (USVString or FencedFrameConfig) SharedStorageResponse;
@@ -580,7 +573,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             |contextId| is not null, return a new {{DOMException}} with name
             "`DataError`".
     1. Return a new [=pre-specified report parameters=] with the items:
-        : <a spec="private-aggregation-api" for="pre-specified report parameters">context ID</a>
+        : [=pre-specified report parameters/context ID=]
         :: |contextId|
         : [=pre-specified report parameters/filtering ID max bytes=]
         :: |filteringIdMaxBytes|
@@ -2400,4 +2393,4 @@ Privacy Considerations {#privacy}
 
   In particular, an embedder can select a [=/URL=] from a short list of [=/URL=]s based on data in their shared storage and then display the result in a [=fenced frame=]. The embedder will not be able to know which [=/URL=] was chosen except through specific mechanisms that will be better-mitigated in the longer term. Currently, a few bits of entropy can leak each time that the user clicks on the [=fenced frame=] to initiate a [=top-level traversable=] [=navigate|navigation=] and/or the [=fenced frame=] calls the {{reportEvent()}} API.
 
-  An embedder is also able to send aggregatable reports via the [=Private Aggregation=] API, which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
+  An embedder is also able to send aggregatable reports via [[!PRIVATE-AGGREGATION-API|Private Aggregation]], which adds noise in order to achieve differential privacy, uses a time delay to send reports, imposes limits on the number of reports sent, and processes the reports into aggregate data so that individual privacy is protected.
