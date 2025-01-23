@@ -1892,12 +1892,12 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
         1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
         1. Set |environment| to |context|'s [=active window=]'s [=relevant settings object=].
         1. Let |allowedInOpaqueOriginContext| be false.
-        1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |environment|'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, [=reject=] |promise| with a {{TypeError}}.
-        1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |environment|'s [=environment settings object/origin=] is false, [=reject=] |promise| with an {{OperationError}}.
+        1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |environment|'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
+        1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |environment|'s [=environment settings object/origin=] is false, return a [=promise rejected=] with an {{OperationError}}.
         1. Let |document| be |context|'s [=active document=].
-        1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/fenced-unpartitioned-storage-read=]", |document|, and |environment|'s [=environment settings object/origin=] is false, [=reject=] |promise| with an {{OperationError}}.
+        1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/fenced-unpartitioned-storage-read=]", |document|, and |environment|'s [=environment settings object/origin=] is false, return a [=promise rejected=] with an {{OperationError}}.
         1. Let |navigable| be |document|'s [=node navigable=].
-        1. If the result of running [=determine if a navigable has fully revoked network=] given |navigable| is false, [=reject=] |promise| with an {{OperationError}}.
+        1. If the result of running [=determine if a navigable has fully revoked network=] given |navigable| is false, return a [=promise rejected=] with an {{OperationError}}.
     1. Else:
         1  If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
         1. Set |context| to {{SharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
