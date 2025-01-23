@@ -225,7 +225,7 @@ Introduction {#intro}
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
 This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in two restricted environments. One such environment is called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional worklet output gates included in the standard.
-The other restricted environment is a [=fenced frame=] in which {{Fence/disableUntrustedNetwork()}} has resolved successfully, which prevent the read data from being shared outside the frame.
+The other restricted environment is within a [=fenced frame=]'s content after it resolves a call to {{Fence/disableUntrustedNetwork()}}, which prevents the read data from being shared outside the frame.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -320,7 +320,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#setter]], |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the {{Window}} that created the worklet (when called from a {{SharedStorageWorkletGlobalScope}}), and |origin| is |environment|'s [=environment settings object/origin=].
-    - For {{SharedStorage/get()}}, |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the active {{Window}} of the {{SharedStorageWorkletGlobalScope}}, and |origin| is |environment|'s [=environment settings object/origin=]. 
+    - For {{SharedStorage/get()}} invoked from a {{Window}} (which can only succed in a [=fenced frame=]), |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=]. 
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
     - For [[#ss-fetch-algo]], for {{SharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
@@ -1893,7 +1893,7 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
         1. Set |environment| to |context|'s [=active window=]'s [=relevant settings object=].
         1. Let |allowedInOpaqueOriginContext| be false.
         1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |environment|'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, [=reject=] |promise| with a {{TypeError}}.
-        1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |environment|'s [=environment settings object/origin=] is false, [=reject=] |promise| with a {{TypeError}}.
+        1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |environment|'s [=environment settings object/origin=] is false, [=reject=] |promise| with an {{OperationError}}.
         1. Let |document| be |context|'s [=active document=].
         1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/fenced-unpartitioned-storage-read=]", |document|, and |environment|'s [=environment settings object/origin=] is false, [=reject=] |promise| with an {{OperationError}}.
         1. Let |navigable| be |document|'s [=node navigable=].
@@ -2408,7 +2408,7 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
 Permissions Policy Integration {#permission}
 ============================================
 
-This specification defines three [=policy-controlled features=].
+This specification defines three [=policy-controlled features=] identified by the following strings:
 
 <dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
 
