@@ -703,12 +703,12 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   The {{Worklet/addModule()}} method steps for {{Worklet}} will need to include the following step before the step "Let |promise| be a new promise":
 
-    4. If |this| is of type {{SharedStorageWorklet}}:
-        1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given |this| and <var ignore=''>moduleURLRecord</var>.
+    4. If [=this=] is of type {{SharedStorageWorklet}}:
+        1. Let |addModuleAllowedResult| be the result of running [=check if addModule is allowed and update state=] given [=this=] and <var ignore=''>moduleURLRecord</var>.
         1. If |addModuleAllowedResult| is "DisallowedDueToNonPreferenceError":
             1. Return [=a promise rejected with=] a {{TypeError}}.
         1. Else if |addModuleAllowedResult| is "DisallowedDueToPreferenceError":
-            1. If |this|'s [=SharedStorageWorklet/has cross-origin data origin=] is false, then return [=a promise rejected with=] a {{TypeError}}.
+            1. If [=this=]'s [=SharedStorageWorklet/has cross-origin data origin=] is false, then return [=a promise rejected with=] a {{TypeError}}.
         1. Else:
             1. [=Assert=]: |addModuleAllowedResult| is "Allowed".
 
@@ -722,7 +722,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   After the step "Let <var ignore=''>addedSuccessfully</var> be false", we need to include the following step:
 
-    4. If |this| is of type {{SharedStorageWorklet}}, [=SharedStorageWorklet/has cross-origin data origin=] is true, and [=SharedStorageWorklet/data origin=] is not `"script-origin"`:
+    4. If [=this=] is of type {{SharedStorageWorklet}}, [=SharedStorageWorklet/has cross-origin data origin=] is true, and [=SharedStorageWorklet/data origin=] is not `"script-origin"`:
         1. [=Assert=] |pendingTasks| is 1.
         1. Set |pendingTasks| to 2.
         1. [=Queue a global task=] on the [=networking task source=] given <var ignore=''>workletGlobalScope</var> to perform the following steps:
@@ -758,7 +758,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                         1. Abort these steps.
                     1. Let |doesMatch| be the result of running [=check for script and context origin match=] on |item|[`scriptOrigin`], <var ignore=''>moduleURLRecord</var>'s [=url/origin=], |item|[`contextOrigin`], and |outsideSettings|'s [=environment settings object/origin=].
                     1. If |doesMatch| is true:
-                        1. [=Queue a global task=] on the [=networking task source=] given |this|'s [=relevant global object=] to perform the following steps:
+                        1. [=Queue a global task=] on the [=networking task source=] given [=this=]'s [=relevant global object=] to perform the following steps:
                             1. If |pendingTasks| is not −1, then:
                                 1. Set |pendingTasks| to |pendingTasks| − 1.
                                 1. If |pendingTasks| is 0, perform the following steps:
@@ -779,9 +779,9 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
 
   Just before the final step, currently "Return <var ignore>promise</var>.", add the following step:
 
-    7. If |this| is a {{SharedStorageWorklet}}, [=upon fulfillment=] of |promise| or
+    7. If [=this=] is a {{SharedStorageWorklet}}, [=upon fulfillment=] of |promise| or
         [=upon rejection=] of |promise|, run the following steps:
-        1. Let |globalScopes| be |this|'s [=Worklet/global scopes=].
+        1. Let |globalScopes| be [=this=]'s [=Worklet/global scopes=].
         1. [=Assert=]: |globalScopes|' [=list/size=] equals 1.
         1. Let |privateAggregationObj| be |globalScopes|[0]'s
             {{SharedStorageWorkletGlobalScope/privateAggregation}}.
@@ -1487,14 +1487,15 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
-    1. Set |this|'s [=SharedStorageSetMethod/key=] to |key|.
-    1. Set |this|'s [=SharedStorageSetMethod/value=] to |value|.
-    1. Set |this|'s [=SharedStorageSetMethod/ignore if present=] to |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"].
+    1. Set [=this=]'s [=SharedStorageSetMethod/key=] to |key|.
+    1. Set [=this=]'s [=SharedStorageSetMethod/value=] to |value|.
+    1. Set [=this=]'s [=SharedStorageSetMethod/ignore if present=] to |options|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"].
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
         1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
-        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+        1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm>
   The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1511,13 +1512,14 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
-    1. Set |this|'s [=SharedStorageAppendMethod/key=] to |key|.
-    1. Set |this|'s [=SharedStorageAppendMethod/value=] to |value|.
+    1. Set [=this=]'s [=SharedStorageAppendMethod/key=] to |key|.
+    1. Set [=this=]'s [=SharedStorageAppendMethod/value=] to |value|.
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
         1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
-        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+        1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm>
   The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1533,12 +1535,13 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, throw a {{TypeError}}.
-    1. Set |this|'s [=SharedStorageDeleteMethod/key=] to |key|.
+    1. Set [=this=]'s [=SharedStorageDeleteMethod/key=] to |key|.
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
         1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
-        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+        1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
+  <div algorithm>
   The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod(|options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1555,7 +1558,7 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
     1. If |databaseMap| is failure, throw a {{TypeError}}.
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
         1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] starts with U+002D HYPHEN-MINUS (-), throw a {{TypeError}}.
-        1. Set |this|'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
+        1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
 The {{SharedStorage}} Interface {#shared-storage-interface}
