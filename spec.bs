@@ -103,6 +103,7 @@ spec: web-locks; urlPrefix: https://w3c.github.io/web-locks/
         text: lock manager; url: lock-manager
         text: obtain a lock manager; url: obtain-a-lock-manager
         text: request a lock; url: request-a-lock
+        text: locks getter steps; url: dom-navigatorlocks-locks
 spec: ecma; urlPrefix: https://tc39.es/ecma262/
     type: dfn
         text: call; url: sec-call
@@ -925,8 +926,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
   <div algorithm>
     The <dfn attribute for=SharedStorageWorkletGlobalScope>navigator</dfn> [=getter steps=] are:
 
-    1. If [=this=]'s [=addModule success=] is true, return [=this=]'s [=SharedStorageWorkletGlobalScope/navigator instance=].
-    1. Otherwise, throw a {{TypeError}}.
+    1. Return [=this=]'s [=SharedStorageWorkletGlobalScope/navigator instance=].
   </div>
 
   <div algorithm="privateAggregation getter">
@@ -2370,6 +2370,20 @@ interface Lock {};
 ## Monkey Patch for lock manager's description ## {#monkey-patch-for-lock-manager-description}
 
 Add the following sentence at the end of the paragraph that defines [=lock manager=]: "Additionally, each user agent includes one [=shared storage lock managers map=] for Web Locks API's integration with the Shared Storage API."
+
+
+## Monkey Patch for locks getter steps ## {#monkey-patch-for-locks-getter-steps}
+
+The [=locks getter steps=] should be updated to the following setps:
+
+  <div algorithm='monkey-patch-locks-getter-steps'>
+    1. Let |environment| be [=/this=]'s [=/relevant settings object=].
+    1. If |environment|'s [=relevant global object=]'s [=associated Document=] is not [=Document/fully active=], then throw a {{TypeError}}.
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. If |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+        1. If the |globalObject|'s [=SharedStorageWorkletGlobalScope/addModule success=] is false, then throw a {{TypeError}}.
+    1. Return [=/this=]'s [=/relevant settings object=]'s {{LockManager}} object
+  </div>
 
 ## Monkey Patch for the "obtain a lock manager" algorithm ## {#monkey-patch-for-the-obtain-a-lock-manager-algorithm}
 
