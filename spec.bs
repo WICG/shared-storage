@@ -2377,8 +2377,6 @@ Add the following sentence at the end of the paragraph that defines [=lock manag
 The [=locks getter steps=] should be updated to the following setps:
 
   <div algorithm='monkey-patch-locks-getter-steps'>
-    1. Let |environment| be [=/this=]'s [=/relevant settings object=].
-    1. If |environment|'s [=relevant global object=]'s [=associated Document=] is not [=Document/fully active=], then throw a {{TypeError}}.
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
     1. If |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
         1. If the |globalObject|'s [=SharedStorageWorkletGlobalScope/addModule success=] is false, then throw a {{TypeError}}.
