@@ -225,7 +225,8 @@ Introduction {#intro}
 
 In order to prevent cross-site user tracking, browsers are partitioning all forms of storage by [=top-level traversable=] site; see [=Client-Side Storage Partitioning=]. But, there are many [=legitimate use cases=] currently relying on unpartitioned storage.
 
-This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in a restricted environment, called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional output gates included in the standard.
+This document introduces a new storage API that is intentionally not partitioned by [=top-level traversable=] site (though still partitioned by context origin), in order to serve a number of the use cases needing unpartitioned storage. To limit cross-site reidentification of users, data in Shared Storage may only be read in two restricted environments. One such environment is called a worklet, and any output from the worklet is in the form of a [=fenced frame=] or a [=Private Aggregation=] report. Over time, there may be additional worklet output gates included in the standard.
+The other restricted environment is within a [=fenced frame=]'s content after it resolves a call to {{Fence/disableUntrustedNetwork()}}, which prevents the read data from being shared outside the frame.
 
 <div class="example">
   `a.example` randomly assigns users to groups in a way that is consistent cross-site.
@@ -320,6 +321,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#setter]], |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the {{Window}} that created the worklet (when called from a {{SharedStorageWorkletGlobalScope}}), and |origin| is |environment|'s [=environment settings object/origin=].
+    - For {{SharedStorage/get()}} invoked from a {{Window}} (which can only succeed in a [=fenced frame=]), |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=]. 
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
     - For [[#ss-fetch-algo]], for {{SharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
@@ -1495,7 +1497,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  <div algorithm>
+  <div algorithm="SharedStorageAppendMethod">
+  
   The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1519,7 +1522,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  <div algorithm>
+  <div algorithm="SharedStorageDeleteMethod">
+
   The <dfn constructor for="SharedStorageDeleteMethod" lt="SharedStorageDeleteMethod(key)">new SharedStorageAppendMethod(|key|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1541,7 +1545,8 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
         1. Set [=this=]'s [=SharedStorageModifierMethod/with lock=] to |options|["{{SharedStorageModifierMethodOptions/withLock}}"].
   </div>
 
-  <div algorithm>
+  <div algorithm="SharedStorageClearMethod">
+
   The <dfn constructor for="SharedStorageClearMethod" lt="SharedStorageClearMethod()">new SharedStorageClearMethod(|options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1569,11 +1574,14 @@ Methods that allow the setting and/or deleting of data are exposed to both the {
 
 Meanwhile, methods for posting operations to run inside {{SharedStorageWorkletGlobalScope}} (i.e. {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}}), along with the {{SharedStorage/worklet}} attribute which is used to call {{Worklet/addModule()}}, are exposed to the {{Window}} only, as these are the means by which the {{Window}} interacts with the {{SharedStorageWorklet}}.
 
-On the other hand, methods for getting data from the [=shared storage database=] are exposed to the {{SharedStorageWorklet}} only, in order to carefully control the flow of data read from the [=shared storage database|database=].
+On the other hand, methods for getting data from the [=shared storage database=] are exposed to the {{SharedStorageWorklet}} only, in order to carefully control the flow of data read from the [=shared storage database|database=]. The only exception is that {{SharedStorage/get()}} is exposed to {{Window}}, but will only succeed if the result of the [=determine if a navigable has fully revoked network=] algorithm is true.
+
+Note: The [=determine if a navigable has fully revoked network=] algorithm ensures that {{SharedStorage/get()}} only succeeds for [=fenced frames=] that have successfully resolved a call to {{Fence/disableUntrustedNetwork()}}.
 
 <xmp class='idl'>
   [Exposed=(Window,SharedStorageWorklet)]
   interface SharedStorage {
+    Promise<DOMString> get(DOMString key);
     Promise<any> set(DOMString key,
                      DOMString value,
                      optional SharedStorageSetMethodOptions options = {});
@@ -1599,9 +1607,6 @@ On the other hand, methods for getting data from the [=shared storage database=]
 
     [Exposed=Window]
     readonly attribute SharedStorageWorklet worklet;
-
-    [Exposed=SharedStorageWorklet]
-    Promise<DOMString> get(DOMString key);
 
     [Exposed=SharedStorageWorklet]
     Promise<unsigned long> length();
@@ -1890,12 +1895,27 @@ On the other hand, methods for getting data from the [=shared storage database=]
     The <dfn method for="SharedStorage">get(|key|)</dfn> method steps are:
 
     1. Let |promise| be a new [=promise=].
-    1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
+    1. Let |globalObject| be the [=current realm=]'s [=global object=].
+    1. Let |context| be null.
+    1. Let |environment| be null.
+    1. If |globalObject| is a {{Window}}:
+        1. Set |context| to |globalObject|'s [=Window/browsing context=].
+        1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+        1. Set |environment| to |context|'s [=active window=]'s [=relevant settings object=].
+        1. Let |allowedInOpaqueOriginContext| be false.
+        1. If the result of running [=determine whether shared storage is allowed by context=] given |environment|, |environment|'s [=environment settings object/origin=], and |allowedInOpaqueOriginContext| is false, return a [=promise rejected=] with a {{TypeError}}.
+        1. If the result of running [=check if user preference setting allows access to shared storage=] given |environment| and |environment|'s [=environment settings object/origin=] is false, return a [=promise rejected=] with an {{OperationError}}.
+        1. Let |document| be |context|'s [=active document=].
+        1. If the result of running [=Is feature enabled in document for origin?=] on "[=PermissionsPolicy/fenced-unpartitioned-storage-read=]", |document|, and |environment|'s [=environment settings object/origin=] is false, return a [=promise rejected=] with an {{OperationError}}.
+        1. Let |navigable| be |document|'s [=node navigable=].
+        1. If the result of running [=determine if a navigable has fully revoked network=] given |navigable| is false, return a [=promise rejected=] with an {{OperationError}}.
+    1. Else:
+        1  If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
+        1. Set |context| to {{SharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
+        1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
+        1. Set |environment| to |context|'s [=active window=]'s [=relevant settings object=].
     1. If |key|'s [=string/length=] exceeds the [=key/maximum length=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |context| be {{SharedStorage}}'s {{SharedStorageWorkletGlobalScope}}'s [=outside settings=]'s [=target browsing context=].
-    1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |realm| be the [=current realm=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |realm|'s [=realm/settings object=]'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
@@ -2399,9 +2419,15 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
 Permissions Policy Integration {#permission}
 ============================================
 
-This specification defines a [=policy-controlled feature=] identified by the string "<dfn for="PermissionsPolicy">shared-storage</dfn>," along with a second [=policy-controlled feature=] identified by "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>".
+This specification defines three [=policy-controlled features=] identified by the following strings:
 
-"[=PermissionsPolicy/shared-storage=]" gates access to Shared Storage in general, whereas "[=shared-storage-select-url=]" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}. For each of these, the default allowlist is *.
+<dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
+
+"<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}
+
+"<dfn for="PermissionsPolicy">fenced-unpartitioned-storage-read</dfn>" adds an extra permission layer to {{SharedStorage/get()}}, to ensure it can only be invoked successfully from a {{Window}} if the {{Promise}} returned from {{Fence/disableUntrustedNetwork()}} has [=resolved=].
+
+For each of these, the default allowlist is *.
 
 Clear Site Data Integration {#clear}
 ====================================
