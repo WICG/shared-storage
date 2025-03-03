@@ -152,11 +152,11 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   Options include:
         *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
 *   `window.sharedStorage.batchUpdate(methods, options)`
-    *   Execute `methods` in order.
-    *   `methods` is an array of method objects defining the operations to perform. Each object must be one of the following types: `SharedStorageSetMethod`, `SharedStorageAppendMethod`, `SharedStorageDeleteMethod`, or `SharedStorageClearMethod`. Each method object's constructor accepts the same parameters as the corresponding individual method (e.g., `set`, `append`, `delete`, `clear`).
+    *   Execute `methods` in order. All updates within a `batchUpdate()` call are executed as a single unit of work, ensuring data consistency.
+    *   `methods` is an array of method objects defining the operations to perform. Each object must be one of the following types: `SharedStorageSetMethod`, `SharedStorageAppendMethod`, `SharedStorageDeleteMethod`, or `SharedStorageClearMethod`. Each method object's constructor accepts the same parameters as the corresponding individual method (e.g., `set`, `append`, `delete`, `clear`). Note that the `withLock` option within these methods will be ignored (for transactional behavior).
     *   Options include:
         *   `withLock`: acquire a lock on the designated resource before executing. See [Locking for modifier methods](#locking-for-modifier-methods) for details.
-    *   This method, with the `withLock` option, allows multiple modifier methods to be executed atomically, enabling use cases where a website needs to maintain consistency while updating data organized across multiple keys.
+    *   This method, with the `withLock` option, allows multiple modifier methods to be executed atomically and mutually exclusively with other concurrent operations acquiring the same lock, enabling use cases where a website needs to maintain consistency while updating data organized across multiple keys.
 *   `window.sharedStorage.worklet.addModule(url, options)`
     *   Loads and adds the module to the worklet (i.e. for registering operations). The handling should follow the [worklet standard](https://html.spec.whatwg.org/multipage/worklets.html#dom-worklet-addmodule), unless clarified otherwise below.
     *   This method can only be invoked once per worklet. This is because after the initial script loading, shared storage data (for the invoking origin) will be made accessible inside the worklet environment, which can be leaked via subsequent `addModule()` (e.g. via timing).
@@ -264,7 +264,6 @@ The shared storage worklet invocation methods (`addModule`, `createWorklet`, and
     *   The individual modifier methods correspond to [Items](https://www.rfc-editor.org/rfc/rfc8941.html#name-items) as follows:
         *   `set(<key>, <value>, {ignoreIfPresent: true})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present`
         *   `set(<key>, <value>, {ignoreIfPresent: false})` &larr;&rarr; `set;key=<key>;value=<value>;ignore_if_present=?0`
-        *   `set(<key>, <value>, {withLock: <resource>})` &larr;&rarr; `set;key=<key>;value=<value>;with_lock=<resource>`
         *   `set(<key>, <value>)` &larr;&rarr; `set;key=<key>;value=<value>`
         *   `append(<key>, <value>)` &larr;&rarr; `append;key=<key>;value=<value>`
         *   `delete(<key>)` &larr;&rarr; `delete;key=<key>`
@@ -471,7 +470,7 @@ On the client side, to initiate the request:
 
 On the server side, here is an example response header:
 ```text
-Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present;with_lock="lock2", append;key="good";value="bye", delete;key="hello", set;key="all";value="done", options;with_lock="lock1"
+Shared-Storage-Write: clear, set;key="hello";value="world";ignore_if_present, append;key="good";value="bye", delete;key="hello", set;key="all";value="done", options;with_lock="lock1"
 ```
 
 Sending the above response header would be equivalent to making the following call on the client side, from either the document or a worklet:
@@ -479,7 +478,7 @@ Sending the above response header would be equivalent to making the following ca
 
 sharedStorage.batchUpdate([
   new SharedStorageClearMethod(),
-  new SharedStorageSetMethod("hello", "world", {ignoreIfPresent: true, withLock: "lock2"}),
+  new SharedStorageSetMethod("hello", "world", {ignoreIfPresent: true}),
   new SharedStorageAppendMethod("good", "bye"),
   new SharedStorageDeleteMethod("hello"),
   new SharedStorageSetMethod("all", "done")
