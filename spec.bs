@@ -382,11 +382,7 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
-                    1. If the promise was rejected as the operation was completed abruptly due to an uncaught exception:
-
-                        Issue: How to handle this properly.
-                        1. Run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/uncaught exception=].
-                    1. Otherwise, run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/normal completion=].
+                    1. Run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/uncaught exception=].
             </dl>
     1. Return the [=tuple=] (|promise|, true).
   </div>
