@@ -322,7 +322,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For creating a worklet, |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the module script url's [=url/origin=].
     - For running operations on a worklet (from a {{Window}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#setter]], |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the {{Window}} that created the worklet (when called from a {{SharedStorageWorkletGlobalScope}}), and |origin| is |environment|'s [=environment settings object/origin=].
-    - For {{SharedStorage/get()}} invoked from a {{Window}} (which can only succeed in a [=fenced frame=]), |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=]. 
+    - For {{SharedStorage/get()}} invoked from a {{Window}} (which can only succeed in a [=fenced frame=]), |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
     - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
     - For [[#ss-fetch-algo]], for {{SharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
@@ -1295,7 +1295,7 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
 
   [=User agents=] may specify a <dfn>default entry lifetime</dfn>, the default [=duration=] between when an [=shared storage database/entry=] is [=shared storage database/store an entry in the database|stored=] and when it expires. If the [=user agent=] specifies a [=default entry lifetime=], then it should have a timer periodically [=shared storage database/purge expired entries from the database=].
 
-  ## The [=Shared Storage Database|Database=] Algorithms ## {#database-algorithms}
+  ## The Core [=Shared Storage Database|Database=] Algorithms ## {#core-database-algorithms}
 
   <div algorithm>
     To <dfn for="shared storage database">store an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
@@ -1384,6 +1384,35 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Let |currentTime| be the |environment|'s [=environment settings object/current wall time=].
     1. If |expiration| is less than or equal to |currentTime|, return true.
     1. Otherwise, return false.
+  </div>
+
+  ## The Specialized [=Shared Storage Database|Database=] Algorithms ## {#specialized-database-algorithms}
+
+  These algorithms, unlike the core algorithms in [[#core-database-algorithms]], either accept parameters with more specialized heuristics, or employ multi-step processes, or both, to handle more complex database operations.
+
+  <div algorithm>
+
+    To <dfn for="shared storage database">set an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, a [=value struct/value=] |value|, and a [=/boolean=] |ignoreIfPresent|, run the following steps on |queue|:
+
+    1. If |ignoreIfPresent|:
+        1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
+        1. If |currentValue| is failure, then return false.
+        1. If |currentValue| is not undefined, then return true.
+    1. Return the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+  </div>
+
+  <div algorithm>
+
+    To <dfn for="shared storage database">append an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
+
+    1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
+    1. If |currentValue| is failure, then return false.
+    1. If |currentValue| is not undefined:
+        1. Let |list| be a new [=/list=].
+        1. [=list/Append=] |currentValue| to |list|.
+        1. [=list/Append=] |value| to |list|.
+        1. Set |value| to the result of running [=string/concatenate=] on |list|.
+    1. Return the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
   </div>
 
 
@@ -1498,7 +1527,7 @@ A {{SharedStorageDeleteMethod}} has the following associated fields:
   </div>
 
   <div algorithm="SharedStorageAppendMethod">
-  
+
   The <dfn constructor for="SharedStorageAppendMethod" lt="SharedStorageAppendMethod(key, value)">new SharedStorageAppendMethod(|key|, |value|, |options|)</dfn> constructor steps are:
 
     1. Let |globalObject| be the [=current realm=]'s [=global object=].
@@ -1758,15 +1787,7 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
     1. Let |realm| be the [=current realm=].
     1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
         1. [=Enqueue the following steps=] on |queue|:
-            1. If |options|["`ignoreIfPresent`"] is true:
-                1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-                1. If |currentValue| is failure and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-                    1. Abort these steps.
-                1. If |currentValue| is not undefined:
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-                    1. Abort these steps.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+            1. Let |result| be the result of running [=shared storage database/set an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, |value|, and |options|["`ignoreIfPresent`"].
             1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
@@ -1800,19 +1821,7 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
     1. Let |realm| be the [=current realm=].
     1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
         1. [=Enqueue the following steps=] on |queue|:
-            1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-            1. If |currentValue| is failure:
-                1. If |globalObject| is a {{Window}}:
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
-                1. Else:
-                    1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
-                1. Abort these steps.
-            1. If |currentValue| is not undefined:
-                1. Let |list| be a new [=/list=].
-                1. [=list/Append=] |currentValue| to |list|.
-                1. [=list/Append=] |value| to |list|.
-                1. Set |value| to the result of running [=string/concatenate=] on |list|.
-            1. Let |result| be the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+            1. Let |result| be the result of running [=shared storage database/append an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
             1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
                 1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
                 1. Abort these steps.
