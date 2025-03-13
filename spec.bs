@@ -1406,8 +1406,8 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     To <dfn for="shared storage database">append an entry in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, a [=entry/key=] |key|, and a [=value struct/value=] |value|, run the following steps on |queue|:
 
     1. Let |currentValue| be the result of running [=shared storage database/retrieve an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
-    1. If |currentValud| is failure, then return false.
-    1. If |currentValud| is not undefined:
+    1. If |currentValue| is failure, then return false.
+    1. If |currentValue| is not undefined:
         1. Let |list| be a new [=/list=].
         1. [=list/Append=] |currentValue| to |list|.
         1. [=list/Append=] |value| to |list|.
