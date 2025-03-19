@@ -673,11 +673,11 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Set |privateAggregationObj|'s [=PrivateAggregation/scoping details=] to a
                 new [=/scoping details=] with the items:
             : [=scoping details/get batching scope steps=]
-            :: An algorithm that returns the [=batching scope=] that is scheduled to
+            :: An algorithm that returns the [=/batching scope=] that is scheduled to
                 be passed to [=process contributions for a batching scope=] when the
                 call currently executing in |scope| returns.
             : [=scoping details/get debug scope steps=]
-            :: An algorithm that returns the [=debug scope=] that is scheduled to be
+            :: An algorithm that returns the [=/debug scope=] that is scheduled to be
                 passed to [=mark a debug scope complete=] when the call currently
                 executing in |scope| returns.
 
@@ -1165,8 +1165,8 @@ navigables</a> section, add the following:
     Note: The returned algorithm should be run when the associated operation is
         complete.
 
-    1. Let |batchingScope| be a new [=batching scope=].
-    1. Let |debugScope| be a new [=debug scope=].
+    1. Let |batchingScope| be a new [=/batching scope=].
+    1. Let |debugScope| be a new [=/debug scope=].
     1. Let |privateAggregationTimeout| be null.
     1. Let |hasRunPrivateAggregationCompletionTask| be false.
     1. Let |privateAggregationCompletionTask| be an algorithm that is given a
@@ -1248,7 +1248,7 @@ navigables</a> section, add the following:
 </div>
 
 The [=user agent=] holds a <dfn>uncaught exception contribution cache</dfn>,
-which is a [=map=] from [=batching scopes=] to [=contribution cache entries=].
+which is a [=map=] from [=/batching scopes=] to [=contribution cache entries=].
 
 Shared Storage's Backend {#backend}
 ===================================
