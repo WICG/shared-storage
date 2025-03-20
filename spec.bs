@@ -1415,6 +1415,50 @@ The Shared Storage API will integrate into the [=Storage Model|Storage API=] as 
     1. Return the result of running [=shared storage database/store an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
   </div>
 
+  <div algorithm>
+
+    To <dfn for="shared storage database">batch update entries in the database</dfn>, given a [=shared storage database/shared storage database queue=] |queue|, a [=storage proxy map=] |databaseMap|, an [=environment settings object=] |environment|, and a [=list=] of {{SharedStorageModifierMethod}} |methods|, run the following steps on |queue|:
+
+    1. Let |originalDatabaseMap| be |databaseMap|.
+
+    1. Let |innerMethodFailed| be false.
+    1. For each |method| in |methods|:
+        1. If |method| is a {{SharedStorageSetMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageSetMethod/key=].
+            1. Let |value| be |method|'s [=SharedStorageSetMethod/value=].
+            1. Let |ignoreIfPresent| be |method|'s [=SharedStorageSetMethod/ignore if present=].
+            1. Let |result| be the result of running [=shared storage database/set an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, |value|, and |ignoreIfPresent|.
+            1. If |result| is false:
+                1. Set |innerMethodFailed| to true.
+                1. Break.
+        1. Else if |method| is a {{SharedStorageAppendMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageAppendMethod/key=].
+            1. Let |value| be |method|'s [=SharedStorageAppendMethod/value=].
+            1. Let |result| be the result of running [=shared storage database/append an entry in the database=] with |queue|, |databaseMap|, |environment|, |key|, and |value|.
+            1. If |result| is false:
+                1. Set |innerMethodFailed| to true.
+                1. Break.
+        1. Else if |method| is a {{SharedStorageDeleteMethod}}:
+            1. Let |key| be |method|'s [=SharedStorageDeleteMethod/key=].
+            1. Let |result| be the result of running [=shared storage database/delete an entry from the database=] with |queue|, |databaseMap|, |environment|, and |key|.
+            1. If |result| is false:
+                1. Set |innerMethodFailed| to true.
+                1. Break.
+        1. Else:
+            1. [=Assert=]: |method| is a {{SharedStorageClearMethod}}.
+            1. Let |result| be the result of running [=shared storage database/clear all entries in the database=] with |queue|, |databaseMap|, and |environment|.
+            1. If |result| is false:
+                1. Set |innerMethodFailed| to true.
+                1. Break.
+    1. If |innerMethodFailed|:
+        1. Set |databaseMap| to |originalDatabaseMap|.
+        1. Return false.
+    1. Return true.
+  </div>
+
+  <div class="note">
+    This algorithm uses a naive rollback mechanism. For production environments, consider more efficient techniques that avoid full database copies.
+  </div>
 
 Extension to the {{Window}} interface {#window-extension}
 =====================================================
@@ -1712,55 +1756,24 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
         1. If the result of running [=SharedStorageWorkletGlobalScope/check whether addModule is finished=] for {{SharedStorage}}'s associated {{SharedStorageWorkletGlobalScope}} is false, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
+    1. For each |method| in |methods|:
+        1. |method|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+            1. Return a [=promise rejected=] with a {{TypeError}}.
+
+            Note: `batchUpdate()` executes as a transactional operation. To avoid potential deadlocks from finer-grained locking, inner methods within `batchUpdate()` cannot utilize the `withLock` option. Instead of ignoring this option, an error is thrown to enforce the restriction and prevent misuse.
     1. Let |environment| be |context|'s [=active window=]'s [=relevant settings object=].
     1. Let |databaseMap| be the result of running [=obtain a shared storage bottle map=] given |environment| and |environment|'s [=environment settings object/origin=].
     1. If |databaseMap| is failure, then return a [=promise rejected=] with a {{TypeError}}.
-    1. Let |unfinishedUpdatesCount| be |methods|'s [=list/size=].
-    1. Let |hasFailure| be false.
     1. Let |onLockGrantedCallback| be an algorithm to perform the following steps:
-        1. For each |method| in |methods|:
-            1. Let |methodResultPromise| be a new [=promise=].
-            1. If |method| is a {{SharedStorageSetMethod}}:
-                1. Let |key| be |method|'s [=SharedStorageSetMethod/key=].
-                1. Let |value| be |method|'s [=SharedStorageSetMethod/value=].
-                1. Let |methodOptions| be a new {{SharedStorageSetMethodOptions}}.
-                1. Set |methodOptions|["{{SharedStorageSetMethodOptions/ignoreIfPresent}}"] to |method|'s [=SharedStorageSetMethod/ignore if present=].
-                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
-                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/set()|set}}(|key|, |value|, |methodOptions|).
-            1. Else if |method| is a {{SharedStorageAppendMethod}}:
-                1. Let |key| be |method|'s [=SharedStorageAppendMethod/key=].
-                1. Let |value| be |method|'s [=SharedStorageAppendMethod/value=].
-                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
-                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
-                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/append()|append}}(|key|, |value|, |methodOptions|).
-            1. Else if |method| is a {{SharedStorageDeleteMethod}}:
-                1. Let |key| be |method|'s [=SharedStorageDeleteMethod/key=].
-                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
-                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
-                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/delete()|delete}}(|key|, |methodOptions|).
-            1. Else:
-                1. [=Assert=]: |method| is a {{SharedStorageClearMethod}}.
-                1. Let |methodOptions| be a new {{SharedStorageModifierMethodOptions}}.
-                1. If |method|'s [=SharedStorageModifierMethod/with lock=] is not null, set |methodOptions|["{{SharedStorageModifierMethodOptions/withLock}}"] to |method|'s [=SharedStorageModifierMethod/with lock=].
-                1. Set |methodResultPromise| to the result of invoking {{SharedStorage/clear()|clear}}(|methodOptions|).
-            1. [=Upon fulfillment=] of |methodResultPromise|:
-                1. Decrement |unfinishedUpdatesCount| by 1.
-                1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
-            1. [=Upon rejection=] of |methodResultPromise|:
-                1. Decrement |unfinishedUpdatesCount| by 1.
-                1. Set |hasFailure| to true.
-                1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
-        1. If |unfinishedUpdatesCount| is 0, run [=finish a batch update=] given |promise| and |hasFailure|.
+        1. [=Enqueue the following steps=] on |queue|:
+            1. Let |result| be the result of running [=shared storage database/batch update entries in the database=] with |queue|, |databaseMap|, |environment|, and |methods|.
+            1. If |result| is false and if |globalObject| is a {{SharedStorageWorkletGlobalScope}}:
+                1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=reject=] |promise| with a {{TypeError}}.
+                1. Abort these steps.
+            1. [=Queue a global task=] on the [=DOM manipulation task source=], given |realm|'s [=global object=], to [=resolve=] |promise| with undefined.
     1. If |options|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=], run [=handle callback within a shared storage lock=] given |environment|'s [=environment settings object/origin=], |options|["{{SharedStorageModifierMethodOptions/withLock}}"], |onLockGrantedCallback|.
     1. Else, run |onLockGrantedCallback|.
     1. Return |promise|.
-  </div>
-
-  <div algorithm>
-    To <dfn>finish a batch update</dfn>, given a [=promise=] |promise| and a [=/boolean=] |hasFailure|, perform the following steps:
-
-    1. If |hasFailure| is true, [=reject=] |promise| with a {{TypeError}}.
-    1. Else, [=resolve=] |promise| with undefined.
   </div>
 
 ## Setter/Deleter Methods ## {#setter}
