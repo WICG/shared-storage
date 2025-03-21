@@ -1757,7 +1757,7 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
     1. If |context| is null, return a [=promise rejected=] with a {{TypeError}}.
     1. If |context|'s [=active window=]'s [=associated document=] is not [=fully active=], return a [=promise rejected=] with a {{TypeError}}.
     1. For each |method| in |methods|:
-        1. |method|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
+        1. If |method|["{{SharedStorageModifierMethodOptions/withLock}}"] [=map/exists=]:
             1. Return a [=promise rejected=] with a {{TypeError}}.
 
             Note: `batchUpdate()` executes as a transactional operation. To avoid potential deadlocks from finer-grained locking, inner methods within `batchUpdate()` cannot utilize the `withLock` option. Instead of ignoring this option, an error is thrown to enforce the restriction and prevent misuse.
