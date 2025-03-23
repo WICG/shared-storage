@@ -128,34 +128,6 @@ spec: attestation; urlPrefix: https://github.com/privacysandbox/attestation
 spec: private-aggregation-api; urlPrefix: https://patcg-individual-drafts.github.io/private-aggregation-api/
     type: dfn
         text: Private Aggregation; url:
-        text: get the privateAggregation
-        text: determine if an origin is an aggregation coordinator
-        text: pre-specified report parameters
-        for: pre-specified report parameters
-            text: context ID
-            text: filtering ID max bytes
-            text: max contributions
-        text: batching scope
-        text: debug scope
-        text: process contributions for a batching scope
-        text: set the aggregation coordinator for a batching scope
-        text: determine if a report should be sent deterministically
-        text: mark a debug scope complete
-        text: set the pre-specified report parameters for a batching scope
-        text: aggregation coordinator
-        text: default filtering id max bytes
-        text: valid filtering id max bytes range
-        text: context id
-        text: scoping details
-        for: scoping details
-            text: get batching scope steps
-            text: get debug scope steps
-        text: private-aggregation
-        for: PrivateAggregation
-            text: allowed to use
-            text: scoping details; url: #privateaggregation-scoping-details
-    type: interface
-        text: PrivateAggregation
 spec: protected-audience; urlPrefix: https://wicg.github.io/turtledove/
     type: dfn
         text: get storage interest groups for owner
@@ -394,21 +366,23 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
                 :   If it was fulfilled with value |index|:
                 ::  1. If |index| is greater than |urlList|'s [=list/size=], then:
                         1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
-                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}, and abort these steps.
+                        1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
+                        1. Run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/normal completion=].
+                        1. Return (|promise|, false).
 
                         Note: The result index is beyond the input urls' size. This violates the selectURL() protocol, and we don't know which url should be selected.
 
-                        Otherwise:
+                    1. Otherwise:
                         1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and |index|.
                         1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=resolve=] |promise| with |index|.
-                        1. Run |privateAggregationCompletionTask|.
+                        1. Run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/normal completion=].
 
                 :   If it was rejected:
                 ::  1. If |savedQueryName| is a [=string=] that is not the empty string, then run [=store the index for a saved query=] with |window|, |navigable|, |workletDataOrigin|, |moduleURLRecord|, |operationName|, |savedQueryName|, and the [=default selectURL index=].
                     1. [=Queue a global task=] on the [=DOM manipulation task source=], given |window|, to [=reject=] |promise| with a {{TypeError}}.
 
                         Note: This indicates that either |operationCtor|'s run() method encounters an error (where |operationCtor| is the parameter in {{SharedStorageWorkletGlobalScope/register()}}), or the result |index| is a non-integer value, which violates the selectURL() protocol, and we don't know which url should be selected.
-                    1. Run |privateAggregationCompletionTask|.
+                    1. Run |privateAggregationCompletionTask| given [=Private Aggregation completion task trigger/uncaught exception=].
             </dl>
     1. Return the [=tuple=] (|promise|, true).
   </div>
@@ -543,105 +517,6 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
             1. Wait for |operation| to finish running, if applicable.
             1. Run [=terminate a worklet global scope=] with [=this=].
   </div>
-
-  <div algorithm>
-    To <dfn>obtain the aggregation coordinator</dfn> given a
-    {{SharedStorageRunOperationMethodOptions}} |options|, perform the following
-    steps. They return an [=aggregation coordinator=], null or a {{DOMException}}:
-
-    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
-        does not [=map/exist=], return null.
-    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"]
-        does not [=map/exist=], return null.
-    1. Return the result of [=obtaining the Private Aggregation coordinator=]
-        given
-        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"].
-  </div>
-
-  <div algorithm>
-    To <dfn>obtain the pre-specified report parameters</dfn> given a
-    {{SharedStorageRunOperationMethodOptions}} |options| and a [=/browsing
-    context=] |context|, perform the following steps. They return a
-    [=pre-specified report parameters=], null, or a {{DOMException}}:
-    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
-        does not [=map/exist=], return null.
-    1. Let |privateAggregationConfig| be
-        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"].
-    1. Let |contextId| be null.
-    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"]
-        [=map/exists=], set |contextId| to
-        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"].
-    1. If |contextId|'s [=string/length=] is greater than 64, return a new
-        {{DOMException}} with name "`DataError`".
-    1. Let |filteringIdMaxBytes| be the [=default filtering ID max bytes=].
-    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"]
-        [=map/exists=], set |filteringIdMaxBytes| to
-        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"].
-    1. If |filteringIdMaxBytes| is not [=set/contained=] in the [=valid filtering ID
-        max bytes range=], return a new {{DOMException}} with name "`DataError`".
-    1. If |context|'s [=browsing context/fenced frame config instance=] is not null:
-        1. If |filteringIdMaxBytes| is not the [=default filtering ID max bytes=] or
-            |contextId| is not null, return a new {{DOMException}} with name
-            "`DataError`".
-    1. Let |maxContributions| be null.
-    1. If
-        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"]
-        [=map/exists=], set |maxContributions| to
-        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"].
-    1. If |maxContributions| is zero, return a new {{DOMException}} with name
-        "`DataError`".
-    1. Return a new [=pre-specified report parameters=] with the items:
-        : <a spec="private-aggregation-api" for="pre-specified report parameters">context ID</a>
-        :: |contextId|
-        : [=pre-specified report parameters/filtering ID max bytes=]
-        :: |filteringIdMaxBytes|
-        : [=pre-specified report parameters/max contributions=]
-        :: |maxContributions|
-  </div>
-
-  <div algorithm>
-    To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
-    |workletDataOrigin|, a [=pre-specified report parameters=] or null
-    |preSpecifiedParams| and an [=aggregation coordinator=] or null
-    |aggregationCoordinator|, perform the following steps. They return an
-    algorithm.
-
-    Note: The returned algorithm should be run when the associated operation is
-        complete.
-
-    1. Let |batchingScope| be a new [=batching scope=].
-    1. Let |debugScope| be a new [=debug scope=].
-    1. Let |privateAggregationTimeout| be null.
-    1. Let |hasRunPrivateAggregationCompletionTask| be false.
-    1. Let |privateAggregationCompletionTask| be an algorithm to perform the
-        following steps:
-        1. If |hasRunPrivateAggregationCompletionTask|, return.
-        1. Set |hasRunPrivateAggregationCompletionTask| to true.
-        1. [=Mark a debug scope complete=] given |debugScope|.
-        1. [=Process contributions for a batching scope=] given
-            |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
-            and |privateAggregationTimeout|.
-    1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
-        for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
-    1. If |preSpecifiedParams| is not null:
-        1. Let |isDeterministicReport| be the result of [=determining if a report
-            should be sent deterministically=] given |preSpecifiedParams|.
-        1. If |isDeterministicReport|:
-            1. Set |privateAggregationTimeout| to the [=/current wall time=] plus
-                the [=deterministic operation timeout duration=].
-        1. [=Set the pre-specified report parameters for a batching scope=] given
-            |preSpecifiedParams| and |batchingScope|.
-        1. If |isDeterministicReport|, run the following steps [=in parallel=]:
-            1. Wait until |privateAggregationTimeout|.
-            1. Run |privateAggregationCompletionTask|.
-    1. Return |privateAggregationCompletionTask|.
-  </div>
-
-  The <dfn>deterministic operation timeout duration</dfn> is an
-  [=implementation-defined=] non-negative [=duration=] that controls how long a
-  Shared Storage operation may make Private Aggregation contributions if it is
-  triggering a deterministic report and, equivalently, when that report should
-  be sent after the operation begins.
 
   ## Monkey Patch for [=Worklets=] ## {#worklet-monkey-patch}
 
@@ -798,17 +673,20 @@ Moreover, each {{SharedStorageWorklet}}'s [=global scopes|list of global scopes=
         1. Set |privateAggregationObj|'s [=PrivateAggregation/scoping details=] to a
                 new [=/scoping details=] with the items:
             : [=scoping details/get batching scope steps=]
-            :: An algorithm that returns the [=batching scope=] that is scheduled to
+            :: An algorithm that returns the [=/batching scope=] that is scheduled to
                 be passed to [=process contributions for a batching scope=] when the
                 call currently executing in |scope| returns.
             : [=scoping details/get debug scope steps=]
-            :: An algorithm that returns the [=debug scope=] that is scheduled to be
+            :: An algorithm that returns the [=/debug scope=] that is scheduled to be
                 passed to [=mark a debug scope complete=] when the call currently
                 executing in |scope| returns.
 
             Note: Multiple operation invocations can be in-progress at the same
             time, each with a different batching scope and debug scope. However,
             only one can be currently executing.
+        1. Set |privateAggregationObj|'s [=PrivateAggregation/should perform default
+            contributeToHistogramOnEvent() processing=] to the algorithm [=determine
+            whether to perform default contributeToHistogramOnEvent() processing=].
 
 
   A <dfn>trusted origin type</dfn> is a [=string=] or [=list=] of [=strings=].
@@ -1208,6 +1086,169 @@ navigables</a> section, add the following:
     1. Return true.
 
   </div>
+
+  ## Private Aggregation integration ## {#private-aggregation-integration}
+
+  A <dfn>Private Aggregation completion task trigger</dfn> is one of the following:
+  <dl dfn-for="Private Aggregation completion task trigger">
+    : <dfn>normal completion</dfn>
+    :: The operation completed without any other triggers occurring.
+    : <dfn>timeout</dfn>
+    :: The operation ran for at least the [=deterministic operation timeout duration=] (without another trigger occurring).
+    : <dfn>uncaught exception</dfn>
+    :: An [=exception=] was [=exception/thrown=] without being caught.
+  </dl>
+
+  <div algorithm>
+    To <dfn>obtain the aggregation coordinator</dfn> given a
+    {{SharedStorageRunOperationMethodOptions}} |options|, perform the following
+    steps. They return an [=aggregation coordinator=], null or a {{DOMException}}:
+
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
+        does not [=map/exist=], return null.
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"]
+        does not [=map/exist=], return null.
+    1. Return the result of [=obtaining the Private Aggregation coordinator=]
+        given
+        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]["{{SharedStoragePrivateAggregationConfig/aggregationCoordinatorOrigin}}"].
+  </div>
+
+  <div algorithm>
+    To <dfn>obtain the pre-specified report parameters</dfn> given a
+    {{SharedStorageRunOperationMethodOptions}} |options| and a [=/browsing
+    context=] |context|, perform the following steps. They return a
+    [=pre-specified report parameters=], null, or a {{DOMException}}:
+    1. If |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"]
+        does not [=map/exist=], return null.
+    1. Let |privateAggregationConfig| be
+        |options|["{{SharedStorageRunOperationMethodOptions/privateAggregationConfig}}"].
+    1. Let |contextId| be null.
+    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"]
+        [=map/exists=], set |contextId| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/contextId}}"].
+    1. If |contextId|'s [=string/length=] is greater than 64, return a new
+        {{DOMException}} with name "`DataError`".
+    1. Let |filteringIdMaxBytes| be the [=default filtering ID max bytes=].
+    1. If |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"]
+        [=map/exists=], set |filteringIdMaxBytes| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/filteringIdMaxBytes}}"].
+    1. If |filteringIdMaxBytes| is not [=set/contained=] in the [=valid filtering ID
+        max bytes range=], return a new {{DOMException}} with name "`DataError`".
+    1. If |context|'s [=browsing context/fenced frame config instance=] is not null:
+        1. If |filteringIdMaxBytes| is not the [=default filtering ID max bytes=] or
+            |contextId| is not null, return a new {{DOMException}} with name
+            "`DataError`".
+    1. Let |maxContributions| be null.
+    1. If
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"]
+        [=map/exists=], set |maxContributions| to
+        |privateAggregationConfig|["{{SharedStoragePrivateAggregationConfig/maxContributions}}"].
+    1. If |maxContributions| is zero, return a new {{DOMException}} with name
+        "`DataError`".
+    1. Return a new [=pre-specified report parameters=] with the items:
+        : <a spec="private-aggregation-api" for="pre-specified report parameters">context ID</a>
+        :: |contextId|
+        : [=pre-specified report parameters/filtering ID max bytes=]
+        :: |filteringIdMaxBytes|
+        : [=pre-specified report parameters/max contributions=]
+        :: |maxContributions|
+  </div>
+
+  <div algorithm>
+    To <dfn>set up the Private Aggregation scopes</dfn> given an [=/origin=]
+    |workletDataOrigin|, a [=pre-specified report parameters=] or null
+    |preSpecifiedParams| and an [=aggregation coordinator=] or null
+    |aggregationCoordinator|, perform the following steps. They return an
+    algorithm that takes a [=Private Aggregation completion task trigger=]
+    argument.
+
+    Note: The returned algorithm should be run when the associated operation is
+        complete.
+
+    1. Let |batchingScope| be a new [=/batching scope=].
+    1. Let |debugScope| be a new [=/debug scope=].
+    1. Let |privateAggregationTimeout| be null.
+    1. Let |hasRunPrivateAggregationCompletionTask| be false.
+    1. Let |privateAggregationCompletionTask| be an algorithm that is given a
+        [=Private Aggregation completion task trigger=] |trigger| that performs
+        the following steps:
+        1. If |hasRunPrivateAggregationCompletionTask|, return.
+        1. Set |hasRunPrivateAggregationCompletionTask| to true.
+        1. [=Mark a debug scope complete=] given |debugScope|.
+        1. If |trigger| is [=Private Aggregation completion task trigger/
+            timeout=], set |privateAggregationTimeout| to null.
+
+            Note: A null timeout is used to identify that a timeout caused this
+                task to be run.
+        1. If |trigger| is [=Private Aggregation completion task trigger/
+            uncaught exception=]:
+            1. If [=uncaught exception contribution cache=][|batchingScope|]
+                [=map/exists=]:
+                1. [=list/For each=] |entry| of [=uncaught exception
+                    contribution cache=][|batchingScope|], [=append an entry to
+                    the contribution cache|append=] |entry| to the
+                    contribution cache.
+        1. [=map/Remove=] [=uncaught exception contribution
+            cache=][|batchingScope|].
+        1. [=Process contributions for a batching scope=] given
+            |batchingScope|, |workletDataOrigin|, "<code>shared-storage</code>"
+            and |privateAggregationTimeout|.
+    1. If |aggregationCoordinator| is not null, [=set the aggregation coordinator
+        for a batching scope=] given |aggregationCoordinator| and |batchingScope|.
+    1. If |preSpecifiedParams| is not null:
+        1. Let |isDeterministicReport| be the result of [=determining if a report
+            should be sent deterministically=] given |preSpecifiedParams|.
+        1. If |isDeterministicReport|:
+            1. Set |privateAggregationTimeout| to the [=/current wall time=] plus
+                the [=deterministic operation timeout duration=].
+        1. [=Set the pre-specified report parameters for a batching scope=] given
+            |preSpecifiedParams| and |batchingScope|.
+        1. If |isDeterministicReport|, run the following steps [=in parallel=]:
+            1. Wait until |privateAggregationTimeout|.
+            1. Run |privateAggregationCompletionTask| with [=Private Aggregation
+                completion task trigger/timeout=] bound as the argument.
+    1. Return |privateAggregationCompletionTask|.
+  </div>
+
+  The <dfn>deterministic operation timeout duration</dfn> is an
+  [=implementation-defined=] non-negative [=duration=] that controls how long a
+  Shared Storage operation may make Private Aggregation contributions if it is
+  triggering a deterministic report and, equivalently, when that report should
+  be sent after the operation begins.
+
+  <div algorithm>
+  To <dfn>determine whether to perform default contributeToHistogramOnEvent()
+  processing</dfn> given a {{PrivateAggregation}} |this|, a {{DOMString}} |event|
+  and a [=map=] (with {{DOMString}} keys) |contribution|, perform the following
+  steps. They return a boolean or an [=exception=].
+  1. If |event| is not "<code>reserved.uncaught-exception</code>", return true.
+
+      Note: Default processing is only overridden for the custom event.
+  1. Set |contribution| to the result of [=converted to an IDL value|converting=]
+    |contribution|'s [=converted to a JavaScript value|JavaScript value=] to the
+    IDL type {{PAHistogramContribution}}.
+
+    Note: This throws a {{TypeError}} if |contribution| is not compatible.
+  1. Let |maybeContributionCacheEntry| be the result of [=validating a histogram
+      contribution=] given |contribution| and |this|'s [=PrivateAggregation/
+      scoping details=].
+  1. If |maybeContributionCacheEntry| is an [=exception=], return
+      |maybeContributionCacheEntry|.
+  1. [=Assert=]: |maybeContributionCacheEntry| is a [=contribution cache entry=].
+  1. Let |maybeContributionCacheEntry|'s [=contribution cache entry/error
+      event=] be <code>[=already triggered external error=]</code>.
+  1. Let |batchingScope| be |maybeContributionCacheEntry|'s [=contribution
+      cache entry/batching scope=].
+  1. If [=uncaught exception contribution cache=][|batchingScope|] does not
+      [=map/exist=], [=map/set=] [=uncaught exception contribution
+      cache=][|batchingScope|] to a new [=list=].
+  1. [=list/Append=] |maybeContributionCacheEntry| to [=uncaught exception
+      contribution cache=][|batchingScope|].
+
+</div>
+
+The [=user agent=] holds a <dfn>uncaught exception contribution cache</dfn>,
+which is a [=map=] from [=/batching scopes=] to [=contribution cache entries=].
 
 Shared Storage's Backend {#backend}
 ===================================
@@ -2448,7 +2489,6 @@ The [=obtain a lock manager=] algorithm should be prepended with the following s
 
     Note: With the default {{LockOptions}}, |callback| will eventually be called when the lock is granted (i.e., the lock request won't fail).
   </div>
-
 
 Permissions Policy Integration {#permission}
 ============================================
