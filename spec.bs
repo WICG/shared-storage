@@ -2455,7 +2455,7 @@ Permissions Policy Integration {#permission}
 
 This specification defines three [=policy-controlled features=] identified by the following strings:
 
-<dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
+"<dfn for="PermissionsPolicy">shared-storage</dfn>" gates access to Shared Storage in general.
 
 "<dfn for="PermissionsPolicy">shared-storage-select-url</dfn>" adds an extra permission layer to {{SharedStorageWorklet/selectURL()}}
 
