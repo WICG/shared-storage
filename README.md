@@ -75,7 +75,7 @@ class Writer {
   async run(data) {
     const existingGroup = sharedStorage.get('group');
     if (!existingGroup) {
-        cibst newGroup = data['group'];
+        const newGroup = data['group'];
         sharedStorage.set('group', newGroup);
     }
   }
