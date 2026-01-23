@@ -1688,7 +1688,7 @@ Note: The [=determine if a navigable has fully revoked network=] algorithm ensur
     Promise<double> remainingBudget();
 
     [Exposed=SharedStorageWorklet]
-    async iterable<DOMString, DOMString>;
+    async_iterable<DOMString, DOMString>;
   };
 
   dictionary SharedStoragePrivateAggregationConfig {
