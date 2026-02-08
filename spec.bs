@@ -323,7 +323,7 @@ When {{Worklet/addModule()}} is called for a worklet, it will run [=check if add
     - For running operations on a worklet (from a {{Window}}), |environment| is the [=environment settings object=] associated with the {{Window}} that created the worklet, and |origin| is the worklet's [=global scopes=][0]'s [=global object/realm=]'s [=realm/settings object=]'s [=environment settings object/origin=].
     - For [[#setter]], |environment| is either the current context (when called from a {{Window}}) or the [=environment settings object=] associated with the {{Window}} that created the worklet (when called from a {{SharedStorageWorkletGlobalScope}}), and |origin| is |environment|'s [=environment settings object/origin=].
     - For {{SharedStorage/get()}} invoked from a {{Window}} (which can only succeed in a [=fenced frame=]), |environment| is the current context, and |origin| is |environment|'s [=environment settings object/origin=].
-    - For [[#ss-fetch-algo]], |environment| is the request's [=request/window=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
+    - For [[#ss-fetch-algo]], |environment| is the request's [=request/client=], and |origin| is the request's [=request/current URL=]'s [=url/origin=].
     - For [[#ss-fetch-algo]], for {{SharedStorage/createWorklet()}} called with a cross-origin worklet script using the <var ignore=''>dataOrigin</var> option with value `"script-origin"` (which would result in a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true), and for {{SharedStorageWorklet/selectURL()}} and {{SharedStorageWorklet/run()}} that operate on a worklet where [=SharedStorageWorklet/has cross-origin data origin=] is true, |allowedInOpaqueOriginContext| is true. For other methods, |allowedInOpaqueOriginContext| is false.
   </div>
 
@@ -2233,8 +2233,8 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
   <div algorithm>
     To <dfn>determine whether a request can currently use shared storage</dfn>, given a [=/request=] |request|, perform the following steps:
 
-    1. Let |window| to |request|'s [=request/window=].
-    1. If |window| is not an [=environment settings object=] whose [=global object=] is a {{Window}}, return false.
+    1. Let |window| to |request|'s [=request/client=].
+    1. If |window| is not an [=environment settings object=] whose [=environment settings object/global object=] is a {{Window}}, return false.
     1. Let |allowedInOpaqueOriginContext| be true.
     1. If the result of running [=determine whether shared storage is allowed by context=] given |window|, |request|'s [=request/current URL=]'s [=url/origin=], and |allowedInOpaqueOriginContext| is false, return false.
     1. If the result of running [=check if user preference setting allows access to shared storage=] given |window| and |request|'s [=request/current URL=]'s [=url/origin=] is false, return false.
@@ -2258,9 +2258,9 @@ The IDL attribute {{HTMLSharedStorageWritableElementUtils/sharedStorageWritable}
 
     1. Let |sharedStorageWritable| the result of running [=get a structured field value=] algorithm given [:Sec-Shared-Storage-Writable:], "`item`", and |request|'s [=request/header list=] as input.
     1. If |sharedStorageWritable| is null, or |sharedStorageWritable| is not a [=structured header/Boolean=], or the value of |sharedStorageWritable| is false, return.
-    1. Let |window| to |request|'s [=request/window=].
-    1. [=Assert=]: |window| is an [=environment settings object=] whose [=global object=] is a {{Window}}.
-    1. Let |sharedStorage| be |window|'s [=global object=]'s {{Window/sharedStorage}}.
+    1. Let |window| to |request|'s [=request/client=].
+    1. [=Assert=]: |window| is an [=environment settings object=] whose [=environment settings object/global object=] is a {{Window}}.
+    1. Let |sharedStorage| be |window|'s [=environment settings object/global object=]'s {{Window/sharedStorage}}.
     1. If |sharedStorage| is null, then return.
     1. Let |list| be |response|'s [=response/header list=].
     1. Let |operationsToParse| be the result of running [=get a structured field value=] algorithm given [:Shared-Storage-Write:], "`list`", and |list| as input.
